@@ -101,7 +101,7 @@ func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 
 	// assemble the query
 	// SELECT AND FROM
-	query := fmt.Sprintf("SELECT %s FROM %s", strings.Join(columns, ", "), m.From(q.Table.Name))
+	query := fmt.Sprintf("SELECT %s %s", strings.Join(columns, ", "), m.From(q.Table.Name))
 	values := colValues
 
 	// JOIN
@@ -139,32 +139,34 @@ func buildJoinStatement(tableName string, joins *[]structs.Join) (*[]structs.Col
 		}
 		if _, ok := join.TargetNameMap[consts.Join_INNER]; ok {
 			targetName = join.TargetNameMap[consts.Join_INNER]
-			joinType = consts.Join_INNER
+			joinType = consts.Join_Type_INNER
 		}
 
-		if targetName != "" {
-			name := tableName
-			if join.Name != "" {
-				name = join.Name
-			}
-
-			targetNameForSelect := targetName + ".*"
-			if !sliceutils.Contains[string](*getNowColNames(&joinedTablesForSelect), targetNameForSelect) {
-				joinedTablesForSelect = append(joinedTablesForSelect, structs.Column{
-					Name: targetNameForSelect,
-				})
-			}
-			nameForSelect := name + ".*"
-			if !sliceutils.Contains[string](*getNowColNames(&joinedTablesForSelect), nameForSelect) {
-				joinedTablesForSelect = append(joinedTablesForSelect, structs.Column{
-					Name: nameForSelect,
-				})
-			}
-
-			joinQuery := joinType + " JOIN " + targetName + " ON " + join.SearchColumn + " " + join.SearchCondition + " " + join.SearchTargetColumn
-
-			joinStrings = append(joinStrings, joinQuery)
+		if targetName == "" {
+			continue
 		}
+
+		name := tableName
+		if join.Name != "" {
+			name = join.Name
+		}
+
+		targetNameForSelect := targetName + ".*"
+		if !sliceutils.Contains[string](*getNowColNames(&joinedTablesForSelect), targetNameForSelect) {
+			joinedTablesForSelect = append(joinedTablesForSelect, structs.Column{
+				Name: targetNameForSelect,
+			})
+		}
+		nameForSelect := name + ".*"
+		if !sliceutils.Contains[string](*getNowColNames(&joinedTablesForSelect), nameForSelect) {
+			joinedTablesForSelect = append(joinedTablesForSelect, structs.Column{
+				Name: nameForSelect,
+			})
+		}
+
+		joinQuery := joinType + " JOIN " + targetName + " ON " + join.SearchColumn + " " + join.SearchCondition + " " + join.SearchTargetColumn
+
+		joinStrings = append(joinStrings, joinQuery)
 
 	}
 
@@ -205,7 +207,7 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 		}
 
 		for _, c := range cg.Conditions {
-			convertedColumn := c.Colmun
+			convertedColumn := c.Column
 			/*
 				convertedColumn := c.Colmun
 				convertedSelectColumns := []structs.Column{}

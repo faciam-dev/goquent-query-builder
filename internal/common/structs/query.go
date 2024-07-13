@@ -11,7 +11,7 @@ type Table struct {
 }
 
 type Where struct {
-	Colmun    string
+	Column    string
 	Condition string
 	Value     []interface{}
 	Operator  int

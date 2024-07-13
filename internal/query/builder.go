@@ -50,7 +50,7 @@ func (b *Builder) Select(columns ...string) *Builder {
 
 func (b *Builder) Where(column string, condition string, value ...interface{}) *Builder {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
-		Colmun:    column,
+		Column:    column,
 		Condition: condition,
 		Value:     value,
 		Operator:  consts.LogicalOperator_AND,
