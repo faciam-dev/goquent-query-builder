@@ -3,6 +3,7 @@ package query_test
 import (
 	"testing"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -17,7 +18,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Select",
 			func() *query.Builder {
-				return query.NewBuilder(db.MySQLQueryBuilder{}).Select("id", "name")
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Select("id", "name")
 			},
 			"SELECT id, name FROM ",
 			nil,
@@ -25,7 +26,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"From",
 			func() *query.Builder {
-				return query.NewBuilder(db.MySQLQueryBuilder{}).Table("users")
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Table("users")
 			},
 			"SELECT  FROM users",
 			nil,
@@ -33,7 +34,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Where",
 			func() *query.Builder {
-				return query.NewBuilder(db.MySQLQueryBuilder{}).Where("age", ">", 18)
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Where("age", ">", 18)
 			},
 			"SELECT  FROM  WHERE age > ?",
 			[]interface{}{18},
@@ -41,7 +42,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Join",
 			func() *query.Builder {
-				return query.NewBuilder(db.MySQLQueryBuilder{}).Join("orders", "users.id", "=", "orders.user_id")
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Join("orders", "users.id", "=", "orders.user_id")
 			},
 			"SELECT orders.*, .* FROM  INNER JOIN orders ON users.id = orders.user_id",
 			nil,
@@ -49,7 +50,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrderBy",
 			func() *query.Builder {
-				return query.NewBuilder(db.MySQLQueryBuilder{}).OrderBy("name", "asc")
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).OrderBy("name", "asc")
 			},
 			"SELECT  FROM  ORDER BY name ASC",
 			nil,

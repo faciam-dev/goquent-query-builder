@@ -14,30 +14,23 @@ func main() {
 	// データベースごとのクエリビルダーストラテジーを選択
 	dbStrategy := db.MySQLQueryBuilder{}
 
-	qb := api.NewQueryBuilder(dbStrategy).
+	asyncCache := cache.NewAsyncQueryCache()
+
+	qb := api.NewQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "name").
 		//Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("age", ">", 18).
 		OrderBy("name", "ASC")
 
-	asyncCache := cache.NewAsyncQueryCache()
 	//txManager := transaction.NewTransactionManager()
 	query, values := qb.Build()
 
 	// プロファイリング
 	profiling.Profile(query, func() {
-		// キャッシュチェック
-		if cachedQuery, found := asyncCache.Get(query); found {
-			fmt.Println("Cache hit:", cachedQuery)
-		} else {
-			// トランザクション処理
-			//txManager.Begin()
-			fmt.Println("Executing query:", query, "with values:", values)
-			time.Sleep(2 * time.Second) // Simulate query execution
-			//txManager.Commit()
-			asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
-		}
+		fmt.Println("Executing query:", query, "with values:", values)
+		time.Sleep(2 * time.Second)                           // Simulate query execution
+		asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
 	})
 
 	// 非同期実行

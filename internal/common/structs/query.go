@@ -15,7 +15,7 @@ type Where struct {
 	Condition string
 	Value     []interface{}
 	Operator  int
-	Query     Query
+	Query     *Query
 }
 
 type WhereGroup struct {

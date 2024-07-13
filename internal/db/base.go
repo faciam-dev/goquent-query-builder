@@ -221,12 +221,12 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 					}
 				}
 			*/
-			if (c.Query.ConditionGroups != nil && len(*c.Query.ConditionGroups) > 0) || (c.Query.SubQuery != nil && len(*c.Query.SubQuery) > 0) {
+			if (c.Query != nil && c.Query.ConditionGroups != nil && len(*c.Query.ConditionGroups) > 0) || (c.Query != nil && c.Query.SubQuery != nil && len(*c.Query.SubQuery) > 0) {
 				condQuery := convertedColumn + " " + c.Condition
 
 				// create subquery
 				b := &BaseQueryBuilder{}
-				sqQuery, sqValues := b.Build(&c.Query)
+				sqQuery, sqValues := b.Build(c.Query)
 				if c.Operator == consts.LogicalOperator_AND {
 					where += op + condQuery + "(" + sqQuery + ")"
 					op = " AND "

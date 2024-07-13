@@ -9,13 +9,12 @@ import (
 
 func TestAsyncQueryCache(t *testing.T) {
 	tests := []struct {
-		name     string
-		setup    func() *cache.AsyncQueryCache
-		key      string
-		value    string
-		expected string
-		found    bool
-		waitTime time.Duration
+		name        string
+		setup       func() *cache.AsyncQueryCache
+		key         string
+		expected    string
+		shouldExist bool
+		waitTime    time.Duration
 	}{
 		{
 			"Set and Get",
@@ -26,7 +25,6 @@ func TestAsyncQueryCache(t *testing.T) {
 			},
 			"SELECT * FROM users",
 			"result",
-			"result",
 			true,
 			100 * time.Millisecond,
 		},
@@ -36,7 +34,6 @@ func TestAsyncQueryCache(t *testing.T) {
 				return cache.NewAsyncQueryCache()
 			},
 			"SELECT * FROM users",
-			"",
 			"",
 			false,
 			100 * time.Millisecond,
@@ -50,7 +47,6 @@ func TestAsyncQueryCache(t *testing.T) {
 			},
 			"SELECT * FROM users",
 			"result",
-			"result",
 			true,
 			100 * time.Millisecond,
 		},
@@ -63,7 +59,6 @@ func TestAsyncQueryCache(t *testing.T) {
 			},
 			"SELECT * FROM users",
 			"",
-			"",
 			false,
 			300 * time.Millisecond,
 		},
@@ -71,13 +66,11 @@ func TestAsyncQueryCache(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			cache := tt.setup()
 			time.Sleep(tt.waitTime)
 			result, found := cache.Get(tt.key)
-			if found != tt.found {
-				t.Errorf("expected found to be %v but got %v", tt.found, found)
+			if found != tt.shouldExist {
+				t.Errorf("expected found to be %v but got %v", tt.shouldExist, found)
 			}
 			if result != tt.expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, result)
