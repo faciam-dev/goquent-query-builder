@@ -17,8 +17,9 @@ func main() {
 	qb := api.NewQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "name").
-		Where("age > ?", 18).
-		OrderBy("name")
+		//Join("profiles", "users.id", "=", "profiles.user_id").
+		Where("age", ">", 18).
+		OrderBy("name", "ASC")
 
 	asyncCache := cache.NewAsyncQueryCache()
 	//txManager := transaction.NewTransactionManager()
