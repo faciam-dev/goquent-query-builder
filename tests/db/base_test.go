@@ -60,12 +60,101 @@ func TestBaseQueryBuilder(t *testing.T) {
 								Operator:  consts.LogicalOperator_AND,
 							},
 						},
+						IsDummyGroup: true,
 					},
 				},
 			},
 			QueryBuilderExpected{
 				Expected: " WHERE age > ?",
 				Values:   []interface{}{18},
+			},
+		},
+		{
+			"WhereQuery",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:    "age",
+								Condition: ">",
+								Query: &structs.Query{
+									Columns: &[]structs.Column{
+										{Name: "id"},
+									},
+									Table:           structs.Table{Name: "users"},
+									ConditionGroups: &[]structs.WhereGroup{},
+									Conditions:      &[]structs.Where{},
+									Joins:           &[]structs.Join{},
+									Order:           &[]structs.Order{},
+									Group:           &structs.GroupBy{},
+								},
+								Operator: consts.LogicalOperator_AND,
+							},
+							{
+								Column:    "name",
+								Condition: "=",
+								Value:     []interface{}{"John"},
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+					},
+					{
+						Conditions: []structs.Where{
+							{
+								Column:    "city",
+								Condition: "=",
+								Value:     []interface{}{"New York"},
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE (age > (SELECT id FROM users) AND name = ?) AND city = ?",
+				Values:   []interface{}{"John", "New York"},
+			},
+		},
+		{
+			"WhereGroup",
+			"WhereGroup",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:    "age",
+								Condition: ">",
+								Value:     []interface{}{18},
+								Operator:  consts.LogicalOperator_AND,
+							},
+							{
+								Column:    "name",
+								Condition: "=",
+								Value:     []interface{}{"John"},
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+					},
+					{
+						Conditions: []structs.Where{
+							{
+								Column:    "city",
+								Condition: "=",
+								Value:     []interface{}{"New York"},
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE (age > ? AND name = ?) AND city = ?",
+				Values:   []interface{}{18, "John", "New York"},
 			},
 		},
 		{
@@ -122,6 +211,10 @@ func TestBaseQueryBuilder(t *testing.T) {
 			case "From":
 				got = builder.From(tt.input.Table.Name)
 			case "Where":
+				whereString, values := builder.Where(tt.input.ConditionGroups)
+				got = whereString
+				gotValues = values
+			case "WhereGroup":
 				whereString, values := builder.Where(tt.input.ConditionGroups)
 				got = whereString
 				gotValues = values

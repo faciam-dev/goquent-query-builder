@@ -27,7 +27,26 @@ func (qb *QueryBuilder) Select(columns ...string) *QueryBuilder {
 }
 
 func (qb *QueryBuilder) Where(column string, condition string, value interface{}) *QueryBuilder {
-	qb.builder.Where(column, condition, value)
+	switch v := value.(type) {
+	case QueryBuilder:
+		qb.builder.WhereQuery(column, condition, v.builder)
+	case []interface{}:
+		qb.builder.Where(column, condition, v...)
+	}
+	return qb
+}
+
+func (qb *QueryBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *QueryBuilder {
+	qb.builder.WhereQuery(column, condition, q.builder)
+	return qb
+}
+
+// WhereGroup
+func (qb *QueryBuilder) WhereGroup(fn func(qb *query.Builder) *query.Builder) *QueryBuilder {
+	qb.builder.WhereGroup(func(b *query.Builder) *query.Builder {
+		return fn(b)
+	})
+
 	return qb
 }
 

@@ -186,7 +186,6 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 	// WHERE
 	where := ""
 	values := []interface{}{}
-	op := ""
 
 	//log.Default().Printf("wherewhere: %v", wherewhere)
 	for _, cg := range *conditionGroups {
@@ -206,6 +205,17 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 			where += sep
 		}
 
+		parenthesesOpen := ""
+		parenthesesClose := ""
+		op := ""
+
+		if !cg.IsDummyGroup {
+			parenthesesOpen = "("
+			parenthesesClose = ")"
+		}
+
+		where += parenthesesOpen
+
 		for _, c := range cg.Conditions {
 			convertedColumn := c.Column
 			/*
@@ -221,20 +231,21 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 					}
 				}
 			*/
-			if (c.Query != nil && c.Query.ConditionGroups != nil && len(*c.Query.ConditionGroups) > 0) || (c.Query != nil && c.Query.SubQuery != nil && len(*c.Query.SubQuery) > 0) {
+			if c.Query != nil { // && c.Query.ConditionGroups != nil && len(*c.Query.ConditionGroups) > 0) || (c.Query != nil && c.Query.SubQuery != nil && len(*c.Query.SubQuery) > 0) {
 				condQuery := convertedColumn + " " + c.Condition
 
 				// create subquery
 				b := &BaseQueryBuilder{}
+				//log.Default().Printf("c.Query.Pro: %v", c.Query.Processed)
 				sqQuery, sqValues := b.Build(c.Query)
 				if c.Operator == consts.LogicalOperator_AND {
-					where += op + condQuery + "(" + sqQuery + ")"
+					where += op + condQuery + " (" + sqQuery + ")"
 					op = " AND "
 				} else if c.Operator == consts.LogicalOperator_OR {
-					where += op + condQuery + "(" + sqQuery + ")"
+					where += op + condQuery + " (" + sqQuery + ")"
 					op = " OR "
 				}
-				values = append(values, sqValues)
+				values = append(values, sqValues...)
 			} else if len(c.Value) == 1 {
 				condQuery := convertedColumn + " " + c.Condition + " ?"
 				value := c.Value[0]
@@ -261,6 +272,7 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 				}
 			}
 		}
+		where += parenthesesClose
 	}
 
 	if where != "" {

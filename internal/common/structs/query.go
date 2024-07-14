@@ -19,9 +19,10 @@ type Where struct {
 }
 
 type WhereGroup struct {
-	Conditions []Where
-	Subgroups  []WhereGroup
-	Operator   int
+	Conditions   []Where
+	Subgroups    []WhereGroup
+	Operator     int
+	IsDummyGroup bool
 }
 
 type Query struct {

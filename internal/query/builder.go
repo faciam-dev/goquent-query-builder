@@ -70,6 +70,49 @@ func (b *Builder) Where(column string, condition string, value ...interface{}) *
 	return b
 }
 
+func (b *Builder) WhereQuery(column string, condition string, q *Builder) *Builder {
+
+	*q.query.ConditionGroups = append(*q.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.query.Conditions,
+		IsDummyGroup: true,
+	})
+
+	sq := &structs.Query{
+		ConditionGroups: q.query.ConditionGroups,
+		Table:           q.query.Table,
+		Columns:         q.query.Columns,
+		Joins:           q.query.Joins,
+		Order:           q.query.Order,
+	}
+
+	//log.Default().Printf("sq: %v", sq)
+
+	args := &structs.Where{
+		Column:    column,
+		Condition: condition,
+		Query:     sq,
+		Operator:  consts.LogicalOperator_AND,
+	}
+
+	*b.query.Conditions = append(*b.query.Conditions, *args)
+
+	//b.whereValues = append(b.whereValues, q.whereValues...)
+	return b
+}
+
+func (b *Builder) WhereGroup(fn func(b *Builder) *Builder) *Builder {
+	cQ := fn(b)
+
+	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+		Conditions: *cQ.query.Conditions,
+		Subgroups:  []structs.WhereGroup{},
+		Operator:   consts.LogicalOperator_AND,
+	})
+	*cQ.query.Conditions = []structs.Where{}
+
+	return b
+}
+
 func (b *Builder) Join(table string, my string, condition string, target string) *Builder {
 	myTable := b.query.Table.Name
 	// If a previous JOIN exists, retrieve the table name of that JOIN.
@@ -121,9 +164,11 @@ func (b *Builder) Build() (string, []interface{}) {
 	// preprocess WHERE
 	if len(*b.query.Conditions) > 0 {
 		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-			Conditions: *b.query.Conditions,
-			Operator:   consts.LogicalOperator_AND,
+			Conditions:   *b.query.Conditions,
+			Operator:     consts.LogicalOperator_AND,
+			IsDummyGroup: true,
 		})
+		b.query.Conditions = &[]structs.Where{}
 	}
 
 	query, values := b.dbBuilder.Build(b.query)

@@ -40,6 +40,37 @@ func TestBuilder(t *testing.T) {
 			[]interface{}{18},
 		},
 		{
+			"WhereQuery",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).WhereQuery("user_id", "IN", sq).Where("city", "=", "New York")
+			},
+			"SELECT  FROM  WHERE user_id IN (SELECT id FROM users WHERE name = ?) AND city = ?",
+			[]interface{}{"John", "New York"},
+		},
+		{
+			"WhereGroup",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+					WhereGroup(func(b *query.Builder) *query.Builder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					})
+			},
+			"SELECT  FROM  WHERE (age > ? AND name = ?)",
+			[]interface{}{18, "John"},
+		},
+		{
+			"WhereGroup_And",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+					WhereGroup(func(b *query.Builder) *query.Builder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					}).Where("city", "=", "New York")
+			},
+			"SELECT  FROM  WHERE (age > ? AND name = ?) AND city = ?",
+			[]interface{}{18, "John", "New York"},
+		},
+		{
 			"Join",
 			func() *query.Builder {
 				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Join("orders", "users.id", "=", "orders.user_id")
