@@ -194,6 +194,18 @@ func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
 	return b
 }
 
+func (b *Builder) ReOrder() *Builder {
+	*b.query.Order = []structs.Order{}
+	return b
+}
+
+func (b *Builder) OrderByRaw(raw string) *Builder {
+	*b.query.Order = append(*b.query.Order, structs.Order{
+		Raw: raw,
+	})
+	return b
+}
+
 // Build generates the SQL query string and parameter values based on the query builder's current state.
 // It returns the generated query string and a slice of parameter values.
 func (b *Builder) Build() (string, []interface{}) {

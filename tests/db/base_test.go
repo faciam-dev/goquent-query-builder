@@ -239,6 +239,23 @@ func TestBaseQueryBuilder(t *testing.T) {
 				Values:   nil,
 			},
 		},
+		{
+			"OrderByRaw",
+			"OrderBy",
+			structs.Query{
+				Order: &[]structs.Order{
+					{
+						Column: "name",
+						IsAsc:  true,
+						Raw:    "name DESC",
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " ORDER BY name DESC",
+				Values:   nil,
+			},
+		},
 	}
 
 	builder := db.BaseQueryBuilder{}

@@ -138,6 +138,22 @@ func TestBuilder(t *testing.T) {
 			"SELECT  FROM  ORDER BY name ASC",
 			nil,
 		},
+		{
+			"OrderByDesc_And_ReOrder",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).OrderBy("name", "asc").ReOrder().OrderBy("name", "desc")
+			},
+			"SELECT  FROM  ORDER BY name DESC",
+			nil,
+		},
+		{
+			"OrderByRaw",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).OrderByRaw("RAND()")
+			},
+			"SELECT  FROM  ORDER BY RAND()",
+			nil,
+		},
 	}
 
 	for _, tt := range tests {

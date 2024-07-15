@@ -82,6 +82,16 @@ func (qb *QueryBuilder) OrderBy(column, ascDesc string) *QueryBuilder {
 	return qb
 }
 
+func (qb *QueryBuilder) OrderByRaw(raw string) *QueryBuilder {
+	qb.builder.OrderByRaw(raw)
+	return qb
+}
+
+func (qb *QueryBuilder) ReOrder() *QueryBuilder {
+	qb.builder.ReOrder()
+	return qb
+}
+
 func (qb *QueryBuilder) Build() (string, []interface{}) {
 	return qb.builder.Build()
 }
