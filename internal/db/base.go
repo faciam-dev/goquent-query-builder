@@ -188,16 +188,18 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 	values := []interface{}{}
 
 	//log.Default().Printf("wherewhere: %v", wherewhere)
-	for _, cg := range *conditionGroups {
+	sep := ""
+	for i, cg := range *conditionGroups {
 		if len(cg.Conditions) == 0 {
 			continue
 		}
 
 		// AND, OR by ConditionGroup
-		sep := ""
-		if cg.Operator == 0 {
+		if cg.IsDummyGroup {
+			sep = ""
+		} else if cg.Operator == consts.LogicalOperator_AND {
 			sep = " AND "
-		} else if cg.Operator == 1 {
+		} else if cg.Operator == consts.LogicalOperator_OR {
 			sep = " OR "
 		}
 
@@ -216,8 +218,15 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 
 		where += parenthesesOpen
 
-		for _, c := range cg.Conditions {
+		for j, c := range cg.Conditions {
 			convertedColumn := c.Column
+			if i > 0 && j == 0 && cg.IsDummyGroup {
+				if c.Operator == consts.LogicalOperator_AND {
+					op = " AND "
+				} else if c.Operator == consts.LogicalOperator_OR {
+					op = " OR "
+				}
+			}
 			/*
 				convertedColumn := c.Colmun
 				convertedSelectColumns := []structs.Column{}
@@ -239,36 +248,66 @@ func buildWhereClause(conditionGroups *[]structs.WhereGroup) (string, []interfac
 				//log.Default().Printf("c.Query.Pro: %v", c.Query.Processed)
 				sqQuery, sqValues := b.Build(c.Query)
 				if c.Operator == consts.LogicalOperator_AND {
+					if op != "" {
+						op = " AND "
+					}
 					where += op + condQuery + " (" + sqQuery + ")"
-					op = " AND "
+					if op == "" {
+						op = " AND "
+					}
 				} else if c.Operator == consts.LogicalOperator_OR {
+					if op != "" {
+						op = " OR "
+					}
 					where += op + condQuery + " (" + sqQuery + ")"
-					op = " OR "
+					if op == "" {
+						op = " OR "
+					}
 				}
 				values = append(values, sqValues...)
 			} else if len(c.Value) == 1 {
 				condQuery := convertedColumn + " " + c.Condition + " ?"
 				value := c.Value[0]
 				if c.Operator == consts.LogicalOperator_AND {
+					if op != "" {
+						op = " AND "
+					}
 					where += op + condQuery
-					op = " AND "
 					values = append(values, value)
+					if op == "" {
+						op = " AND "
+					}
 				} else if c.Operator == consts.LogicalOperator_OR {
+					if op != "" {
+						op = " OR "
+					}
 					where += op + condQuery
-					op = " OR "
 					values = append(values, value)
+					if op == "" {
+						op = " OR "
+					}
 				}
 			} else {
 				condQuery := convertedColumn + " " + c.Condition + " (?)"
 				value := c.Value
 				if c.Operator == consts.LogicalOperator_AND {
+					if op != "" {
+						op = " AND "
+					}
 					where += op + condQuery
-					op = " AND "
 					values = append(values, value)
+					if op == "" {
+						op = " AND "
+					}
 				} else if c.Operator == consts.LogicalOperator_OR {
+					if op != "" {
+						op = " OR "
+					}
 					where += op + condQuery
-					op = " OR "
 					values = append(values, value)
+					if op == "" {
+						op = " OR "
+					}
 				}
 			}
 		}

@@ -70,8 +70,26 @@ func (b *Builder) Where(column string, condition string, value ...interface{}) *
 	return b
 }
 
-func (b *Builder) WhereQuery(column string, condition string, q *Builder) *Builder {
+func (b *Builder) OrWhere(column string, condition string, value ...interface{}) *Builder {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Condition: condition,
+		Value:     value,
+		Operator:  consts.LogicalOperator_OR,
+	})
+	b.whereValues = append(b.whereValues, value...)
+	return b
+}
 
+func (b *Builder) WhereQuery(column string, condition string, q *Builder) *Builder {
+	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_AND)
+}
+
+func (b *Builder) OrWhereQuery(column string, condition string, q *Builder) *Builder {
+	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_OR)
+}
+
+func (b *Builder) whereOrOrWhereQuery(column string, condition string, q *Builder, operator int) *Builder {
 	*q.query.ConditionGroups = append(*q.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.query.Conditions,
 		IsDummyGroup: true,
@@ -85,28 +103,56 @@ func (b *Builder) WhereQuery(column string, condition string, q *Builder) *Build
 		Order:           q.query.Order,
 	}
 
-	//log.Default().Printf("sq: %v", sq)
-
 	args := &structs.Where{
 		Column:    column,
 		Condition: condition,
 		Query:     sq,
-		Operator:  consts.LogicalOperator_AND,
+		Operator:  operator,
 	}
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
 
-	//b.whereValues = append(b.whereValues, q.whereValues...)
 	return b
 }
 
 func (b *Builder) WhereGroup(fn func(b *Builder) *Builder) *Builder {
+	if len(*b.query.Conditions) > 0 {
+		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *b.query.Conditions,
+			Operator:     consts.LogicalOperator_AND,
+			IsDummyGroup: true,
+		})
+		*b.query.Conditions = []structs.Where{}
+	}
+
 	cQ := fn(b)
 
 	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
 		Conditions: *cQ.query.Conditions,
 		Subgroups:  []structs.WhereGroup{},
 		Operator:   consts.LogicalOperator_AND,
+	})
+	*cQ.query.Conditions = []structs.Where{}
+
+	return b
+}
+
+func (b *Builder) OrWhereGroup(fn func(b *Builder) *Builder) *Builder {
+	if len(*b.query.Conditions) > 0 {
+		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *b.query.Conditions,
+			Operator:     consts.LogicalOperator_OR,
+			IsDummyGroup: true,
+		})
+		*b.query.Conditions = []structs.Where{}
+	}
+
+	cQ := fn(b)
+
+	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+		Conditions: *cQ.query.Conditions,
+		Subgroups:  []structs.WhereGroup{},
+		Operator:   consts.LogicalOperator_OR,
 	})
 	*cQ.query.Conditions = []structs.Where{}
 

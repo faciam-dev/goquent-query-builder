@@ -119,6 +119,52 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"WhereGroup_Or",
+			"WhereGroup",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:    "age",
+								Condition: ">",
+								Value:     []interface{}{18},
+								Operator:  consts.LogicalOperator_AND,
+							},
+							{
+								Column:    "name",
+								Condition: "=",
+								Value:     []interface{}{"John"},
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						Operator: consts.LogicalOperator_AND,
+					},
+					{
+						Conditions: []structs.Where{
+							{
+								Column:    "age",
+								Condition: ">",
+								Value:     []interface{}{18},
+								Operator:  consts.LogicalOperator_AND,
+							},
+							{
+								Column:    "name",
+								Condition: "=",
+								Value:     []interface{}{"John"},
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						Operator: consts.LogicalOperator_OR,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE (age > ? AND name = ?) OR (age > ? AND name = ?)",
+				Values:   []interface{}{18, "John", 18, "John"},
+			},
+		},
+		{
 			"WhereGroup",
 			"WhereGroup",
 			structs.Query{

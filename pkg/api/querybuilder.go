@@ -36,8 +36,24 @@ func (qb *QueryBuilder) Where(column string, condition string, value interface{}
 	return qb
 }
 
+func (qb *QueryBuilder) OrWhere(column string, condition string, value interface{}) *QueryBuilder {
+	switch v := value.(type) {
+	case QueryBuilder:
+		qb.builder.OrWhereQuery(column, condition, v.builder)
+	case []interface{}:
+		qb.builder.OrWhere(column, condition, v...)
+	}
+
+	return qb
+}
+
 func (qb *QueryBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *QueryBuilder {
 	qb.builder.WhereQuery(column, condition, q.builder)
+	return qb
+}
+
+func (qb *QueryBuilder) OrWhereQuery(column string, condition string, q *QueryBuilder) *QueryBuilder {
+	qb.builder.OrWhereQuery(column, condition, q.builder)
 	return qb
 }
 
@@ -46,7 +62,13 @@ func (qb *QueryBuilder) WhereGroup(fn func(qb *query.Builder) *query.Builder) *Q
 	qb.builder.WhereGroup(func(b *query.Builder) *query.Builder {
 		return fn(b)
 	})
+	return qb
+}
 
+func (qb *QueryBuilder) OrWhereGroup(fn func(qb *query.Builder) *query.Builder) *QueryBuilder {
+	qb.builder.OrWhereGroup(func(b *query.Builder) *query.Builder {
+		return fn(b)
+	})
 	return qb
 }
 
