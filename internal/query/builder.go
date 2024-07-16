@@ -63,6 +63,11 @@ func (b *Builder) Select(columns ...string) *Builder {
 	return b
 }
 
+func (b *Builder) SelectRaw(raw string, value ...interface{}) *Builder {
+	*b.query.Columns = append(*b.query.Columns, structs.Column{Raw: raw, Values: value})
+	return b
+}
+
 func (b *Builder) Where(column string, condition string, value ...interface{}) *Builder {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Column:    column,

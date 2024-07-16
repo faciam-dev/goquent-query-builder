@@ -36,6 +36,32 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"SelectRaw",
+			"Select",
+			structs.Query{
+				Columns: &[]structs.Column{
+					{Raw: "COUNT(*) as total"},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "SELECT COUNT(*) as total",
+				Values:   nil,
+			},
+		},
+		{
+			"SelectRaw_With_Value",
+			"Select",
+			structs.Query{
+				Columns: &[]structs.Column{
+					{Raw: "price * ? as price_with_tax", Values: []interface{}{1.0825}},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "SELECT price * ? as price_with_tax",
+				Values:   []interface{}{1.0825},
+			},
+		},
+		{
 			"From",
 			"From",
 			structs.Query{

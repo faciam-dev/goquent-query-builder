@@ -21,9 +21,9 @@ func (BaseQueryBuilder) Select(columns *[]structs.Column, joinedTablesForSelect 
 	for _, column := range *selectColumns {
 		if column.Raw != "" {
 			if column.Values != nil && len(column.Values) > 0 {
-				colValues = append(colValues, column.Values)
+				colValues = append(colValues, column.Values...)
 			}
-			colNames = append(colNames, column.Raw)
+			colNames = append(colNames, column.Raw) // or colNames = column.Raw
 		} else if column.Name != "" {
 			colNames = append(colNames, column.Name)
 		}

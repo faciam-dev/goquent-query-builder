@@ -3,7 +3,7 @@ package structs
 type Column struct {
 	Name   string
 	Raw    string
-	Values []string
+	Values []interface{}
 }
 
 type Table struct {
