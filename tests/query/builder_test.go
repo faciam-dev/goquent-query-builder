@@ -154,6 +154,46 @@ func TestBuilder(t *testing.T) {
 			"SELECT  FROM  ORDER BY RAND()",
 			nil,
 		},
+		{
+			"GroupBy",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).GroupBy("name", "age")
+			},
+			"SELECT  FROM  GROUP BY name, age",
+			nil,
+		},
+		{
+			"GroupBy_Having",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).GroupBy("name", "age").Having("age", ">", 18)
+			},
+			"SELECT  FROM  GROUP BY name, age HAVING age > ?",
+			[]interface{}{18},
+		},
+		{
+			"GroupBy_Having_OR",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).GroupBy("name", "age").Having("age", ">", 18).OrHaving("name", "=", "John")
+			},
+			"SELECT  FROM  GROUP BY name, age HAVING age > ? OR name = ?",
+			[]interface{}{18, "John"},
+		},
+		{
+			"GroupBy_Having_Raw",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).GroupBy("name", "age").HavingRaw("age > 18")
+			},
+			"SELECT  FROM  GROUP BY name, age HAVING age > 18",
+			nil,
+		},
+		{
+			"GroupBy_HavingRaw_OR",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).GroupBy("name", "age").HavingRaw("age > 18").OrHavingRaw("name = 'John'")
+			},
+			"SELECT  FROM  GROUP BY name, age HAVING age > 18 OR name = 'John'",
+			nil,
+		},
 	}
 
 	for _, tt := range tests {

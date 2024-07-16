@@ -92,6 +92,31 @@ func (qb *QueryBuilder) ReOrder() *QueryBuilder {
 	return qb
 }
 
+func (qb *QueryBuilder) GroupBy(columns ...string) *QueryBuilder {
+	qb.builder.GroupBy(columns...)
+	return qb
+}
+
+func (qb *QueryBuilder) Having(column, condition string, value interface{}) *QueryBuilder {
+	qb.builder.Having(column, condition, value)
+	return qb
+}
+
+func (qb *QueryBuilder) HavingRaw(raw string) *QueryBuilder {
+	qb.builder.HavingRaw(raw)
+	return qb
+}
+
+func (qb *QueryBuilder) OrHaving(column, condition string, value interface{}) *QueryBuilder {
+	qb.builder.OrHaving(column, condition, value)
+	return qb
+}
+
+func (qb *QueryBuilder) OrHavingRaw(raw string) *QueryBuilder {
+	qb.builder.OrHavingRaw(raw)
+	return qb
+}
+
 func (qb *QueryBuilder) Build() (string, []interface{}) {
 	return qb.builder.Build()
 }

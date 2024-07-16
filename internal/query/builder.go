@@ -30,6 +30,10 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 			Joins:           &[]structs.Join{},
 			Order:           &[]structs.Order{},
 			SubQuery:        &[]structs.Query{},
+			Group: &structs.GroupBy{
+				Columns: []string{},
+				Having:  &[]structs.Having{},
+			},
 		},
 		selectValues:  []interface{}{},
 		whereValues:   []interface{}{},
@@ -202,6 +206,50 @@ func (b *Builder) ReOrder() *Builder {
 func (b *Builder) OrderByRaw(raw string) *Builder {
 	*b.query.Order = append(*b.query.Order, structs.Order{
 		Raw: raw,
+	})
+	return b
+}
+
+func (b *Builder) GroupBy(columns ...string) *Builder {
+	*b.query.Group = structs.GroupBy{
+		Columns: columns,
+		Having:  &[]structs.Having{},
+	}
+	return b
+}
+
+func (b *Builder) Having(column string, condition string, value interface{}) *Builder {
+	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
+		Column:    column,
+		Condition: condition,
+		Value:     value,
+		Operator:  consts.LogicalOperator_AND,
+	})
+	return b
+}
+
+func (b *Builder) HavingRaw(raw string) *Builder {
+	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
+		Raw:      raw,
+		Operator: consts.LogicalOperator_AND,
+	})
+	return b
+}
+
+func (b *Builder) OrHaving(column string, condition string, value interface{}) *Builder {
+	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
+		Column:    column,
+		Condition: condition,
+		Value:     value,
+		Operator:  consts.LogicalOperator_OR,
+	})
+	return b
+}
+
+func (b *Builder) OrHavingRaw(raw string) *Builder {
+	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
+		Raw:      raw,
+		Operator: consts.LogicalOperator_OR,
 	})
 	return b
 }

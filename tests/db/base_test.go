@@ -256,6 +256,60 @@ func TestBaseQueryBuilder(t *testing.T) {
 				Values:   nil,
 			},
 		},
+		{
+			"GroupBy",
+			"GroupBy",
+			structs.Query{
+				Group: &structs.GroupBy{
+					Columns: []string{"name"},
+					Having:  &[]structs.Having{},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " GROUP BY name",
+				Values:   nil,
+			},
+		},
+		{
+			"GroupBy_Having",
+			"GroupBy",
+			structs.Query{
+				Group: &structs.GroupBy{
+					Columns: []string{"name"},
+					Having: &[]structs.Having{
+						{
+							Column:    "age",
+							Condition: ">",
+							Value:     18,
+							Operator:  consts.LogicalOperator_AND,
+						},
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " GROUP BY name HAVING age > ?",
+				Values:   []interface{}{18},
+			},
+		},
+		{
+			"GroupBy_HavingRaw",
+			"GroupBy",
+			structs.Query{
+				Group: &structs.GroupBy{
+					Columns: []string{"name"},
+					Having: &[]structs.Having{
+						{
+							Raw:      "RAND()",
+							Operator: consts.LogicalOperator_AND,
+						},
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " GROUP BY name HAVING RAND()",
+				Values:   nil,
+			},
+		},
 	}
 
 	builder := db.BaseQueryBuilder{}
@@ -286,6 +340,10 @@ func TestBaseQueryBuilder(t *testing.T) {
 				got = gotQuery
 			case "OrderBy":
 				got = builder.OrderBy(tt.input.Order)
+			case "GroupBy":
+				gotString, values := builder.GroupBy(tt.input.Group)
+				got = gotString
+				gotValues = values
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, got)

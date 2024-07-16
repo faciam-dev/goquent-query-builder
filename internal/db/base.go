@@ -86,6 +86,66 @@ func (BaseQueryBuilder) OrderBy(order *[]structs.Order) string {
 
 }
 
+func (BaseQueryBuilder) GroupBy(groupBy *structs.GroupBy) (string, []interface{}) {
+	if groupBy == nil || len(groupBy.Columns) == 0 {
+		return "", []interface{}{}
+	}
+
+	query := " GROUP BY "
+	values := []interface{}{}
+	groupByColumns := groupBy.Columns
+	if len(groupByColumns) > 0 {
+		query += strings.Join(groupByColumns, ", ")
+	}
+
+	if len(*groupBy.Having) > 0 {
+		havingRaw := ""
+		havingValues := []interface{}{}
+		for n, having := range *groupBy.Having {
+			op := "AND"
+			if having.Operator == consts.LogicalOperator_AND {
+				op = "AND"
+			} else if having.Operator == consts.LogicalOperator_OR {
+				op = "OR"
+			}
+
+			if having.Raw != "" {
+				if n > 0 {
+					havingRaw += " " + op + " "
+				}
+				havingRaw += having.Raw
+				continue
+			}
+			if having.Column == "" {
+				continue
+			}
+			if having.Condition == "" {
+				continue
+			}
+			if having.Value == "" {
+				continue
+			}
+			havingValues = append(havingValues, having.Value)
+
+			if n > 0 {
+				havingRaw += " " + op + " "
+			}
+			havingRaw += having.Column + " " + having.Condition + " ?"
+
+		}
+
+		if havingRaw != "" {
+			query += " HAVING " + havingRaw
+
+			if len(havingValues) > 0 {
+				values = append(values, havingValues...)
+			}
+		}
+	}
+
+	return query, values
+}
+
 func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 	// JOIN
 	joinedTablesForSelect, join := m.Join(q.Table.Name, q.Joins)
@@ -113,6 +173,11 @@ func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 
 	// ORDER BY
 	query += orderBy
+
+	// GROUP BY / HAVING
+	groupBy, groupByValues := m.GroupBy(q.Group)
+	query += groupBy
+	values = append(values, groupByValues...)
 
 	return query, values
 }
