@@ -325,14 +325,79 @@ func TestBaseQueryBuilder(t *testing.T) {
 					Columns: []string{"name"},
 					Having: &[]structs.Having{
 						{
-							Raw:      "RAND()",
+							Raw:      "age > 18",
 							Operator: consts.LogicalOperator_AND,
 						},
 					},
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " GROUP BY name HAVING RAND()",
+				Expected: " GROUP BY name HAVING age > 18",
+				Values:   nil,
+			},
+		},
+		{
+			"GroupBy_HavingRaw_OR",
+			"GroupBy",
+			structs.Query{
+				Group: &structs.GroupBy{
+					Columns: []string{"name"},
+					Having: &[]structs.Having{
+						{
+							Raw:      "birthday > '2000-01-01'",
+							Operator: consts.LogicalOperator_AND,
+						},
+						{
+							Raw:      "city = 'New York'",
+							Operator: consts.LogicalOperator_OR,
+						},
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " GROUP BY name HAVING birthday > '2000-01-01' OR city = 'New York'",
+				Values:   nil,
+			},
+		},
+		{
+			"Limit",
+			"Limit",
+			structs.Query{
+				Limit: &structs.Limit{
+					Limit: 10,
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " LIMIT 10",
+				Values:   nil,
+			},
+		},
+		{
+			"Offset",
+			"Offset",
+			structs.Query{
+				Offset: &structs.Offset{
+					Offset: 10,
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " OFFSET 10",
+				Values:   nil,
+			},
+		},
+		{
+			"Limit_And_Offset",
+			"Limit_And_Offset",
+			structs.Query{
+				Limit: &structs.Limit{
+					Limit: 10,
+				},
+				Offset: &structs.Offset{
+					Offset: 10,
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " LIMIT 10 OFFSET 10",
 				Values:   nil,
 			},
 		},
@@ -370,6 +435,13 @@ func TestBaseQueryBuilder(t *testing.T) {
 				gotString, values := builder.GroupBy(tt.input.Group)
 				got = gotString
 				gotValues = values
+			case "Limit":
+				got = builder.Limit(tt.input.Limit)
+			case "Offset":
+				got = builder.Offset(tt.input.Offset)
+			case "Limit_And_Offset":
+				gotLimit, gotOffset := builder.Limit(tt.input.Limit), builder.Offset(tt.input.Offset)
+				got = gotLimit + gotOffset
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, got)

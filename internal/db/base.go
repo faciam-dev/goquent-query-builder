@@ -146,6 +146,22 @@ func (BaseQueryBuilder) GroupBy(groupBy *structs.GroupBy) (string, []interface{}
 	return query, values
 }
 
+func (BaseQueryBuilder) Limit(limit *structs.Limit) string {
+	if limit == nil || limit.Limit == 0 {
+		return ""
+	}
+
+	return " LIMIT " + fmt.Sprint(limit.Limit)
+}
+
+func (BaseQueryBuilder) Offset(offset *structs.Offset) string {
+	if offset == nil || offset.Offset == 0 {
+		return ""
+	}
+
+	return " OFFSET " + fmt.Sprint(offset.Offset)
+}
+
 func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 	// JOIN
 	joinedTablesForSelect, join := m.Join(q.Table.Name, q.Joins)
@@ -178,6 +194,14 @@ func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 	groupBy, groupByValues := m.GroupBy(q.Group)
 	query += groupBy
 	values = append(values, groupByValues...)
+
+	// LIMIT
+	limit := m.Limit(q.Limit)
+	query += limit
+
+	// OFFSET
+	offset := m.Offset(q.Offset)
+	query += offset
 
 	return query, values
 }

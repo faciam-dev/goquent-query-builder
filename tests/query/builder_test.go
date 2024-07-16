@@ -210,6 +210,30 @@ func TestBuilder(t *testing.T) {
 			"SELECT  FROM  GROUP BY name, age HAVING age > 18 OR name = 'John'",
 			nil,
 		},
+		{
+			"Limit",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Limit(10)
+			},
+			"SELECT  FROM  LIMIT 10",
+			nil,
+		},
+		{
+			"Offset",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Offset(10)
+			},
+			"SELECT  FROM  OFFSET 10",
+			nil,
+		},
+		{
+			"Limit_And_Offset",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Limit(10).Offset(5)
+			},
+			"SELECT  FROM  LIMIT 10 OFFSET 5",
+			nil,
+		},
 	}
 
 	for _, tt := range tests {

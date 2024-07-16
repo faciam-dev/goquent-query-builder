@@ -31,7 +31,8 @@ type Query struct {
 	Joins           *[]Join
 	ConditionGroups *[]WhereGroup
 	Conditions      *[]Where
-	Limit           Limit
+	Limit           *Limit
+	Offset          *Offset
 	Order           *[]Order
 	SubQuery        *[]Query
 	Group           *GroupBy
@@ -46,8 +47,11 @@ type Join struct {
 }
 
 type Limit struct {
-	Offset   int64
-	RowCount int64
+	Limit int64
+}
+
+type Offset struct {
+	Offset int64
 }
 
 type Order struct {

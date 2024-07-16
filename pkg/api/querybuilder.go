@@ -122,6 +122,26 @@ func (qb *QueryBuilder) OrHavingRaw(raw string) *QueryBuilder {
 	return qb
 }
 
+func (qb *QueryBuilder) Limit(limit int64) *QueryBuilder {
+	qb.builder.Limit(limit)
+	return qb
+}
+
+func (qb *QueryBuilder) Take(limit int64) *QueryBuilder {
+	qb.builder.Limit(limit)
+	return qb
+}
+
+func (qb *QueryBuilder) Offset(offset int64) *QueryBuilder {
+	qb.builder.Offset(offset)
+	return qb
+}
+
+func (qb *QueryBuilder) Skip(offset int64) *QueryBuilder {
+	qb.builder.Offset(offset)
+	return qb
+}
+
 func (qb *QueryBuilder) Build() (string, []interface{}) {
 	return qb.builder.Build()
 }

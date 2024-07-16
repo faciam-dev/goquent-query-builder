@@ -34,6 +34,8 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 				Columns: []string{},
 				Having:  &[]structs.Having{},
 			},
+			Limit:  &structs.Limit{},
+			Offset: &structs.Offset{},
 		},
 		selectValues:  []interface{}{},
 		whereValues:   []interface{}{},
@@ -168,6 +170,7 @@ func (b *Builder) OrWhereGroup(fn func(b *Builder) *Builder) *Builder {
 	return b
 }
 
+// LeftJoin adds a LEFT JOIN clause.
 func (b *Builder) Join(table string, my string, condition string, target string) *Builder {
 	myTable := b.query.Table.Name
 	// If a previous JOIN exists, retrieve the table name of that JOIN.
@@ -186,6 +189,7 @@ func (b *Builder) Join(table string, my string, condition string, target string)
 	return b
 }
 
+// OrderBy adds an ORDER BY clause.
 func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
 	ascDesc = strings.ToUpper(ascDesc)
 
@@ -203,11 +207,13 @@ func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
 	return b
 }
 
+// ReOrder removes all ORDER BY clauses.
 func (b *Builder) ReOrder() *Builder {
 	*b.query.Order = []structs.Order{}
 	return b
 }
 
+// OrderByRaw adds a raw ORDER BY clause.
 func (b *Builder) OrderByRaw(raw string) *Builder {
 	*b.query.Order = append(*b.query.Order, structs.Order{
 		Raw: raw,
@@ -215,6 +221,7 @@ func (b *Builder) OrderByRaw(raw string) *Builder {
 	return b
 }
 
+// GroupBy adds a GROUP BY clause.
 func (b *Builder) GroupBy(columns ...string) *Builder {
 	*b.query.Group = structs.GroupBy{
 		Columns: columns,
@@ -223,6 +230,7 @@ func (b *Builder) GroupBy(columns ...string) *Builder {
 	return b
 }
 
+// Having adds a HAVING clause with an AND operator.
 func (b *Builder) Having(column string, condition string, value interface{}) *Builder {
 	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
 		Column:    column,
@@ -233,6 +241,7 @@ func (b *Builder) Having(column string, condition string, value interface{}) *Bu
 	return b
 }
 
+// HavingRaw adds a raw HAVING clause with an AND operator.
 func (b *Builder) HavingRaw(raw string) *Builder {
 	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
 		Raw:      raw,
@@ -241,6 +250,7 @@ func (b *Builder) HavingRaw(raw string) *Builder {
 	return b
 }
 
+// OrHaving adds a HAVING clause with an OR operator.
 func (b *Builder) OrHaving(column string, condition string, value interface{}) *Builder {
 	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
 		Column:    column,
@@ -251,11 +261,22 @@ func (b *Builder) OrHaving(column string, condition string, value interface{}) *
 	return b
 }
 
+// OrHavingRaw adds a raw HAVING clause with an OR operator.
 func (b *Builder) OrHavingRaw(raw string) *Builder {
 	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
 		Raw:      raw,
 		Operator: consts.LogicalOperator_OR,
 	})
+	return b
+}
+
+func (b *Builder) Limit(limit int64) *Builder {
+	b.query.Limit.Limit = limit
+	return b
+}
+
+func (b *Builder) Offset(offset int64) *Builder {
+	b.query.Offset.Offset = offset
 	return b
 }
 
