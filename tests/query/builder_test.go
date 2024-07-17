@@ -274,6 +274,35 @@ func TestBuilder(t *testing.T) {
 			"SELECT  FROM  LIMIT 10 OFFSET 5",
 			nil,
 		},
+		{
+			"Complex_Query",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+					Select("id", "name").
+					Table("users").
+					Join("profiles", "users.id", "=", "profiles.user_id").
+					Where("age", ">", 18).
+					OrderBy("name", "ASC")
+			},
+			"SELECT id, name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE age > ? ORDER BY name ASC",
+			[]interface{}{18},
+		},
+		{
+			"Complex_Query_With_Subquery",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+					SelectRaw("id, name, profiles.point * ? AS profiles_point", 1.05).
+					Table("users").
+					Join("profiles", "users.id", "=", "profiles.user_id").
+					Where("status", "=", "active").
+					WhereQuery("user_id", "IN", sq).
+					Where("age", ">", 18).
+					OrderBy("name", "ASC")
+			},
+			"SELECT id, name, profiles.point * ? AS profiles_point FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE status = ? AND user_id IN (SELECT id FROM users WHERE name = ?) AND age > ? ORDER BY name ASC",
+			[]interface{}{1.05, "active", "John", 18},
+		},
 	}
 
 	for _, tt := range tests {
