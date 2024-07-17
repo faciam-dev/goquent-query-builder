@@ -32,6 +32,14 @@ func TestBuilder(t *testing.T) {
 			nil,
 		},
 		{
+			"Count",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Count()
+			},
+			"SELECT COUNT(*) FROM ",
+			nil,
+		},
+		{
 			"SelectRaw_With_Value",
 			func() *query.Builder {
 				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).SelectRaw("price * ? as price_with_tax", 1.0825)

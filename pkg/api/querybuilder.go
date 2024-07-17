@@ -31,6 +31,11 @@ func (qb *QueryBuilder) SelectRaw(raw string, value ...interface{}) *QueryBuilde
 	return qb
 }
 
+func (qb *QueryBuilder) Count(columns ...string) *QueryBuilder {
+	qb.builder.Count(columns...)
+	return qb
+}
+
 func (qb *QueryBuilder) Where(column string, condition string, value interface{}) *QueryBuilder {
 	switch v := value.(type) {
 	case QueryBuilder:

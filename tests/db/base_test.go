@@ -62,6 +62,19 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"Count",
+			"Select",
+			structs.Query{
+				Columns: &[]structs.Column{
+					{Raw: "COUNT(*)", Values: nil},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "SELECT COUNT(*)",
+				Values:   nil,
+			},
+		},
+		{
 			"From",
 			"From",
 			structs.Query{

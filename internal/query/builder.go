@@ -70,6 +70,20 @@ func (b *Builder) SelectRaw(raw string, value ...interface{}) *Builder {
 	return b
 }
 
+func (b *Builder) Count(columns ...string) *Builder {
+	if len(columns) == 0 {
+		columns = append(columns, "*")
+	}
+
+	for _, column := range columns {
+		*b.query.Columns = append(*b.query.Columns, structs.Column{
+			Name: column,
+			Raw:  fmt.Sprintf("COUNT(%s)", column),
+		})
+	}
+	return b
+}
+
 func (b *Builder) Where(column string, condition string, value ...interface{}) *Builder {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Column:    column,
