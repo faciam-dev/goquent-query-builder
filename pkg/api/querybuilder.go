@@ -36,6 +36,26 @@ func (qb *QueryBuilder) Count(columns ...string) *QueryBuilder {
 	return qb
 }
 
+func (qb *QueryBuilder) Max(column string) *QueryBuilder {
+	qb.builder.Max(column)
+	return qb
+}
+
+func (qb *QueryBuilder) Min(column string) *QueryBuilder {
+	qb.builder.Min(column)
+	return qb
+}
+
+func (qb *QueryBuilder) Sum(column string) *QueryBuilder {
+	qb.builder.Sum(column)
+	return qb
+}
+
+func (qb *QueryBuilder) Avg(column string) *QueryBuilder {
+	qb.builder.Avg(column)
+	return qb
+}
+
 func (qb *QueryBuilder) Where(column string, condition string, value interface{}) *QueryBuilder {
 	switch v := value.(type) {
 	case QueryBuilder:
@@ -159,6 +179,16 @@ func (qb *QueryBuilder) Offset(offset int64) *QueryBuilder {
 
 func (qb *QueryBuilder) Skip(offset int64) *QueryBuilder {
 	qb.builder.Offset(offset)
+	return qb
+}
+
+func (qb *QueryBuilder) SharedLock() *QueryBuilder {
+	qb.builder.SharedLock()
+	return qb
+}
+
+func (qb *QueryBuilder) LockForUpdate() *QueryBuilder {
+	qb.builder.LockForUpdate()
 	return qb
 }
 

@@ -162,6 +162,16 @@ func (BaseQueryBuilder) Offset(offset *structs.Offset) string {
 	return " OFFSET " + fmt.Sprint(offset.Offset)
 }
 
+// Lock returns the lock statement.
+func (BaseQueryBuilder) Lock(lock *structs.Lock) string {
+	if lock == nil || lock.LockType == "" {
+		return ""
+	}
+
+	return " " + lock.LockType
+}
+
+// Build builds the query.
 func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 	// JOIN
 	joinedTablesForSelect, join := m.Join(q.Table.Name, q.Joins)
@@ -202,6 +212,10 @@ func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 	// OFFSET
 	offset := m.Offset(q.Offset)
 	query += offset
+
+	// LOCK
+	lock := m.Lock(q.Lock)
+	query += lock
 
 	return query, values
 }

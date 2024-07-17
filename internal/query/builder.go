@@ -84,6 +84,30 @@ func (b *Builder) Count(columns ...string) *Builder {
 	return b
 }
 
+func (b *Builder) aggregate(column string, aggregateFunc string) *Builder {
+	*b.query.Columns = append(*b.query.Columns, structs.Column{
+		Name: column,
+		Raw:  fmt.Sprintf("%s(%s)", aggregateFunc, column),
+	})
+	return b
+}
+
+func (b *Builder) Max(column string) *Builder {
+	return b.aggregate(column, "MAX")
+}
+
+func (b *Builder) Min(column string) *Builder {
+	return b.aggregate(column, "MIN")
+}
+
+func (b *Builder) Sum(column string) *Builder {
+	return b.aggregate(column, "SUM")
+}
+
+func (b *Builder) Avg(column string) *Builder {
+	return b.aggregate(column, "AVG")
+}
+
 func (b *Builder) Where(column string, condition string, value ...interface{}) *Builder {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Column:    column,
@@ -322,6 +346,20 @@ func (b *Builder) Limit(limit int64) *Builder {
 
 func (b *Builder) Offset(offset int64) *Builder {
 	b.query.Offset.Offset = offset
+	return b
+}
+
+func (b *Builder) SharedLock() *Builder {
+	b.query.Lock = &structs.Lock{
+		LockType: consts.Lock_SHARE_MODE,
+	}
+	return b
+}
+
+func (b *Builder) LockForUpdate() *Builder {
+	b.query.Lock = &structs.Lock{
+		LockType: consts.Lock_FOR_UPDATE,
+	}
 	return b
 }
 

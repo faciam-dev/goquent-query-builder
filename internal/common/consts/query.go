@@ -40,3 +40,8 @@ const (
 	Order_FLAG_ASC  = true
 	Order_FLAG_DESC = false
 )
+
+const (
+	Lock_FOR_UPDATE = "FOR UPDATE"
+	Lock_SHARE_MODE = "LOCK IN SHARE MODE"
+)

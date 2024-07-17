@@ -36,6 +36,7 @@ type Query struct {
 	Order           *[]Order
 	SubQuery        *[]Query
 	Group           *GroupBy
+	Lock            *Lock
 }
 
 type Join struct {
@@ -75,4 +76,8 @@ type Having struct {
 	Value     interface{}
 	Operator  int
 	Raw       string
+}
+
+type Lock struct {
+	LockType string
 }

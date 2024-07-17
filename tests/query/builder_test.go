@@ -40,6 +40,38 @@ func TestBuilder(t *testing.T) {
 			nil,
 		},
 		{
+			"Max",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Max("price")
+			},
+			"SELECT MAX(price) FROM ",
+			nil,
+		},
+		{
+			"Min",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Min("price")
+			},
+			"SELECT MIN(price) FROM ",
+			nil,
+		},
+		{
+			"Sum",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Sum("price")
+			},
+			"SELECT SUM(price) FROM ",
+			nil,
+		},
+		{
+			"Avg",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Avg("price")
+			},
+			"SELECT AVG(price) FROM ",
+			nil,
+		},
+		{
 			"SelectRaw_With_Value",
 			func() *query.Builder {
 				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).SelectRaw("price * ? as price_with_tax", 1.0825)
@@ -272,6 +304,22 @@ func TestBuilder(t *testing.T) {
 				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Limit(10).Offset(5)
 			},
 			"SELECT  FROM  LIMIT 10 OFFSET 5",
+			nil,
+		},
+		{
+			"Lock FOR UPDATE",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).LockForUpdate()
+			},
+			"SELECT  FROM  FOR UPDATE",
+			nil,
+		},
+		{
+			"Lock_Shared",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).SharedLock()
+			},
+			"SELECT  FROM  LOCK IN SHARE MODE",
 			nil,
 		},
 		{

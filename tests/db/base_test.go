@@ -75,6 +75,58 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"Max",
+			"Select",
+			structs.Query{
+				Columns: &[]structs.Column{
+					{Raw: "MAX(price)", Values: nil},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "SELECT MAX(price)",
+				Values:   nil,
+			},
+		},
+		{
+			"Min",
+			"Select",
+			structs.Query{
+				Columns: &[]structs.Column{
+					{Raw: "MIN(price)", Values: nil},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "SELECT MIN(price)",
+				Values:   nil,
+			},
+		},
+		{
+			"Sum",
+			"Select",
+			structs.Query{
+				Columns: &[]structs.Column{
+					{Raw: "SUM(price)", Values: nil},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "SELECT SUM(price)",
+				Values:   nil,
+			},
+		},
+		{
+			"Avg",
+			"Select",
+			structs.Query{
+				Columns: &[]structs.Column{
+					{Raw: "AVG(price)", Values: nil},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "SELECT AVG(price)",
+				Values:   nil,
+			},
+		},
+		{
 			"From",
 			"From",
 			structs.Query{
@@ -461,6 +513,32 @@ func TestBaseQueryBuilder(t *testing.T) {
 				Values:   nil,
 			},
 		},
+		{
+			"SHARED_LOCK",
+			"Lock",
+			structs.Query{
+				Lock: &structs.Lock{
+					LockType: consts.Lock_SHARE_MODE,
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " LOCK IN SHARE MODE",
+				Values:   nil,
+			},
+		},
+		{
+			"FOR_UPDATE",
+			"Lock",
+			structs.Query{
+				Lock: &structs.Lock{
+					LockType: consts.Lock_FOR_UPDATE,
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " FOR UPDATE",
+				Values:   nil,
+			},
+		},
 	}
 
 	builder := db.BaseQueryBuilder{}
@@ -502,6 +580,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 			case "Limit_And_Offset":
 				gotLimit, gotOffset := builder.Limit(tt.input.Limit), builder.Offset(tt.input.Offset)
 				got = gotLimit + gotOffset
+			case "Lock":
+				got = builder.Lock(tt.input.Lock)
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, got)
