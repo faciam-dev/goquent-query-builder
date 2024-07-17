@@ -254,6 +254,9 @@ func buildJoinStatement(tableName string, joins *[]structs.Join) (*[]structs.Col
 		}
 
 		joinQuery := joinType + " JOIN " + targetName + " ON " + join.SearchColumn + " " + join.SearchCondition + " " + join.SearchTargetColumn
+		if _, ok := join.TargetNameMap[consts.Join_CROSS]; ok {
+			joinQuery = joinType + " JOIN " + targetName
+		}
 
 		joinStrings = append(joinStrings, joinQuery)
 

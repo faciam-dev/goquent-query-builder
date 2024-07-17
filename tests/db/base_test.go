@@ -250,6 +250,53 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"Join_Left",
+			"Join",
+			structs.Query{
+				Table: structs.Table{Name: "users"},
+				Joins: &[]structs.Join{
+					{
+						Name:               "orders",
+						TargetNameMap:      map[string]string{"left": "orders"},
+						SearchColumn:       "users.id",
+						SearchCondition:    "=",
+						SearchTargetColumn: "orders.user_id",
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " LEFT JOIN orders ON users.id = orders.user_id",
+				Values:   nil,
+			},
+		},
+		{
+			"Join_Multiple",
+			"Join",
+			structs.Query{
+				Table: structs.Table{Name: "users"},
+				Joins: &[]structs.Join{
+					{
+						Name:               "orders",
+						TargetNameMap:      map[string]string{"inner": "orders"},
+						SearchColumn:       "users.id",
+						SearchCondition:    "=",
+						SearchTargetColumn: "orders.user_id",
+					},
+					{
+						Name:               "products",
+						TargetNameMap:      map[string]string{"inner": "products"},
+						SearchColumn:       "users.id",
+						SearchCondition:    "=",
+						SearchTargetColumn: "products.user_id",
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " INNER JOIN orders ON users.id = orders.user_id INNER JOIN products ON users.id = products.user_id",
+				Values:   nil,
+			},
+		},
+		{
 			"OrderBy",
 			"OrderBy",
 			structs.Query{

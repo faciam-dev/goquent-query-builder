@@ -139,11 +139,43 @@ func TestBuilder(t *testing.T) {
 			[]interface{}{"New York", 18, "John"},
 		},
 		{
-			"Join",
+			"Inner_Join",
 			func() *query.Builder {
 				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Join("orders", "users.id", "=", "orders.user_id")
 			},
 			"SELECT orders.*, .* FROM  INNER JOIN orders ON users.id = orders.user_id",
+			nil,
+		},
+		{
+			"Left_Join",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).LeftJoin("orders", "users.id", "=", "orders.user_id")
+			},
+			"SELECT orders.*, .* FROM  LEFT JOIN orders ON users.id = orders.user_id",
+			nil,
+		},
+		{
+			"Right_Join",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).RightJoin("orders", "users.id", "=", "orders.user_id")
+			},
+			"SELECT orders.*, .* FROM  RIGHT JOIN orders ON users.id = orders.user_id",
+			nil,
+		},
+		{
+			"Cross_Join",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).CrossJoin("orders")
+			},
+			"SELECT orders.*, .* FROM  CROSS JOIN orders",
+			nil,
+		},
+		{
+			"Join_and_Join",
+			func() *query.Builder {
+				return query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Join("orders", "users.id", "=", "orders.user_id").Join("products", "orders.product_id", "=", "products.id")
+			},
+			"SELECT orders.*, .*, products.* FROM  INNER JOIN orders ON users.id = orders.user_id INNER JOIN products ON orders.product_id = products.id",
 			nil,
 		},
 		{

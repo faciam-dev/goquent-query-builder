@@ -82,6 +82,21 @@ func (qb *QueryBuilder) Join(table, my, condition, target string) *QueryBuilder 
 	return qb
 }
 
+func (qb *QueryBuilder) LeftJoin(table, my, condition, target string) *QueryBuilder {
+	qb.builder.LeftJoin(table, my, condition, target)
+	return qb
+}
+
+func (qb *QueryBuilder) RightJoin(table, my, condition, target string) *QueryBuilder {
+	qb.builder.RightJoin(table, my, condition, target)
+	return qb
+}
+
+func (qb *QueryBuilder) CrossJoin(table, my, condition, target string) *QueryBuilder {
+	qb.builder.CrossJoin(table)
+	return qb
+}
+
 func (qb *QueryBuilder) OrderBy(column, ascDesc string) *QueryBuilder {
 	qb.builder.OrderBy(column, ascDesc)
 	return qb

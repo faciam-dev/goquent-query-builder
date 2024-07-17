@@ -170,8 +170,23 @@ func (b *Builder) OrWhereGroup(fn func(b *Builder) *Builder) *Builder {
 	return b
 }
 
-// LeftJoin adds a LEFT JOIN clause.
+// Join adds a JOIN clause.
 func (b *Builder) Join(table string, my string, condition string, target string) *Builder {
+	return b.joinCommon(consts.Join_INNER, table, my, condition, target)
+}
+
+// LeftJoin adds a LEFT JOIN clause.
+func (b *Builder) LeftJoin(table string, my string, condition string, target string) *Builder {
+	return b.joinCommon(consts.Join_LEFT, table, my, condition, target)
+}
+
+// RightJoin adds a RIGHT JOIN clause.
+func (b *Builder) RightJoin(table string, my string, condition string, target string) *Builder {
+	return b.joinCommon(consts.Join_RIGHT, table, my, condition, target)
+}
+
+// joinCommon is a helper function for JOIN, LEFT JOIN, and RIGHT JOIN.
+func (b *Builder) joinCommon(joinType string, table string, my string, condition string, target string) *Builder {
 	myTable := b.query.Table.Name
 	// If a previous JOIN exists, retrieve the table name of that JOIN.
 	if b.query.Joins != nil && len(*b.query.Joins) > 0 {
@@ -180,11 +195,27 @@ func (b *Builder) Join(table string, my string, condition string, target string)
 	*b.query.Joins = append(*b.query.Joins, structs.Join{
 		Name: myTable,
 		TargetNameMap: map[string]string{
-			consts.Join_INNER: table,
+			joinType: table,
 		},
 		SearchColumn:       my,
 		SearchCondition:    condition,
 		SearchTargetColumn: target,
+	})
+	return b
+}
+
+// CrossJoin adds a CROSS JOIN clause.
+func (b *Builder) CrossJoin(table string) *Builder {
+	myTable := b.query.Table.Name
+	// If a previous JOIN exists, retrieve the table name of that JOIN.
+	if b.query.Joins != nil && len(*b.query.Joins) > 0 {
+		myTable = (*b.query.Joins)[len(*b.query.Joins)-1].Name
+	}
+	*b.query.Joins = append(*b.query.Joins, structs.Join{
+		Name: myTable,
+		TargetNameMap: map[string]string{
+			consts.Join_CROSS: table,
+		},
 	})
 	return b
 }
