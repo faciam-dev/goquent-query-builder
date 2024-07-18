@@ -9,4 +9,8 @@ type QueryBuilderStrategy interface {
 	Join(tableName string, joins *[]structs.Join) (*[]structs.Column, string)
 	OrderBy(order *[]structs.Order) string
 	Build(q *structs.Query) (string, []interface{})
+
+	Insert(q *structs.InsertQuery) (string, []interface{})
+	InsertBatch(q *structs.InsertQuery) (string, []interface{})
+	BuildInsert(q *structs.InsertQuery) (string, []interface{})
 }

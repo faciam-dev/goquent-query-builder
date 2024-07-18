@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -194,4 +195,8 @@ func (qb *QueryBuilder) LockForUpdate() *QueryBuilder {
 
 func (qb *QueryBuilder) Build() (string, []interface{}) {
 	return qb.builder.Build()
+}
+
+func (qb *QueryBuilder) GetQuery() *structs.Query {
+	return qb.builder.GetQuery()
 }

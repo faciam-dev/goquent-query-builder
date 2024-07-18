@@ -39,6 +39,14 @@ type Query struct {
 	Lock            *Lock
 }
 
+type InsertQuery struct {
+	Table       string
+	Values      map[string]interface{}
+	ValuesBatch []map[string]interface{}
+	Columns     []string
+	SelectQuery *Query
+}
+
 type Join struct {
 	Name               string
 	TargetNameMap      map[string]string

@@ -430,3 +430,7 @@ func generateCacheKey(q *structs.Query) string {
 		orderKey,
 	)
 }
+
+func (b *Builder) GetQuery() *structs.Query {
+	return b.query
+}
