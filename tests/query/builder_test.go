@@ -125,7 +125,7 @@ func TestBuilder(t *testing.T) {
 			"WhereGroup",
 			func() *query.Builder {
 				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
-					WhereGroup(func(b *query.Builder) *query.Builder {
+					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
 					})
 			},
@@ -136,7 +136,7 @@ func TestBuilder(t *testing.T) {
 			"WhereGroup_And",
 			func() *query.Builder {
 				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
-					WhereGroup(func(b *query.Builder) *query.Builder {
+					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
 					}).Where("city", "=", "New York")
 			},
@@ -148,7 +148,7 @@ func TestBuilder(t *testing.T) {
 			func() *query.Builder {
 				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
 					Where("city", "=", "New York").
-					WhereGroup(func(b *query.Builder) *query.Builder {
+					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
 					})
 			},
@@ -159,7 +159,7 @@ func TestBuilder(t *testing.T) {
 			"WhereGroup_Or",
 			func() *query.Builder {
 				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
-					WhereGroup(func(b *query.Builder) *query.Builder {
+					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
 					}).OrWhere("city", "=", "New York")
 			},
@@ -171,7 +171,7 @@ func TestBuilder(t *testing.T) {
 			func() *query.Builder {
 				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
 					Where("city", "=", "New York").
-					OrWhereGroup(func(b *query.Builder) *query.Builder {
+					OrWhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
 					})
 			},

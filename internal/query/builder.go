@@ -15,8 +15,8 @@ type Builder struct {
 	cache         *cache.AsyncQueryCache
 	query         *structs.Query
 	selectValues  []interface{}
-	whereValues   []interface{}
 	groupByValues []interface{}
+	whereBuilder  WhereBuilder
 }
 
 func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *Builder {
@@ -38,8 +38,15 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 			Offset: &structs.Offset{},
 		},
 		selectValues:  []interface{}{},
-		whereValues:   []interface{}{},
 		groupByValues: []interface{}{},
+		whereBuilder: WhereBuilder{
+			dbBuilder: dbBuilder,
+			cache:     cache,
+			query: &structs.Query{
+				Conditions:      &[]structs.Where{},
+				ConditionGroups: &[]structs.WhereGroup{},
+			},
+		},
 	}
 }
 
@@ -109,101 +116,35 @@ func (b *Builder) Avg(column string) *Builder {
 }
 
 func (b *Builder) Where(column string, condition string, value ...interface{}) *Builder {
-	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
-		Column:    column,
-		Condition: condition,
-		Value:     value,
-		Operator:  consts.LogicalOperator_AND,
-	})
-	b.whereValues = append(b.whereValues, value...)
+	b.whereBuilder.Where(column, condition, value...)
 	return b
 }
 
 func (b *Builder) OrWhere(column string, condition string, value ...interface{}) *Builder {
-	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
-		Column:    column,
-		Condition: condition,
-		Value:     value,
-		Operator:  consts.LogicalOperator_OR,
-	})
-	b.whereValues = append(b.whereValues, value...)
+	b.whereBuilder.OrWhere(column, condition, value...)
 	return b
 }
 
 func (b *Builder) WhereQuery(column string, condition string, q *Builder) *Builder {
-	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_AND)
+	b.whereBuilder.WhereQuery(column, condition, q)
+
+	return b
 }
 
 func (b *Builder) OrWhereQuery(column string, condition string, q *Builder) *Builder {
-	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_OR)
-}
-
-func (b *Builder) whereOrOrWhereQuery(column string, condition string, q *Builder, operator int) *Builder {
-	*q.query.ConditionGroups = append(*q.query.ConditionGroups, structs.WhereGroup{
-		Conditions:   *q.query.Conditions,
-		IsDummyGroup: true,
-	})
-
-	sq := &structs.Query{
-		ConditionGroups: q.query.ConditionGroups,
-		Table:           q.query.Table,
-		Columns:         q.query.Columns,
-		Joins:           q.query.Joins,
-		Order:           q.query.Order,
-	}
-
-	args := &structs.Where{
-		Column:    column,
-		Condition: condition,
-		Query:     sq,
-		Operator:  operator,
-	}
-
-	*b.query.Conditions = append(*b.query.Conditions, *args)
+	b.whereBuilder.OrWhereQuery(column, condition, q)
 
 	return b
 }
 
-func (b *Builder) WhereGroup(fn func(b *Builder) *Builder) *Builder {
-	if len(*b.query.Conditions) > 0 {
-		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *b.query.Conditions,
-			Operator:     consts.LogicalOperator_AND,
-			IsDummyGroup: true,
-		})
-		*b.query.Conditions = []structs.Where{}
-	}
-
-	cQ := fn(b)
-
-	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-		Conditions: *cQ.query.Conditions,
-		Subgroups:  []structs.WhereGroup{},
-		Operator:   consts.LogicalOperator_AND,
-	})
-	*cQ.query.Conditions = []structs.Where{}
+func (b *Builder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Builder {
+	b.whereBuilder.WhereGroup(fn)
 
 	return b
 }
 
-func (b *Builder) OrWhereGroup(fn func(b *Builder) *Builder) *Builder {
-	if len(*b.query.Conditions) > 0 {
-		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *b.query.Conditions,
-			Operator:     consts.LogicalOperator_OR,
-			IsDummyGroup: true,
-		})
-		*b.query.Conditions = []structs.Where{}
-	}
-
-	cQ := fn(b)
-
-	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-		Conditions: *cQ.query.Conditions,
-		Subgroups:  []structs.WhereGroup{},
-		Operator:   consts.LogicalOperator_OR,
-	})
-	*cQ.query.Conditions = []structs.Where{}
+func (b *Builder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Builder {
+	b.whereBuilder.OrWhereGroup(fn)
 
 	return b
 }
@@ -371,20 +312,22 @@ func (b *Builder) Build() (string, []interface{}) {
 	if cachedQuery, found := b.cache.Get(cacheKey); found {
 		values := []interface{}{}
 		values = append(values, b.selectValues...)
-		values = append(values, b.whereValues...)
+		values = append(values, b.whereBuilder.whereValues...)
 		values = append(values, b.groupByValues...)
 		return cachedQuery, values
 	}
 
 	// preprocess WHERE
-	if len(*b.query.Conditions) > 0 {
-		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *b.query.Conditions,
+	if len(*b.whereBuilder.query.Conditions) > 0 {
+		*b.whereBuilder.query.ConditionGroups = append(*b.whereBuilder.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *b.whereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,
 		})
-		b.query.Conditions = &[]structs.Where{}
+		b.whereBuilder.query.Conditions = &[]structs.Where{}
 	}
+	b.query.ConditionGroups = b.whereBuilder.query.ConditionGroups
+	b.query.Conditions = b.whereBuilder.query.Conditions
 
 	query, values := b.dbBuilder.Build(b.query)
 
@@ -432,5 +375,8 @@ func generateCacheKey(q *structs.Query) string {
 }
 
 func (b *Builder) GetQuery() *structs.Query {
+	b.query.ConditionGroups = b.whereBuilder.query.ConditionGroups
+	b.query.Conditions = b.whereBuilder.query.Conditions
+
 	return b.query
 }

@@ -8,7 +8,8 @@ import (
 )
 
 type QueryBuilder struct {
-	builder *query.Builder
+	builder           *query.Builder
+	whereQueryBuilder WhereQueryBuilder
 }
 
 func NewQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *QueryBuilder {
@@ -57,49 +58,45 @@ func (qb *QueryBuilder) Avg(column string) *QueryBuilder {
 	return qb
 }
 
+// Where
 func (qb *QueryBuilder) Where(column string, condition string, value interface{}) *QueryBuilder {
-	switch v := value.(type) {
-	case QueryBuilder:
-		qb.builder.WhereQuery(column, condition, v.builder)
-	case []interface{}:
-		qb.builder.Where(column, condition, v...)
-	}
+	qb.whereQueryBuilder.Where(column, condition, value)
+
 	return qb
 }
 
+// OrWhere
 func (qb *QueryBuilder) OrWhere(column string, condition string, value interface{}) *QueryBuilder {
-	switch v := value.(type) {
-	case QueryBuilder:
-		qb.builder.OrWhereQuery(column, condition, v.builder)
-	case []interface{}:
-		qb.builder.OrWhere(column, condition, v...)
-	}
+	qb.whereQueryBuilder.OrWhere(column, condition, value)
 
 	return qb
 }
 
+// WhereQuery
 func (qb *QueryBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *QueryBuilder {
-	qb.builder.WhereQuery(column, condition, q.builder)
+	qb.whereQueryBuilder.WhereQuery(column, condition, q)
+
 	return qb
 }
 
+// OrWhereQuery
 func (qb *QueryBuilder) OrWhereQuery(column string, condition string, q *QueryBuilder) *QueryBuilder {
-	qb.builder.OrWhereQuery(column, condition, q.builder)
+	qb.whereQueryBuilder.OrWhereQuery(column, condition, q)
+
 	return qb
 }
 
 // WhereGroup
-func (qb *QueryBuilder) WhereGroup(fn func(qb *query.Builder) *query.Builder) *QueryBuilder {
-	qb.builder.WhereGroup(func(b *query.Builder) *query.Builder {
-		return fn(b)
-	})
+func (qb *QueryBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *QueryBuilder {
+	qb.whereQueryBuilder.WhereGroup(fn)
+
 	return qb
 }
 
-func (qb *QueryBuilder) OrWhereGroup(fn func(qb *query.Builder) *query.Builder) *QueryBuilder {
-	qb.builder.OrWhereGroup(func(b *query.Builder) *query.Builder {
-		return fn(b)
-	})
+// OrWhereGroup
+func (qb *QueryBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *QueryBuilder {
+	qb.whereQueryBuilder.OrWhereGroup(fn)
+
 	return qb
 }
 
