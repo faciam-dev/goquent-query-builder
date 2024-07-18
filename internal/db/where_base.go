@@ -1,8 +1,6 @@
 package db
 
 import (
-	"log"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 )
@@ -81,7 +79,7 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 				// create subquery
 				b := &BaseQueryBuilder{}
 				//log.Default().Printf("c.Query.Pro: %v", c.Query.Processed)
-				log.Default().Printf("c.Query: %v", *c.Query.ConditionGroups)
+				//log.Default().Printf("c.Query: %v", *c.Query.ConditionGroups)
 				sqQuery, sqValues := b.Build(c.Query)
 				if c.Operator == consts.LogicalOperator_AND {
 					if op != "" {

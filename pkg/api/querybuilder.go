@@ -10,6 +10,7 @@ import (
 type QueryBuilder struct {
 	builder           *query.Builder
 	whereQueryBuilder WhereQueryBuilder
+	joinQueryBuilder  JoinQueryBuilder
 }
 
 func NewQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *QueryBuilder {
@@ -101,22 +102,26 @@ func (qb *QueryBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.Wher
 }
 
 func (qb *QueryBuilder) Join(table, my, condition, target string) *QueryBuilder {
-	qb.builder.Join(table, my, condition, target)
+	qb.joinQueryBuilder.Join(table, my, condition, target)
+
 	return qb
 }
 
 func (qb *QueryBuilder) LeftJoin(table, my, condition, target string) *QueryBuilder {
-	qb.builder.LeftJoin(table, my, condition, target)
+	qb.joinQueryBuilder.LeftJoin(table, my, condition, target)
+
 	return qb
 }
 
 func (qb *QueryBuilder) RightJoin(table, my, condition, target string) *QueryBuilder {
-	qb.builder.RightJoin(table, my, condition, target)
+	qb.joinQueryBuilder.RightJoin(table, my, condition, target)
+
 	return qb
 }
 
 func (qb *QueryBuilder) CrossJoin(table, my, condition, target string) *QueryBuilder {
-	qb.builder.CrossJoin(table)
+	qb.joinQueryBuilder.CrossJoin(table)
+
 	return qb
 }
 

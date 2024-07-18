@@ -1,0 +1,82 @@
+package api
+
+import (
+	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/query"
+)
+
+type UpdateQueryBuilder struct {
+	builder           *query.UpdateBuilder
+	whereQueryBuilder *WhereQueryBuilder
+	joinQueryBuilder  *JoinQueryBuilder
+}
+
+func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *UpdateQueryBuilder {
+	return &UpdateQueryBuilder{
+		builder: query.NewUpdateBuilder(strategy, cache),
+	}
+}
+
+// Where
+func (ub *UpdateQueryBuilder) Where(column string, condition string, value interface{}) *UpdateQueryBuilder {
+	ub.whereQueryBuilder.Where(column, condition, value)
+
+	return ub
+}
+
+// OrWhere
+func (ub *UpdateQueryBuilder) OrWhere(column string, condition string, value interface{}) *UpdateQueryBuilder {
+	ub.whereQueryBuilder.OrWhere(column, condition, value)
+
+	return ub
+}
+
+// WhereQuery
+func (ub *UpdateQueryBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *UpdateQueryBuilder {
+	ub.whereQueryBuilder.WhereQuery(column, condition, q)
+
+	return ub
+}
+
+// OrWhereQuery
+func (ub *UpdateQueryBuilder) OrWhereQuery(column string, condition string, q *QueryBuilder) *UpdateQueryBuilder {
+	ub.whereQueryBuilder.OrWhereQuery(column, condition, q)
+
+	return ub
+}
+
+// WhereGroup
+func (ub *UpdateQueryBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *UpdateQueryBuilder {
+	ub.whereQueryBuilder.WhereGroup(fn)
+
+	return ub
+}
+
+// OrWhereGroup
+func (ub *UpdateQueryBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *UpdateQueryBuilder {
+	ub.whereQueryBuilder.OrWhereGroup(fn)
+
+	return ub
+}
+
+// Join
+func (qb *UpdateQueryBuilder) Join(table, my, condition, target string) *UpdateQueryBuilder {
+	qb.joinQueryBuilder.Join(table, my, condition, target)
+	return qb
+}
+
+func (qb *UpdateQueryBuilder) LeftJoin(table, my, condition, target string) *UpdateQueryBuilder {
+	qb.joinQueryBuilder.LeftJoin(table, my, condition, target)
+	return qb
+}
+
+func (qb *UpdateQueryBuilder) RightJoin(table, my, condition, target string) *UpdateQueryBuilder {
+	qb.joinQueryBuilder.RightJoin(table, my, condition, target)
+	return qb
+}
+
+func (qb *UpdateQueryBuilder) CrossJoin(table, my, condition, target string) *UpdateQueryBuilder {
+	qb.joinQueryBuilder.CrossJoin(table)
+	return qb
+}

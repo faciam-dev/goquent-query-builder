@@ -47,6 +47,12 @@ type InsertQuery struct {
 	SelectQuery *Query
 }
 
+type UpdateQuery struct {
+	Table       string
+	Values      map[string]interface{}
+	SelectQuery *Query
+}
+
 type Join struct {
 	Name               string
 	TargetNameMap      map[string]string

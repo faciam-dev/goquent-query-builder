@@ -18,7 +18,7 @@ func NewInsertBaseBuilder(iq *structs.InsertQuery) *InsertBaseBuilder {
 }
 
 // Insert builds the INSERT query.
-func (m BaseQueryBuilder) Insert(q *structs.InsertQuery) (string, []interface{}) {
+func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}) {
 	// INSERT INTO
 	query := "INSERT INTO " + q.Table + " "
 
@@ -43,7 +43,7 @@ func (m BaseQueryBuilder) Insert(q *structs.InsertQuery) (string, []interface{})
 }
 
 // InsertBatch builds the INSERT query for batch insert.
-func (m BaseQueryBuilder) InsertBatch(q *structs.InsertQuery) (string, []interface{}) {
+func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interface{}) {
 	// INSERT INTO
 	query := "INSERT INTO " + q.Table + " "
 
@@ -89,7 +89,7 @@ func (m BaseQueryBuilder) InsertBatch(q *structs.InsertQuery) (string, []interfa
 	return query, allValues
 }
 
-func (m BaseQueryBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}) {
+func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}) {
 	// INSERT INTO
 	query := "INSERT INTO " + q.Table
 
@@ -107,7 +107,7 @@ func (m BaseQueryBuilder) InsertUsing(q *structs.InsertQuery) (string, []interfa
 }
 
 // BuildInsert builds the INSERT query.
-func (m BaseQueryBuilder) BuildInsert(q *structs.InsertQuery) (string, []interface{}) {
+func (m InsertBaseBuilder) BuildInsert(q *structs.InsertQuery) (string, []interface{}) {
 	if q.SelectQuery != nil {
 		return m.InsertUsing(q)
 	}

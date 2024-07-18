@@ -17,6 +17,7 @@ type Builder struct {
 	selectValues  []interface{}
 	groupByValues []interface{}
 	whereBuilder  WhereBuilder
+	joinBuilder   JoinBuilder
 }
 
 func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *Builder {
@@ -46,6 +47,10 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 				Conditions:      &[]structs.Where{},
 				ConditionGroups: &[]structs.WhereGroup{},
 			},
+		},
+		joinBuilder: JoinBuilder{
+			Table: &structs.Table{},
+			Joins: &[]structs.Join{},
 		},
 	}
 }
@@ -151,51 +156,29 @@ func (b *Builder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Builder 
 
 // Join adds a JOIN clause.
 func (b *Builder) Join(table string, my string, condition string, target string) *Builder {
-	return b.joinCommon(consts.Join_INNER, table, my, condition, target)
+	b.joinBuilder.Join(table, my, condition, target)
+
+	return b
 }
 
 // LeftJoin adds a LEFT JOIN clause.
 func (b *Builder) LeftJoin(table string, my string, condition string, target string) *Builder {
-	return b.joinCommon(consts.Join_LEFT, table, my, condition, target)
+	b.joinBuilder.LeftJoin(table, my, condition, target)
+
+	return b
 }
 
 // RightJoin adds a RIGHT JOIN clause.
 func (b *Builder) RightJoin(table string, my string, condition string, target string) *Builder {
-	return b.joinCommon(consts.Join_RIGHT, table, my, condition, target)
-}
+	b.joinBuilder.RightJoin(table, my, condition, target)
 
-// joinCommon is a helper function for JOIN, LEFT JOIN, and RIGHT JOIN.
-func (b *Builder) joinCommon(joinType string, table string, my string, condition string, target string) *Builder {
-	myTable := b.query.Table.Name
-	// If a previous JOIN exists, retrieve the table name of that JOIN.
-	if b.query.Joins != nil && len(*b.query.Joins) > 0 {
-		myTable = (*b.query.Joins)[len(*b.query.Joins)-1].Name
-	}
-	*b.query.Joins = append(*b.query.Joins, structs.Join{
-		Name: myTable,
-		TargetNameMap: map[string]string{
-			joinType: table,
-		},
-		SearchColumn:       my,
-		SearchCondition:    condition,
-		SearchTargetColumn: target,
-	})
 	return b
 }
 
 // CrossJoin adds a CROSS JOIN clause.
 func (b *Builder) CrossJoin(table string) *Builder {
-	myTable := b.query.Table.Name
-	// If a previous JOIN exists, retrieve the table name of that JOIN.
-	if b.query.Joins != nil && len(*b.query.Joins) > 0 {
-		myTable = (*b.query.Joins)[len(*b.query.Joins)-1].Name
-	}
-	*b.query.Joins = append(*b.query.Joins, structs.Join{
-		Name: myTable,
-		TargetNameMap: map[string]string{
-			consts.Join_CROSS: table,
-		},
-	})
+	b.joinBuilder.CrossJoin(table)
+
 	return b
 }
 
@@ -328,6 +311,13 @@ func (b *Builder) Build() (string, []interface{}) {
 	}
 	b.query.ConditionGroups = b.whereBuilder.query.ConditionGroups
 	b.query.Conditions = b.whereBuilder.query.Conditions
+
+	// preprocess JOIN
+	if len(*b.joinBuilder.Joins) > 0 {
+		*b.query.Joins = append(*b.query.Joins, *b.joinBuilder.Joins...)
+	}
+
+	// preprocess GROUP BY
 
 	query, values := b.dbBuilder.Build(b.query)
 

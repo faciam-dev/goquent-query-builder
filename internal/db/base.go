@@ -13,6 +13,7 @@ type BaseQueryBuilder struct {
 	OrderByBaseBuilder
 	JoinBaseBuilder
 	InsertBaseBuilder
+	UpdateBaseBuilder
 }
 
 func (BaseQueryBuilder) Select(columns *[]structs.Column, joinedTablesForSelect *[]structs.Column) ([]string, []interface{}) {
