@@ -13,4 +13,7 @@ type QueryBuilderStrategy interface {
 	Insert(q *structs.InsertQuery) (string, []interface{})
 	InsertBatch(q *structs.InsertQuery) (string, []interface{})
 	BuildInsert(q *structs.InsertQuery) (string, []interface{})
+
+	//Update(q *structs.UpdateQuery) (string, []interface{})
+	//BuildUpdate(q *structs.UpdateQuery) (string, []interface{})
 }

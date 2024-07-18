@@ -18,7 +18,7 @@ func TestInsertBuilder(t *testing.T) {
 		{
 			"Insert",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewInsertBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
 					Table("users").
 					Insert(map[string]interface{}{
 						"name": "John Doe",
@@ -31,7 +31,7 @@ func TestInsertBuilder(t *testing.T) {
 		{
 			"InsertBatch",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewInsertBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
 					Table("users").
 					InsertBatch([]map[string]interface{}{
 						{
@@ -50,9 +50,9 @@ func TestInsertBuilder(t *testing.T) {
 		{
 			"InsertUsing",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewInsertBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
 					Table("users").
-					InsertUsing([]string{"name", "age"}, query.NewBuilder(db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+					InsertUsing([]string{"name", "age"}, query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
 						Table("profiles").
 						Select("name", "age").
 						Where("age", ">", 18).GetQuery())

@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// データベースごとのクエリビルダーストラテジーを選択
-	dbStrategy := db.MySQLQueryBuilder{}
+	dbStrategy := &db.MySQLQueryBuilder{}
 
 	asyncCache := cache.NewAsyncQueryCache()
 
