@@ -24,26 +24,21 @@ func main() {
 		Where("profiles.age", ">", 18).
 		OrderBy("users.name", "ASC")
 
-	//txManager := transaction.NewTransactionManager()
 	query, values := qb.Build()
 
-	// プロファイリング
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
-		time.Sleep(2 * time.Second)                           // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
+		time.Sleep(2 * time.Second) // Simulate query execution
+		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
-	// cache
+	// use cache
 	query, values = qb.Build()
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
-		time.Sleep(2 * time.Second)                           // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
+		time.Sleep(2 * time.Second) // Simulate query execution
+		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
-
-	// 非同期実行
-	//async.ExecuteAsync(query, values)
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
 	iqb := api.NewInsertQueryBuilder(dbStrategy, asyncCache).
@@ -57,8 +52,8 @@ func main() {
 
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
-		time.Sleep(2 * time.Second)                           // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
+		time.Sleep(2 * time.Second) // Simulate query execution
+		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// UPDATE users SET age = ? WHERE id = ?
@@ -73,8 +68,8 @@ func main() {
 
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
-		time.Sleep(2 * time.Second)                           // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
+		time.Sleep(2 * time.Second) // Simulate query execution
+		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// DELETE FROM users WHERE id = ?
@@ -87,8 +82,8 @@ func main() {
 
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
-		time.Sleep(2 * time.Second)                           // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
+		time.Sleep(2 * time.Second) // Simulate query execution
+		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 }
