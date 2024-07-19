@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -16,6 +17,15 @@ type UpdateQueryBuilder struct {
 func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *UpdateQueryBuilder {
 	return &UpdateQueryBuilder{
 		builder: query.NewUpdateBuilder(strategy, cache),
+		whereQueryBuilder: &WhereQueryBuilder{
+			builder: query.NewWhereBuilder(strategy, cache),
+		},
+		joinQueryBuilder: &JoinQueryBuilder{
+			builder: query.NewJoinBuilder(&[]structs.Join{}),
+		},
+		orderByQueryBuilder: &OrderByQueryBuilder{
+			builder: query.NewOrderByBuilder(&[]structs.Order{}),
+		},
 	}
 }
 
@@ -110,4 +120,13 @@ func (qb *UpdateQueryBuilder) OrderByRaw(raw string) *UpdateQueryBuilder {
 func (qb *UpdateQueryBuilder) ReOrder() *UpdateQueryBuilder {
 	qb.orderByQueryBuilder.ReOrder()
 	return qb
+}
+
+// Build
+func (ub *UpdateQueryBuilder) Build() (string, []interface{}) {
+	ub.builder.SetWhereBuilder(ub.whereQueryBuilder.builder)
+	ub.builder.SetJoinBuilder(ub.joinQueryBuilder.builder)
+	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
+
+	return ub.builder.Build()
 }

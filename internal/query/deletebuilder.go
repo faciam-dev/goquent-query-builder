@@ -23,22 +23,22 @@ func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryC
 		query: &structs.DeleteQuery{
 			Query: &structs.Query{},
 		},
-		whereBuilder: &WhereBuilder{
-			dbBuilder: strategy,
-			cache:     cache,
-			query: &structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{},
-				Conditions:      &[]structs.Where{},
-			},
-		},
-		joinBuilder: &JoinBuilder{
-			Table: &structs.Table{},
-			Joins: &[]structs.Join{},
-		},
-		orderByBuilder: &OrderByBuilder{
-			Order: &[]structs.Order{},
-		},
+		whereBuilder:   NewWhereBuilder(strategy, cache),
+		joinBuilder:    NewJoinBuilder(&[]structs.Join{}),
+		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
+}
+
+func (b *DeleteBuilder) SetWhereBuilder(whereBuilder *WhereBuilder) {
+	b.whereBuilder = whereBuilder
+}
+
+func (b *DeleteBuilder) SetJoinBuilder(joinBuilder *JoinBuilder) {
+	b.joinBuilder = joinBuilder
+}
+
+func (b *DeleteBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
+	b.orderByBuilder = orderByBuilder
 }
 
 func (b *DeleteBuilder) Table(table string) *DeleteBuilder {
@@ -82,25 +82,25 @@ func (b *DeleteBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *De
 }
 
 func (b *DeleteBuilder) Delete() *DeleteBuilder {
-	// If there are conditions, add them to the query
-	if len(*b.whereBuilder.query.Conditions) > 0 {
-		*b.whereBuilder.query.ConditionGroups = append(*b.whereBuilder.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *b.whereBuilder.query.Conditions,
-			Operator:     consts.LogicalOperator_AND,
-			IsDummyGroup: true,
-		})
-		b.whereBuilder.query.Conditions = &[]structs.Where{}
-	}
-
-	b.query.Query.Conditions = b.whereBuilder.query.Conditions
-	b.query.Query.ConditionGroups = b.whereBuilder.query.ConditionGroups
-	b.query.Query.Joins = b.joinBuilder.Joins
-	b.query.Query.Order = b.orderByBuilder.Order
-
 	return b
 }
 
 func (u *DeleteBuilder) Build() (string, []interface{}) {
+	// If there are conditions, add them to the query
+	if len(*u.whereBuilder.query.Conditions) > 0 {
+		*u.whereBuilder.query.ConditionGroups = append(*u.whereBuilder.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *u.whereBuilder.query.Conditions,
+			Operator:     consts.LogicalOperator_AND,
+			IsDummyGroup: true,
+		})
+		u.whereBuilder.query.Conditions = &[]structs.Where{}
+	}
+
+	u.query.Query.Conditions = u.whereBuilder.query.Conditions
+	u.query.Query.ConditionGroups = u.whereBuilder.query.ConditionGroups
+	u.query.Query.Joins = u.joinBuilder.Joins
+	u.query.Query.Order = u.orderByBuilder.Order
+
 	query, values := u.dbBuilder.BuildDelete(u.query)
 	return query, values
 }

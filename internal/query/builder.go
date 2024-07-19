@@ -15,9 +15,9 @@ type Builder struct {
 	query          *structs.Query
 	selectValues   []interface{}
 	groupByValues  []interface{}
-	whereBuilder   WhereBuilder
-	joinBuilder    JoinBuilder
-	orderByBuilder OrderByBuilder
+	whereBuilder   *WhereBuilder
+	joinBuilder    *JoinBuilder
+	orderByBuilder *OrderByBuilder
 }
 
 func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *Builder {
@@ -37,24 +37,13 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 			},
 			Limit:  &structs.Limit{},
 			Offset: &structs.Offset{},
+			Lock:   &structs.Lock{},
 		},
-		selectValues:  []interface{}{},
-		groupByValues: []interface{}{},
-		whereBuilder: WhereBuilder{
-			dbBuilder: dbBuilder,
-			cache:     cache,
-			query: &structs.Query{
-				Conditions:      &[]structs.Where{},
-				ConditionGroups: &[]structs.WhereGroup{},
-			},
-		},
-		joinBuilder: JoinBuilder{
-			Table: &structs.Table{},
-			Joins: &[]structs.Join{},
-		},
-		orderByBuilder: OrderByBuilder{
-			Order: &[]structs.Order{},
-		},
+		selectValues:   []interface{}{},
+		groupByValues:  []interface{}{},
+		whereBuilder:   NewWhereBuilder(dbBuilder, cache),
+		joinBuilder:    NewJoinBuilder(&[]structs.Join{}),
+		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 }
 
@@ -63,6 +52,18 @@ func NewBuilderWithQuery(dbBuilder db.QueryBuilderStrategy, query *structs.Query
 		dbBuilder: dbBuilder,
 		query:     query,
 	}
+}
+
+func (b *Builder) SetWhereBuilder(whereBuilder *WhereBuilder) {
+	b.whereBuilder = whereBuilder
+}
+
+func (b *Builder) SetJoinBuilder(joinBuilder *JoinBuilder) {
+	b.joinBuilder = joinBuilder
+}
+
+func (b *Builder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
+	b.orderByBuilder = orderByBuilder
 }
 
 func (b *Builder) Table(table string) *Builder {

@@ -17,6 +17,15 @@ type QueryBuilder struct {
 func NewQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *QueryBuilder {
 	return &QueryBuilder{
 		builder: query.NewBuilder(strategy, cache),
+		whereQueryBuilder: &WhereQueryBuilder{
+			builder: query.NewWhereBuilder(strategy, cache),
+		},
+		joinQueryBuilder: &JoinQueryBuilder{
+			builder: query.NewJoinBuilder(&[]structs.Join{}),
+		},
+		orderByQueryBuilder: &OrderByQueryBuilder{
+			builder: query.NewOrderByBuilder(&[]structs.Order{}),
+		},
 	}
 }
 
@@ -197,6 +206,9 @@ func (qb *QueryBuilder) LockForUpdate() *QueryBuilder {
 }
 
 func (qb *QueryBuilder) Build() (string, []interface{}) {
+	qb.builder.SetWhereBuilder(qb.whereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.joinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	return qb.builder.Build()
 }
 

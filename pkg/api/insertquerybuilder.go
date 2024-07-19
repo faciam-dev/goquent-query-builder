@@ -35,3 +35,7 @@ func (ib *InsertQueryBuilder) InsertUsing(columns []string, qb *QueryBuilder) *I
 	ib.builder.InsertUsing(columns, qb.builder.GetQuery())
 	return ib
 }
+
+func (ib *InsertQueryBuilder) Build() (string, []interface{}) {
+	return ib.builder.Build()
+}

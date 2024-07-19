@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -16,6 +17,15 @@ type DeleteQueryBuilder struct {
 func NewDeleteQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *DeleteQueryBuilder {
 	return &DeleteQueryBuilder{
 		builder: query.NewDeleteBuilder(strategy, cache),
+		whereQueryBuilder: &WhereQueryBuilder{
+			builder: query.NewWhereBuilder(strategy, cache),
+		},
+		joinQueryBuilder: &JoinQueryBuilder{
+			builder: query.NewJoinBuilder(&[]structs.Join{}),
+		},
+		orderByQueryBuilder: &OrderByQueryBuilder{
+			builder: query.NewOrderByBuilder(&[]structs.Order{}),
+		},
 	}
 }
 
@@ -117,4 +127,12 @@ func (qb *DeleteQueryBuilder) OrderByRaw(raw string) *DeleteQueryBuilder {
 func (qb *DeleteQueryBuilder) ReOrder() *DeleteQueryBuilder {
 	qb.orderByQueryBuilder.ReOrder()
 	return qb
+}
+
+func (qb *DeleteQueryBuilder) Build() (string, []interface{}) {
+	qb.builder.SetWhereBuilder(qb.whereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.joinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
+
+	return qb.builder.Build()
 }

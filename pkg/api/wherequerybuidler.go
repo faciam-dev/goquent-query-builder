@@ -22,6 +22,8 @@ func (wb *WhereQueryBuilder) Where(column string, condition string, value interf
 		wb.builder.WhereQuery(column, condition, v.builder)
 	case []interface{}:
 		wb.builder.Where(column, condition, v...)
+	default:
+		wb.builder.Where(column, condition, value)
 	}
 	return wb
 }
@@ -32,6 +34,8 @@ func (wb *WhereQueryBuilder) OrWhere(column string, condition string, value inte
 		wb.builder.OrWhereQuery(column, condition, v.builder)
 	case []interface{}:
 		wb.builder.OrWhere(column, condition, v...)
+	default:
+		wb.builder.OrWhere(column, condition, value)
 	}
 
 	return wb
