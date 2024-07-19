@@ -34,6 +34,14 @@ func main() {
 		asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
 	})
 
+	// cache
+	query, values = qb.Build()
+	profiling.Profile(query, func() {
+		fmt.Println("Executing query:", query, "with values:", values)
+		time.Sleep(2 * time.Second)                           // Simulate query execution
+		asyncCache.SetWithExpiry(query, query, 5*time.Minute) // キャッシュに5分間保存
+	})
+
 	// 非同期実行
 	//async.ExecuteAsync(query, values)
 

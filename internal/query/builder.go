@@ -61,12 +61,12 @@ func (b *Builder) Table(table string) *Builder {
 func (b *Builder) Select(columns ...string) *Builder {
 	for _, column := range columns {
 		*b.query.Columns = append(*b.query.Columns, structs.Column{Name: column})
-		b.selectValues = append(b.selectValues, column)
 	}
 	return b
 }
 
 func (b *Builder) SelectRaw(raw string, value ...interface{}) *Builder {
+	b.selectValues = append(b.selectValues, value...)
 	*b.query.Columns = append(*b.query.Columns, structs.Column{Raw: raw, Values: value})
 	return b
 }
@@ -295,6 +295,7 @@ func (b *Builder) buildQuery() *structs.Query {
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,
 		})
+		b.whereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
 	// preprocess JOIN

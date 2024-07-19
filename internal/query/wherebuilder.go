@@ -76,8 +76,10 @@ func (b *WhereBuilder) whereOrOrWhereQuery(column string, condition string, q *B
 		Operator:  operator,
 	}
 
-	*b.query.Conditions = append(*b.query.Conditions, *args)
+	_, value := b.BuildSq(sq)
 
+	*b.query.Conditions = append(*b.query.Conditions, *args)
+	b.whereValues = append(b.whereValues, value...)
 	return b
 }
 
@@ -123,6 +125,22 @@ func (b *WhereBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Whe
 	*cQ.query.Conditions = []structs.Where{}
 
 	return b
+}
+
+func (b *WhereBuilder) BuildSq(sq *structs.Query) (string, []interface{}) {
+	cacheKey := generateCacheKey(sq)
+
+	if cachedQuery, found := b.cache.Get(cacheKey); found {
+		values := []interface{}{}
+		values = append(values, b.whereValues...)
+		return cachedQuery, values
+	}
+
+	query, values := b.dbBuilder.Build(sq)
+
+	b.cache.Set(cacheKey, query)
+
+	return query, values
 }
 
 func (b *WhereBuilder) GetQuery() *structs.Query {
