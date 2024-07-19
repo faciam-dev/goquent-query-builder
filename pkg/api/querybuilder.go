@@ -8,9 +8,10 @@ import (
 )
 
 type QueryBuilder struct {
-	builder           *query.Builder
-	whereQueryBuilder WhereQueryBuilder
-	joinQueryBuilder  JoinQueryBuilder
+	builder             *query.Builder
+	whereQueryBuilder   *WhereQueryBuilder
+	joinQueryBuilder    *JoinQueryBuilder
+	orderByQueryBuilder *OrderByQueryBuilder
 }
 
 func NewQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *QueryBuilder {
@@ -126,17 +127,17 @@ func (qb *QueryBuilder) CrossJoin(table, my, condition, target string) *QueryBui
 }
 
 func (qb *QueryBuilder) OrderBy(column, ascDesc string) *QueryBuilder {
-	qb.builder.OrderBy(column, ascDesc)
+	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
 	return qb
 }
 
 func (qb *QueryBuilder) OrderByRaw(raw string) *QueryBuilder {
-	qb.builder.OrderByRaw(raw)
+	qb.orderByQueryBuilder.OrderByRaw(raw)
 	return qb
 }
 
 func (qb *QueryBuilder) ReOrder() *QueryBuilder {
-	qb.builder.ReOrder()
+	qb.orderByQueryBuilder.ReOrder()
 	return qb
 }
 

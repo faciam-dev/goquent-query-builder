@@ -8,11 +8,12 @@ import (
 )
 
 type UpdateBuilder struct {
-	dbBuilder    db.QueryBuilderStrategy
-	cache        *cache.AsyncQueryCache
-	query        *structs.UpdateQuery
-	whereBuilder WhereBuilder
-	joinBuilder  JoinBuilder
+	dbBuilder      db.QueryBuilderStrategy
+	cache          *cache.AsyncQueryCache
+	query          *structs.UpdateQuery
+	whereBuilder   *WhereBuilder
+	joinBuilder    *JoinBuilder
+	orderByBuilder *OrderByBuilder
 }
 
 func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *UpdateBuilder {
@@ -22,7 +23,7 @@ func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryC
 		query: &structs.UpdateQuery{
 			SelectQuery: &structs.Query{},
 		},
-		whereBuilder: WhereBuilder{
+		whereBuilder: &WhereBuilder{
 			dbBuilder: strategy,
 			cache:     cache,
 			query: &structs.Query{
@@ -30,9 +31,12 @@ func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryC
 				Conditions:      &[]structs.Where{},
 			},
 		},
-		joinBuilder: JoinBuilder{
+		joinBuilder: &JoinBuilder{
 			Table: &structs.Table{},
 			Joins: &[]structs.Join{},
+		},
+		orderByBuilder: &OrderByBuilder{
+			Order: &[]structs.Order{},
 		},
 	}
 }
@@ -93,6 +97,7 @@ func (b *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 	b.query.SelectQuery.Conditions = b.whereBuilder.query.Conditions
 	b.query.SelectQuery.ConditionGroups = b.whereBuilder.query.ConditionGroups
 	b.query.SelectQuery.Joins = b.joinBuilder.Joins
+	b.query.SelectQuery.Order = b.orderByBuilder.Order
 
 	return b
 }
@@ -120,4 +125,23 @@ func (b *UpdateBuilder) RightJoin(table, my, condition, target string) *UpdateBu
 func (b *UpdateBuilder) CrossJoin(table string) *UpdateBuilder {
 	b.joinBuilder.CrossJoin(table)
 	return b
+}
+
+func (b *UpdateBuilder) OrderBy(column string, direction string) *UpdateBuilder {
+	b.orderByBuilder.OrderBy(column, direction)
+	return b
+}
+
+func (b *UpdateBuilder) OrderByRaw(raw string) *UpdateBuilder {
+	b.orderByBuilder.OrderByRaw(raw)
+	return b
+}
+
+func (b *UpdateBuilder) ReOrder() *UpdateBuilder {
+	b.orderByBuilder.ReOrder()
+	return b
+}
+
+func (b *UpdateBuilder) GetQuery() *structs.UpdateQuery {
+	return b.query
 }

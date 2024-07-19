@@ -46,6 +46,12 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 		values = append(values, whereValues...)
 	}
 
+	if len(*q.SelectQuery.Order) > 0 {
+		ob := NewOrderByBaseBuilder(q.SelectQuery.Order)
+		order := ob.OrderBy(q.SelectQuery.Order)
+		query += order
+	}
+
 	return query, values
 
 }

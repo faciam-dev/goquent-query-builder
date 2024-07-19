@@ -7,9 +7,10 @@ import (
 )
 
 type UpdateQueryBuilder struct {
-	builder           *query.UpdateBuilder
-	whereQueryBuilder *WhereQueryBuilder
-	joinQueryBuilder  *JoinQueryBuilder
+	builder             *query.UpdateBuilder
+	whereQueryBuilder   *WhereQueryBuilder
+	joinQueryBuilder    *JoinQueryBuilder
+	orderByQueryBuilder *OrderByQueryBuilder
 }
 
 func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *UpdateQueryBuilder {
@@ -78,5 +79,22 @@ func (qb *UpdateQueryBuilder) RightJoin(table, my, condition, target string) *Up
 
 func (qb *UpdateQueryBuilder) CrossJoin(table, my, condition, target string) *UpdateQueryBuilder {
 	qb.joinQueryBuilder.CrossJoin(table)
+	return qb
+}
+
+// OrderBy
+
+func (qb *UpdateQueryBuilder) OrderBy(column, ascDesc string) *UpdateQueryBuilder {
+	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
+	return qb
+}
+
+func (qb *UpdateQueryBuilder) OrderByRaw(raw string) *UpdateQueryBuilder {
+	qb.orderByQueryBuilder.OrderByRaw(raw)
+	return qb
+}
+
+func (qb *UpdateQueryBuilder) ReOrder() *UpdateQueryBuilder {
+	qb.orderByQueryBuilder.ReOrder()
 	return qb
 }

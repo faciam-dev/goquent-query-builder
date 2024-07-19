@@ -3,6 +3,7 @@ package db_test
 import (
 	"testing"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 )
@@ -37,10 +38,86 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 						},
 					},
 					Joins: &[]structs.Join{},
+					Order: &[]structs.Order{},
 				},
 			},
 			QueryBuilderExpected{
 				Expected: "UPDATE users SET age = ?, name = ? WHERE id = ?",
+				Values:   []interface{}{30, "Joe", 1},
+			},
+		},
+		{
+			"Update JOIN",
+			"Update",
+			&structs.UpdateQuery{
+				Table: "users",
+				Values: map[string]interface{}{
+					"name": "Joe",
+					"age":  30,
+				},
+				SelectQuery: &structs.Query{
+					ConditionGroups: &[]structs.WhereGroup{
+						{
+							Conditions: []structs.Where{
+								{
+									Column:    "age",
+									Condition: ">",
+									Value:     []interface{}{18},
+								},
+							},
+							IsDummyGroup: true,
+						},
+					},
+					Joins: &[]structs.Join{
+						{
+							Name:               "profiles",
+							TargetNameMap:      map[string]string{consts.Join_INNER: "profiles"},
+							SearchColumn:       "users.id",
+							SearchCondition:    "=",
+							SearchTargetColumn: "profiles.user_id",
+						},
+					},
+					Order: &[]structs.Order{},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "UPDATE users INNER JOIN profiles ON users.id = profiles.user_id SET age = ?, name = ? WHERE age > ?",
+				Values:   []interface{}{18, "Joe", 30},
+			},
+		},
+		{
+			"Update ORDER BY",
+			"Update",
+			&structs.UpdateQuery{
+				Table: "users",
+				Values: map[string]interface{}{
+					"name": "Joe",
+					"age":  30,
+				},
+				SelectQuery: &structs.Query{
+					ConditionGroups: &[]structs.WhereGroup{
+						{
+							Conditions: []structs.Where{
+								{
+									Column:    "id",
+									Condition: "=",
+									Value:     []interface{}{1},
+								},
+							},
+							IsDummyGroup: true,
+						},
+					},
+					Joins: &[]structs.Join{},
+					Order: &[]structs.Order{
+						{
+							Column: "name",
+							IsAsc:  true,
+						},
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "UPDATE users SET age = ?, name = ? WHERE id = ? ORDER BY name ASC",
 				Values:   []interface{}{30, "Joe", 1},
 			},
 		},

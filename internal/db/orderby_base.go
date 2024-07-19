@@ -16,7 +16,7 @@ func NewOrderByBaseBuilder(order *[]structs.Order) *OrderByBaseBuilder {
 	}
 }
 
-func (BaseQueryBuilder) OrderBy(order *[]structs.Order) string {
+func (OrderByBaseBuilder) OrderBy(order *[]structs.Order) string {
 	if len(*order) == 0 {
 		return ""
 	}

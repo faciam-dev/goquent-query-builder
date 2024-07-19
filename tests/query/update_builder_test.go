@@ -57,6 +57,20 @@ func TestUpdateBuilder(t *testing.T) {
 			"UPDATE users INNER JOIN profiles ON users.id = profiles.user_id SET age = ?, name = ? WHERE age > ?",
 			[]interface{}{31, "Joe", 18},
 		},
+		{
+			"Update_orderBy",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+					Table("users").
+					OrderBy("name", "ASC").
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? ORDER BY name ASC",
+			[]interface{}{31, "Joe"},
+		},
 	}
 
 	for _, tt := range tests {
