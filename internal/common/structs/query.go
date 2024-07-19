@@ -40,8 +40,13 @@ type Query struct {
 }
 
 type SelectQuery struct {
-	Table string
-	Query *Query
+	Table    string
+	Columns  *[]Column
+	Limit    *Limit
+	Offset   *Offset
+	SubQuery *[]Query
+	Group    *GroupBy
+	Lock     *Lock
 }
 
 type InsertQuery struct {

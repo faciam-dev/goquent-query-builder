@@ -63,10 +63,10 @@ func (b *WhereBuilder) whereOrOrWhereQuery(column string, condition string, q *B
 
 	sq := &structs.Query{
 		ConditionGroups: q.whereBuilder.query.ConditionGroups,
-		Table:           q.query.Table,
+		Table:           structs.Table{Name: q.query.Table},
 		Columns:         q.query.Columns,
-		Joins:           q.query.Joins,
-		Order:           q.query.Order,
+		Joins:           q.joinBuilder.Joins,
+		Order:           q.orderByBuilder.Order,
 	}
 
 	args := &structs.Where{
