@@ -56,7 +56,7 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 			&structs.InsertQuery{
 				Table:   "users",
 				Columns: []string{"name", "age"},
-				SelectQuery: &structs.Query{
+				Query: &structs.Query{
 					Table: structs.Table{Name: "profiles"},
 					Joins: &[]structs.Join{},
 					Columns: &[]structs.Column{

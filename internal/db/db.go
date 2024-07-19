@@ -15,4 +15,6 @@ type QueryBuilderStrategy interface {
 	BuildInsert(q *structs.InsertQuery) (string, []interface{})
 
 	BuildUpdate(q *structs.UpdateQuery) (string, []interface{})
+
+	BuildDelete(q *structs.DeleteQuery) (string, []interface{})
 }

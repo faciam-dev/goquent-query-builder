@@ -14,6 +14,7 @@ type BaseQueryBuilder struct {
 	JoinBaseBuilder
 	InsertBaseBuilder
 	UpdateBaseBuilder
+	DeleteBaseBuilder
 }
 
 func (BaseQueryBuilder) Select(columns *[]structs.Column, joinedTablesForSelect *[]structs.Column) ([]string, []interface{}) {

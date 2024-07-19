@@ -100,7 +100,7 @@ func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interf
 
 	// SELECT
 	b := &BaseQueryBuilder{}
-	selectQuery, selectValues := b.Build(q.SelectQuery)
+	selectQuery, selectValues := b.Build(q.Query)
 	query += selectQuery
 
 	return query, selectValues
@@ -108,7 +108,7 @@ func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interf
 
 // BuildInsert builds the INSERT query.
 func (m InsertBaseBuilder) BuildInsert(q *structs.InsertQuery) (string, []interface{}) {
-	if q.SelectQuery != nil {
+	if q.Query != nil {
 		return m.InsertUsing(q)
 	}
 

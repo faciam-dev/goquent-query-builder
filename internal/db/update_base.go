@@ -21,7 +21,7 @@ func (m *UpdateBaseBuilder) Update(q *structs.UpdateQuery) *UpdateBaseBuilder {
 func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []interface{}) {
 	// JOIN
 	b := &BaseQueryBuilder{}
-	_, join := b.Join(q.Table, q.SelectQuery.Joins)
+	_, join := b.Join(q.Table, q.Query.Joins)
 
 	// UPDATE
 	query := "UPDATE " + q.Table + join + " SET "
@@ -39,16 +39,16 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	}
 	query = query[:len(query)-2]
 
-	if len(*q.SelectQuery.ConditionGroups) > 0 {
-		wb := NewWhereBaseBuilder(q.SelectQuery.ConditionGroups)
-		where, whereValues := wb.Where(q.SelectQuery.ConditionGroups)
+	if len(*q.Query.ConditionGroups) > 0 {
+		wb := NewWhereBaseBuilder(q.Query.ConditionGroups)
+		where, whereValues := wb.Where(q.Query.ConditionGroups)
 		query += where
 		values = append(values, whereValues...)
 	}
 
-	if len(*q.SelectQuery.Order) > 0 {
-		ob := NewOrderByBaseBuilder(q.SelectQuery.Order)
-		order := ob.OrderBy(q.SelectQuery.Order)
+	if len(*q.Query.Order) > 0 {
+		ob := NewOrderByBaseBuilder(q.Query.Order)
+		order := ob.OrderBy(q.Query.Order)
 		query += order
 	}
 

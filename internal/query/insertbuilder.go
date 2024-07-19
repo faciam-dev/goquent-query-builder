@@ -49,7 +49,7 @@ func (ib *InsertBuilder) InsertUsing(columns []string, q *structs.Query) *Insert
 		q.Conditions = &[]structs.Where{}
 	}
 
-	ib.query.SelectQuery = q
+	ib.query.Query = q
 
 	return ib
 }

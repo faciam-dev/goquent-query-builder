@@ -7,20 +7,20 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 )
 
-type UpdateBuilder struct {
+type DeleteBuilder struct {
 	dbBuilder      db.QueryBuilderStrategy
 	cache          *cache.AsyncQueryCache
-	query          *structs.UpdateQuery
+	query          *structs.DeleteQuery
 	whereBuilder   *WhereBuilder
 	joinBuilder    *JoinBuilder
 	orderByBuilder *OrderByBuilder
 }
 
-func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *UpdateBuilder {
-	return &UpdateBuilder{
+func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *DeleteBuilder {
+	return &DeleteBuilder{
 		dbBuilder: strategy,
 		cache:     cache,
-		query: &structs.UpdateQuery{
+		query: &structs.DeleteQuery{
 			Query: &structs.Query{},
 		},
 		whereBuilder: &WhereBuilder{
@@ -41,49 +41,47 @@ func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryC
 	}
 }
 
-func (b *UpdateBuilder) Table(table string) *UpdateBuilder {
+func (b *DeleteBuilder) Table(table string) *DeleteBuilder {
 	b.query.Table = table
 	b.joinBuilder.Table.Name = table
 	return b
 }
 
-func (b *UpdateBuilder) Where(column string, condition string, value ...interface{}) *UpdateBuilder {
+func (b *DeleteBuilder) Where(column string, condition string, value ...interface{}) *DeleteBuilder {
 	b.whereBuilder.Where(column, condition, value...)
 	return b
 }
 
-func (b *UpdateBuilder) OrWhere(column string, condition string, value ...interface{}) *UpdateBuilder {
+func (b *DeleteBuilder) OrWhere(column string, condition string, value ...interface{}) *DeleteBuilder {
 	b.whereBuilder.OrWhere(column, condition, value...)
 	return b
 }
 
-func (b *UpdateBuilder) WhereQuery(column string, condition string, q *Builder) *UpdateBuilder {
+func (b *DeleteBuilder) WhereQuery(column string, condition string, q *Builder) *DeleteBuilder {
 	b.whereBuilder.WhereQuery(column, condition, q)
 
 	return b
 }
 
-func (b *UpdateBuilder) OrWhereQuery(column string, condition string, q *Builder) *UpdateBuilder {
+func (b *DeleteBuilder) OrWhereQuery(column string, condition string, q *Builder) *DeleteBuilder {
 	b.whereBuilder.OrWhereQuery(column, condition, q)
 
 	return b
 }
 
-func (b *UpdateBuilder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *UpdateBuilder {
+func (b *DeleteBuilder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *DeleteBuilder {
 	b.whereBuilder.WhereGroup(fn)
 
 	return b
 }
 
-func (b *UpdateBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *UpdateBuilder {
+func (b *DeleteBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *DeleteBuilder {
 	b.whereBuilder.OrWhereGroup(fn)
 
 	return b
 }
 
-func (b *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
-	b.query.Values = data
-
+func (b *DeleteBuilder) Delete() *DeleteBuilder {
 	// If there are conditions, add them to the query
 	if len(*b.whereBuilder.query.Conditions) > 0 {
 		*b.whereBuilder.query.ConditionGroups = append(*b.whereBuilder.query.ConditionGroups, structs.WhereGroup{
@@ -102,46 +100,46 @@ func (b *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 	return b
 }
 
-func (u *UpdateBuilder) Build() (string, []interface{}) {
-	query, values := u.dbBuilder.BuildUpdate(u.query)
+func (u *DeleteBuilder) Build() (string, []interface{}) {
+	query, values := u.dbBuilder.BuildDelete(u.query)
 	return query, values
 }
 
-func (b *UpdateBuilder) Join(table, my, condition, target string) *UpdateBuilder {
+func (b *DeleteBuilder) Join(table, my, condition, target string) *DeleteBuilder {
 	b.joinBuilder.Join(table, my, condition, target)
 	return b
 }
 
-func (b *UpdateBuilder) LeftJoin(table, my, condition, target string) *UpdateBuilder {
+func (b *DeleteBuilder) LeftJoin(table, my, condition, target string) *DeleteBuilder {
 	b.joinBuilder.LeftJoin(table, my, condition, target)
 	return b
 }
 
-func (b *UpdateBuilder) RightJoin(table, my, condition, target string) *UpdateBuilder {
+func (b *DeleteBuilder) RightJoin(table, my, condition, target string) *DeleteBuilder {
 	b.joinBuilder.RightJoin(table, my, condition, target)
 	return b
 }
 
-func (b *UpdateBuilder) CrossJoin(table string) *UpdateBuilder {
+func (b *DeleteBuilder) CrossJoin(table string) *DeleteBuilder {
 	b.joinBuilder.CrossJoin(table)
 	return b
 }
 
-func (b *UpdateBuilder) OrderBy(column string, direction string) *UpdateBuilder {
+func (b *DeleteBuilder) OrderBy(column string, direction string) *DeleteBuilder {
 	b.orderByBuilder.OrderBy(column, direction)
 	return b
 }
 
-func (b *UpdateBuilder) OrderByRaw(raw string) *UpdateBuilder {
+func (b *DeleteBuilder) OrderByRaw(raw string) *DeleteBuilder {
 	b.orderByBuilder.OrderByRaw(raw)
 	return b
 }
 
-func (b *UpdateBuilder) ReOrder() *UpdateBuilder {
+func (b *DeleteBuilder) ReOrder() *DeleteBuilder {
 	b.orderByBuilder.ReOrder()
 	return b
 }
 
-func (b *UpdateBuilder) GetQuery() *structs.UpdateQuery {
+func (b *DeleteBuilder) GetQuery() *structs.DeleteQuery {
 	return b.query
 }

@@ -19,6 +19,19 @@ func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQ
 	}
 }
 
+// Update
+func (ub *UpdateQueryBuilder) Update(data map[string]interface{}) *UpdateQueryBuilder {
+	ub.builder.Update(data)
+
+	return ub
+}
+
+// Table
+func (ub *UpdateQueryBuilder) Table(table string) *UpdateQueryBuilder {
+	ub.builder.Table(table)
+	return ub
+}
+
 // Where
 func (ub *UpdateQueryBuilder) Where(column string, condition string, value interface{}) *UpdateQueryBuilder {
 	ub.whereQueryBuilder.Where(column, condition, value)

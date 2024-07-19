@@ -39,18 +39,28 @@ type Query struct {
 	Lock            *Lock
 }
 
+type SelectQuery struct {
+	Table string
+	Query *Query
+}
+
 type InsertQuery struct {
 	Table       string
 	Values      map[string]interface{}
 	ValuesBatch []map[string]interface{}
 	Columns     []string
-	SelectQuery *Query
+	Query       *Query
 }
 
 type UpdateQuery struct {
-	Table       string
-	Values      map[string]interface{}
-	SelectQuery *Query
+	Table  string
+	Values map[string]interface{}
+	Query  *Query
+}
+
+type DeleteQuery struct {
+	Table string
+	Query *Query
 }
 
 type Join struct {

@@ -8,27 +8,24 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 )
 
-func TestBaseUpdateQueryBuilder(t *testing.T) {
+func TestBaseDeleteQueryBuilder(t *testing.T) {
 	tests := []struct {
 		name     string
 		method   string
-		input    *structs.UpdateQuery
+		input    *structs.DeleteQuery
 		expected QueryBuilderExpected
 	}{
 		{
-			"Update",
-			"Update",
-			&structs.UpdateQuery{
+			"Delete",
+			"Delete",
+			&structs.DeleteQuery{
 				Table: "users",
-				Values: map[string]interface{}{
-					"name": "Joe",
-					"age":  30,
-				},
 				Query: &structs.Query{
 					ConditionGroups: &[]structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
+
 									Column:    "id",
 									Condition: "=",
 									Value:     []interface{}{1},
@@ -42,19 +39,15 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "UPDATE users SET age = ?, name = ? WHERE id = ?",
-				Values:   []interface{}{30, "Joe", 1},
+				Expected: "DELETE FROM users WHERE id = ?",
+				Values:   []interface{}{1},
 			},
 		},
 		{
-			"Update JOIN",
-			"Update",
-			&structs.UpdateQuery{
+			"Delete_JOINS",
+			"Delete",
+			&structs.DeleteQuery{
 				Table: "users",
-				Values: map[string]interface{}{
-					"name": "Joe",
-					"age":  30,
-				},
 				Query: &structs.Query{
 					ConditionGroups: &[]structs.WhereGroup{
 						{
@@ -81,44 +74,8 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "UPDATE users INNER JOIN profiles ON users.id = profiles.user_id SET age = ?, name = ? WHERE age > ?",
-				Values:   []interface{}{18, "Joe", 30},
-			},
-		},
-		{
-			"Update ORDER BY",
-			"Update",
-			&structs.UpdateQuery{
-				Table: "users",
-				Values: map[string]interface{}{
-					"name": "Joe",
-					"age":  30,
-				},
-				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
-						{
-							Conditions: []structs.Where{
-								{
-									Column:    "id",
-									Condition: "=",
-									Value:     []interface{}{1},
-								},
-							},
-							IsDummyGroup: true,
-						},
-					},
-					Joins: &[]structs.Join{},
-					Order: &[]structs.Order{
-						{
-							Column: "name",
-							IsAsc:  true,
-						},
-					},
-				},
-			},
-			QueryBuilderExpected{
-				Expected: "UPDATE users SET age = ?, name = ? WHERE id = ? ORDER BY name ASC",
-				Values:   []interface{}{30, "Joe", 1},
+				Expected: "DELETE users FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE age > ?",
+				Values:   []interface{}{18},
 			},
 		},
 	}
@@ -132,8 +89,8 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 			var got string
 			var gotValues []interface{} = nil
 			switch tt.method {
-			case "Update":
-				got, gotValues = builder.BuildUpdate(tt.input)
+			case "Delete":
+				got, gotValues = builder.BuildDelete(tt.input)
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, got)
