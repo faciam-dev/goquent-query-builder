@@ -2,7 +2,6 @@ package query
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -11,13 +10,14 @@ import (
 )
 
 type Builder struct {
-	dbBuilder     db.QueryBuilderStrategy
-	cache         *cache.AsyncQueryCache
-	query         *structs.Query
-	selectValues  []interface{}
-	groupByValues []interface{}
-	whereBuilder  WhereBuilder
-	joinBuilder   JoinBuilder
+	dbBuilder      db.QueryBuilderStrategy
+	cache          *cache.AsyncQueryCache
+	query          *structs.Query
+	selectValues   []interface{}
+	groupByValues  []interface{}
+	whereBuilder   WhereBuilder
+	joinBuilder    JoinBuilder
+	orderByBuilder OrderByBuilder
 }
 
 func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *Builder {
@@ -51,6 +51,9 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 		joinBuilder: JoinBuilder{
 			Table: &structs.Table{},
 			Joins: &[]structs.Join{},
+		},
+		orderByBuilder: OrderByBuilder{
+			Order: &[]structs.Order{},
 		},
 	}
 }
@@ -184,33 +187,20 @@ func (b *Builder) CrossJoin(table string) *Builder {
 
 // OrderBy adds an ORDER BY clause.
 func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
-	ascDesc = strings.ToUpper(ascDesc)
+	b.orderByBuilder.OrderBy(column, ascDesc)
 
-	if ascDesc == consts.Order_ASC {
-		*b.query.Order = append(*b.query.Order, structs.Order{
-			Column: column,
-			IsAsc:  consts.Order_FLAG_ASC,
-		})
-	} else if ascDesc == consts.Order_DESC {
-		*b.query.Order = append(*b.query.Order, structs.Order{
-			Column: column,
-			IsAsc:  consts.Order_FLAG_DESC,
-		})
-	}
 	return b
 }
 
 // ReOrder removes all ORDER BY clauses.
 func (b *Builder) ReOrder() *Builder {
-	*b.query.Order = []structs.Order{}
+	b.orderByBuilder.ReOrder()
 	return b
 }
 
 // OrderByRaw adds a raw ORDER BY clause.
 func (b *Builder) OrderByRaw(raw string) *Builder {
-	*b.query.Order = append(*b.query.Order, structs.Order{
-		Raw: raw,
-	})
+	b.orderByBuilder.OrderByRaw(raw)
 	return b
 }
 
@@ -317,7 +307,10 @@ func (b *Builder) Build() (string, []interface{}) {
 		*b.query.Joins = append(*b.query.Joins, *b.joinBuilder.Joins...)
 	}
 
-	// preprocess GROUP BY
+	// preprocess ORDER BY
+	if len(*b.orderByBuilder.Order) > 0 {
+		*b.query.Order = append(*b.query.Order, *b.orderByBuilder.Order...)
+	}
 
 	query, values := b.dbBuilder.Build(b.query)
 
