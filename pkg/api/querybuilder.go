@@ -149,6 +149,12 @@ func (qb *QueryBuilder) CrossJoin(table, my, condition, target string) *QueryBui
 	return qb
 }
 
+func (qb *QueryBuilder) JoinQuery(table string, fn func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder) *QueryBuilder {
+	qb.joinQueryBuilder.JoinQuery(table, fn)
+
+	return qb
+}
+
 func (qb *QueryBuilder) OrderBy(column, ascDesc string) *QueryBuilder {
 	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
 	return qb

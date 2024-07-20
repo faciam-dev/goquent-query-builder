@@ -21,7 +21,7 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 
 	// JOIN
 	b := &BaseQueryBuilder{}
-	_, join := b.Join(q.Table, q.Query.Joins)
+	_, join, _ := b.Join(q.Table, q.Query.Joins)
 
 	// DELETE
 	query := "DELETE"

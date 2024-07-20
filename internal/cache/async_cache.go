@@ -17,7 +17,7 @@ type cacheItem struct {
 	expiration time.Time
 }
 
-// NewAsyncQueryCache は、新しい非同期キャッシュを作成します。
+// NewAsyncQueryCache creates a new asynchronous query cache.
 func NewAsyncQueryCache() *AsyncQueryCache {
 	return &AsyncQueryCache{cache: make(map[string]cacheItem)}
 }

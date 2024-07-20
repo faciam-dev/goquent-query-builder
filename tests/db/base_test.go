@@ -631,8 +631,9 @@ func TestBaseQueryBuilder(t *testing.T) {
 				got = whereString
 				gotValues = values
 			case "Join":
-				_, gotQuery := builder.Join(tt.input.Table.Name, tt.input.Joins)
+				_, gotQuery, values := builder.Join(tt.input.Table.Name, tt.input.Joins)
 				got = gotQuery
+				gotValues = values
 			case "OrderBy":
 				got = builder.OrderBy(tt.input.Order)
 			case "GroupBy":

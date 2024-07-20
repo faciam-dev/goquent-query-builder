@@ -9,6 +9,7 @@ type JoinBuilder struct {
 	Table        *structs.Table
 	Joins        *structs.Joins
 	whereBuilder *WhereBuilder
+	joinValues   []interface{}
 }
 
 func NewJoinBuilder(j *structs.Joins) *JoinBuilder {
@@ -66,4 +67,75 @@ func (b *JoinBuilder) CrossJoin(table string) *JoinBuilder {
 		},
 	})
 	return b
+}
+
+func (b *JoinBuilder) JoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *JoinBuilder {
+	/*
+		if len(*b.Joins.Joins) > 0 {
+			*b.Joins.Joins = append(*b.Joins.Joins, structs.Join{
+				Conditions:   *b.query.Conditions,
+				Operator:     consts.LogicalOperator_AND,
+				IsDummyGroup: true,
+			})
+			*b.query.Conditions = []structs.Where{}
+		}*/
+
+	jq := fn(NewJoinClauseBuilder())
+
+	b.Joins.Name = table
+	b.Joins.TargetNameMap = map[string]string{
+		consts.Join_INNER: table,
+	}
+
+	b.Joins.JoinClause = jq.JoinClause
+
+	return b
+}
+
+func (b *JoinBuilder) JoinSub(table string, q *Builder) *JoinBuilder {
+	b.joinSubCommon(consts.Join_INNER, table, q)
+	return b
+}
+
+func (b *JoinBuilder) LeftJoinSub(table string, q *Builder) *JoinBuilder {
+	b.joinSubCommon(consts.Join_LEFT, table, q)
+	return b
+}
+
+func (b *JoinBuilder) RightJoinSub(table string, q *Builder) *JoinBuilder {
+	b.joinSubCommon(consts.Join_RIGHT, table, q)
+	return b
+}
+
+func (b *JoinBuilder) joinSubCommon(joinType string, table string, q *Builder) *JoinBuilder {
+
+	*q.whereBuilder.query.ConditionGroups = append(*q.whereBuilder.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.whereBuilder.query.Conditions,
+		IsDummyGroup: true,
+	})
+
+	sq := &structs.Query{
+		ConditionGroups: q.whereBuilder.query.ConditionGroups,
+		Table:           structs.Table{Name: q.query.Table},
+		Columns:         q.query.Columns,
+		Joins:           q.joinBuilder.Joins,
+		Order:           q.orderByBuilder.Order,
+	}
+
+	myTable := b.Table.Name
+	args := &structs.Join{
+		Name: myTable,
+		TargetNameMap: map[string]string{
+			joinType: table,
+		},
+		Query: sq,
+	}
+
+	// todo: use cache
+	_, value := b.whereBuilder.BuildSq(sq)
+
+	*b.Joins.Joins = append(*b.Joins.Joins, *args)
+	b.joinValues = append(b.joinValues, value...)
+	return b
+
 }

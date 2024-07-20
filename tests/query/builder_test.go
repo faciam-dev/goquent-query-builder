@@ -235,6 +235,16 @@ func TestBuilder(t *testing.T) {
 			nil,
 		},
 		{
+			"JoinQuery",
+			func() *query.Builder {
+				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).JoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
+					return b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
+				})
+			},
+			"SELECT users.*, .* FROM  INNER JOIN users ON users.id = profiles.user_id OR users.id = profiles.alter_user_id AND profiles.age > ?",
+			[]interface{}{18},
+		},
+		{
 			"OrderBy",
 			func() *query.Builder {
 				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).OrderBy("name", "asc")

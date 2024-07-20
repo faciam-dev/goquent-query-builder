@@ -69,6 +69,19 @@ type DeleteQuery struct {
 	Query *Query
 }
 
+type On struct {
+	Column    string
+	Condition string
+	Value     interface{}
+	Operator  int
+}
+
+type JoinClause struct {
+	On              *[]On
+	ConditionGroups *[]WhereGroup
+	Conditions      *[]Where
+}
+
 type Join struct {
 	Name               string
 	TargetNameMap      map[string]string
@@ -79,10 +92,12 @@ type Join struct {
 }
 
 type Joins struct {
-	Joins        *[]Join
-	Conditions   *[]Where
-	Operator     int
-	IsDummyGroup bool
+	Name          string
+	TargetNameMap map[string]string
+	Joins         *[]Join
+	JoinClause    *JoinClause
+	Operator      int
+	IsDummyGroup  bool
 }
 
 type Limit struct {

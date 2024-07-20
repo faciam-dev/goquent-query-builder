@@ -183,6 +183,12 @@ func (b *Builder) CrossJoin(table string) *Builder {
 	return b
 }
 
+func (b *Builder) JoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
+	b.joinBuilder.JoinQuery(table, fn)
+
+	return b
+}
+
 // OrderBy adds an ORDER BY clause.
 func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
 	b.orderByBuilder.OrderBy(column, ascDesc)
@@ -285,6 +291,7 @@ func (b *Builder) Build() (string, []interface{}) {
 	if cachedQuery, found := b.cache.Get(cacheKey); found {
 		values := []interface{}{}
 		values = append(values, b.selectValues...)
+		values = append(values, b.joinBuilder.joinValues...)
 		values = append(values, b.whereBuilder.whereValues...)
 		values = append(values, b.groupByValues...)
 		return cachedQuery, values
@@ -312,7 +319,10 @@ func (b *Builder) buildQuery() *structs.Query {
 
 	// preprocess JOIN
 	j := &structs.Joins{
-		Joins: &[]structs.Join{},
+		Joins:         &[]structs.Join{},
+		Name:          b.joinBuilder.Table.Name,
+		TargetNameMap: b.joinBuilder.Joins.TargetNameMap,
+		JoinClause:    b.joinBuilder.Joins.JoinClause,
 	}
 	if len(*b.joinBuilder.Joins.Joins) > 0 {
 		*j.Joins = append(*j.Joins, *b.joinBuilder.Joins.Joins...)
