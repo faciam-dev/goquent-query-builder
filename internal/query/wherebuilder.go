@@ -25,6 +25,7 @@ func NewWhereBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCa
 	}
 }
 
+// Where adds a where clause with AND operator
 func (b *WhereBuilder) Where(column string, condition string, value ...interface{}) *WhereBuilder {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Column:    column,
@@ -36,6 +37,7 @@ func (b *WhereBuilder) Where(column string, condition string, value ...interface
 	return b
 }
 
+// OrWhere adds a where clause with OR operator
 func (b *WhereBuilder) OrWhere(column string, condition string, value ...interface{}) *WhereBuilder {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Column:    column,
@@ -47,14 +49,39 @@ func (b *WhereBuilder) OrWhere(column string, condition string, value ...interfa
 	return b
 }
 
+// WhereRaw adds a raw where clause with AND operator
+func (b *WhereBuilder) WhereRaw(column string, value ...interface{}) *WhereBuilder {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Value:    value,
+		Raw:      column,
+		Operator: consts.LogicalOperator_AND,
+	})
+	b.whereValues = append(b.whereValues, value...)
+	return b
+}
+
+// OrWhereRaw adds a raw where clause with OR operator
+func (b *WhereBuilder) OrWhereRaw(column string, value ...interface{}) *WhereBuilder {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Value:    value,
+		Raw:      column,
+		Operator: consts.LogicalOperator_OR,
+	})
+	b.whereValues = append(b.whereValues, value...)
+	return b
+}
+
+// WhereQuery adds a where clause with AND operator
 func (b *WhereBuilder) WhereQuery(column string, condition string, q *Builder) *WhereBuilder {
 	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_AND)
 }
 
+// OrWhereQuery adds a where clause with OR operator
 func (b *WhereBuilder) OrWhereQuery(column string, condition string, q *Builder) *WhereBuilder {
 	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_OR)
 }
 
+// whereOrOrWhereQuery adds a where clause with AND or OR operator
 func (b *WhereBuilder) whereOrOrWhereQuery(column string, condition string, q *Builder, operator int) *WhereBuilder {
 	*q.whereBuilder.query.ConditionGroups = append(*q.whereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.whereBuilder.query.Conditions,
@@ -83,6 +110,7 @@ func (b *WhereBuilder) whereOrOrWhereQuery(column string, condition string, q *B
 	return b
 }
 
+// WhereGroup adds a where group with AND operator
 func (b *WhereBuilder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
 	if len(*b.query.Conditions) > 0 {
 		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
@@ -105,6 +133,7 @@ func (b *WhereBuilder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Where
 	return b
 }
 
+// OrWhereGroup adds a where group with OR operator
 func (b *WhereBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
 	if len(*b.query.Conditions) > 0 {
 		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
@@ -127,6 +156,7 @@ func (b *WhereBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Whe
 	return b
 }
 
+// BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder) BuildSq(sq *structs.Query) (string, []interface{}) {
 	cacheKey := generateCacheKey(sq)
 

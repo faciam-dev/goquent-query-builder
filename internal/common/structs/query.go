@@ -16,6 +16,7 @@ type Where struct {
 	Value     []interface{}
 	Operator  int
 	Query     *Query
+	Raw       string
 }
 
 type WhereGroup struct {

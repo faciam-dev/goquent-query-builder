@@ -73,14 +73,13 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 					}
 				}
 			*/
-			if c.Query != nil { // && c.Query.ConditionGroups != nil && len(*c.Query.ConditionGroups) > 0) || (c.Query != nil && c.Query.SubQuery != nil && len(*c.Query.SubQuery) > 0) {
+			if c.Query != nil {
 				condQuery := convertedColumn + " " + c.Condition
 
 				// create subquery
 				b := &BaseQueryBuilder{}
-				//log.Default().Printf("c.Query.Pro: %v", c.Query.Processed)
-				//log.Default().Printf("c.Query: %v", *c.Query.ConditionGroups)
 				sqQuery, sqValues := b.Build(c.Query)
+
 				if c.Operator == consts.LogicalOperator_AND {
 					if op != "" {
 						op = " AND "
@@ -98,38 +97,30 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 						op = " OR "
 					}
 				}
+
 				values = append(values, sqValues...)
-			} else if len(c.Value) == 1 {
-				condQuery := convertedColumn + " " + c.Condition + " ?"
-				value := c.Value[0]
-				if c.Operator == consts.LogicalOperator_AND {
-					if op != "" {
-						op = " AND "
-					}
-					where += op + condQuery
-					values = append(values, value)
-					if op == "" {
-						op = " AND "
-					}
-				} else if c.Operator == consts.LogicalOperator_OR {
-					if op != "" {
-						op = " OR "
-					}
-					where += op + condQuery
-					values = append(values, value)
-					if op == "" {
-						op = " OR "
+			} else {
+				raw := c.Raw
+				condQuery := ""
+				if raw != "" {
+					condQuery = raw
+				} else {
+					condQuery = convertedColumn + " " + c.Condition
+					if len(c.Value) > 1 {
+						condQuery += " (?)"
+					} else {
+						condQuery += " ?"
 					}
 				}
-			} else {
-				condQuery := convertedColumn + " " + c.Condition + " (?)"
-				value := c.Value
+
 				if c.Operator == consts.LogicalOperator_AND {
 					if op != "" {
 						op = " AND "
 					}
 					where += op + condQuery
-					values = append(values, value)
+					if len(c.Value) > 0 {
+						values = append(values, c.Value...)
+					}
 					if op == "" {
 						op = " AND "
 					}
@@ -138,7 +129,9 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 						op = " OR "
 					}
 					where += op + condQuery
-					values = append(values, value)
+					if len(c.Value) > 0 {
+						values = append(values, c.Value...)
+					}
 					if op == "" {
 						op = " OR "
 					}
