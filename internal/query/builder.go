@@ -33,10 +33,12 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 			Offset:   &structs.Offset{},
 			Lock:     &structs.Lock{},
 		},
-		selectValues:   []interface{}{},
-		groupByValues:  []interface{}{},
-		whereBuilder:   NewWhereBuilder(dbBuilder, cache),
-		joinBuilder:    NewJoinBuilder(&[]structs.Join{}),
+		selectValues:  []interface{}{},
+		groupByValues: []interface{}{},
+		whereBuilder:  NewWhereBuilder(dbBuilder, cache),
+		joinBuilder: NewJoinBuilder(&structs.Joins{
+			Joins: &[]structs.Join{},
+		}),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 }
@@ -309,9 +311,11 @@ func (b *Builder) buildQuery() *structs.Query {
 	}
 
 	// preprocess JOIN
-	j := &[]structs.Join{}
-	if len(*b.joinBuilder.Joins) > 0 {
-		*j = append(*j, *b.joinBuilder.Joins...)
+	j := &structs.Joins{
+		Joins: &[]structs.Join{},
+	}
+	if len(*b.joinBuilder.Joins.Joins) > 0 {
+		*j.Joins = append(*j.Joins, *b.joinBuilder.Joins.Joins...)
 	}
 
 	// preprocess ORDER BY
@@ -351,7 +355,7 @@ func generateCacheKey(q *structs.Query) string {
 	}
 
 	joinKey := ""
-	for _, j := range *q.Joins {
+	for _, j := range *q.Joins.Joins {
 		joinKey += j.Name + "," + j.SearchColumn + "," + j.SearchCondition + "," + j.SearchTargetColumn + ","
 	}
 

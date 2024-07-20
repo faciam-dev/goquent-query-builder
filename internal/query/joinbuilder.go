@@ -6,11 +6,12 @@ import (
 )
 
 type JoinBuilder struct {
-	Table *structs.Table
-	Joins *[]structs.Join
+	Table        *structs.Table
+	Joins        *structs.Joins
+	whereBuilder *WhereBuilder
 }
 
-func NewJoinBuilder(j *[]structs.Join) *JoinBuilder {
+func NewJoinBuilder(j *structs.Joins) *JoinBuilder {
 	return &JoinBuilder{
 		Table: &structs.Table{},
 		Joins: j,
@@ -36,10 +37,10 @@ func (b *JoinBuilder) RightJoin(table string, my string, condition string, targe
 func (b *JoinBuilder) joinCommon(joinType string, table string, my string, condition string, target string) *JoinBuilder {
 	myTable := b.Table.Name
 	// If a previous JOIN exists, retrieve the table name of that JOIN.
-	if b.Joins != nil && len(*b.Joins) > 0 {
-		myTable = (*b.Joins)[len(*b.Joins)-1].Name
+	if b.Joins.Joins != nil && len(*b.Joins.Joins) > 0 {
+		myTable = (*b.Joins.Joins)[len(*b.Joins.Joins)-1].Name
 	}
-	*b.Joins = append(*b.Joins, structs.Join{
+	*b.Joins.Joins = append(*b.Joins.Joins, structs.Join{
 		Name: myTable,
 		TargetNameMap: map[string]string{
 			joinType: table,
@@ -55,10 +56,10 @@ func (b *JoinBuilder) joinCommon(joinType string, table string, my string, condi
 func (b *JoinBuilder) CrossJoin(table string) *JoinBuilder {
 	myTable := b.Table.Name
 	// If a previous JOIN exists, retrieve the table name of that JOIN.
-	if b.Joins != nil && len(*b.Joins) > 0 {
-		myTable = (*b.Joins)[len(*b.Joins)-1].Name
+	if b.Joins != nil && len(*b.Joins.Joins) > 0 {
+		myTable = (*b.Joins.Joins)[len(*b.Joins.Joins)-1].Name
 	}
-	*b.Joins = append(*b.Joins, structs.Join{
+	*b.Joins.Joins = append(*b.Joins.Joins, structs.Join{
 		Name: myTable,
 		TargetNameMap: map[string]string{
 			consts.Join_CROSS: table,

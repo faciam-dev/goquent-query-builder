@@ -7,17 +7,17 @@ import (
 )
 
 type JoinBaseBuilder struct {
-	join *[]structs.Join
+	join *structs.Joins
 }
 
-func NewJoinBaseBuilder(j *[]structs.Join) *JoinBaseBuilder {
+func NewJoinBaseBuilder(j *structs.Joins) *JoinBaseBuilder {
 	return &JoinBaseBuilder{
 		join: j,
 	}
 }
 
 // Join builds the JOIN query.
-func (BaseQueryBuilder) Join(tableName string, joins *[]structs.Join) (*[]structs.Column, string) {
+func (BaseQueryBuilder) Join(tableName string, joins *structs.Joins) (*[]structs.Column, string) {
 	join := ""
 
 	joinedTablesForSelect, joinStrings := buildJoinStatement(tableName, joins)
@@ -29,10 +29,10 @@ func (BaseQueryBuilder) Join(tableName string, joins *[]structs.Join) (*[]struct
 }
 
 // buildJoinStatement builds the JOIN statement.
-func buildJoinStatement(tableName string, joins *[]structs.Join) (*[]structs.Column, []string) {
-	joinedTablesForSelect := make([]structs.Column, 0, len(*joins))
-	joinStrings := make([]string, 0, len(*joins))
-	for _, join := range *joins {
+func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Column, []string) {
+	joinedTablesForSelect := make([]structs.Column, 0, len(*joins.Joins))
+	joinStrings := make([]string, 0, len(*joins.Joins))
+	for _, join := range *joins.Joins {
 		joinType := ""
 		targetName := ""
 

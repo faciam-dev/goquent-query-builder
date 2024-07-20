@@ -29,7 +29,7 @@ type WhereGroup struct {
 type Query struct {
 	Columns         *[]Column
 	Table           Table
-	Joins           *[]Join
+	Joins           *Joins
 	ConditionGroups *[]WhereGroup
 	Conditions      *[]Where
 	Limit           *Limit
@@ -75,6 +75,14 @@ type Join struct {
 	SearchColumn       string
 	SearchCondition    string
 	SearchTargetColumn string
+	Query              *Query
+}
+
+type Joins struct {
+	Joins        *[]Join
+	Conditions   *[]Where
+	Operator     int
+	IsDummyGroup bool
 }
 
 type Limit struct {

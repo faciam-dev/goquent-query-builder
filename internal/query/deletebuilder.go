@@ -23,8 +23,10 @@ func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryC
 		query: &structs.DeleteQuery{
 			Query: &structs.Query{},
 		},
-		whereBuilder:   NewWhereBuilder(strategy, cache),
-		joinBuilder:    NewJoinBuilder(&[]structs.Join{}),
+		whereBuilder: NewWhereBuilder(strategy, cache),
+		joinBuilder: NewJoinBuilder(&structs.Joins{
+			Joins: &[]structs.Join{},
+		}),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 }

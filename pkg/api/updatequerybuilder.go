@@ -21,7 +21,9 @@ func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQ
 			builder: query.NewWhereBuilder(strategy, cache),
 		},
 		joinQueryBuilder: &JoinQueryBuilder{
-			builder: query.NewJoinBuilder(&[]structs.Join{}),
+			builder: query.NewJoinBuilder(&structs.Joins{
+				Joins: &[]structs.Join{},
+			}),
 		},
 		orderByQueryBuilder: &OrderByQueryBuilder{
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),

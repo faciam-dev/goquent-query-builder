@@ -37,7 +37,9 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 							IsDummyGroup: true,
 						},
 					},
-					Joins: &[]structs.Join{},
+					Joins: &structs.Joins{
+						Joins: &[]structs.Join{},
+					},
 					Order: &[]structs.Order{},
 				},
 			},
@@ -68,13 +70,15 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 							IsDummyGroup: true,
 						},
 					},
-					Joins: &[]structs.Join{
-						{
-							Name:               "profiles",
-							TargetNameMap:      map[string]string{consts.Join_INNER: "profiles"},
-							SearchColumn:       "users.id",
-							SearchCondition:    "=",
-							SearchTargetColumn: "profiles.user_id",
+					Joins: &structs.Joins{
+						Joins: &[]structs.Join{
+							{
+								Name:               "profiles",
+								TargetNameMap:      map[string]string{consts.Join_INNER: "profiles"},
+								SearchColumn:       "users.id",
+								SearchCondition:    "=",
+								SearchTargetColumn: "profiles.user_id",
+							},
 						},
 					},
 					Order: &[]structs.Order{},
@@ -107,7 +111,9 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 							IsDummyGroup: true,
 						},
 					},
-					Joins: &[]structs.Join{},
+					Joins: &structs.Joins{
+						Joins: &[]structs.Join{},
+					},
 					Order: &[]structs.Order{
 						{
 							Column: "name",
