@@ -256,6 +256,64 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"WhereRaw",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Raw:      "age > 18",
+								Operator: consts.LogicalOperator_AND,
+							},
+							{
+								Column:    "name",
+								Condition: "=",
+								Value:     []interface{}{"John"},
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE age > 18 AND name = ?",
+				Values:   []interface{}{"John"},
+			},
+		},
+		{
+			"WhereRaw_Or",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Raw:      "age > 18",
+								Operator: consts.LogicalOperator_AND,
+							},
+							{
+								Column:    "name",
+								Condition: "=",
+								Value:     []interface{}{"John"},
+								Operator:  consts.LogicalOperator_OR,
+							},
+							{
+								Raw:      "city = 'New York'",
+								Operator: consts.LogicalOperator_OR,
+							},
+						},
+						IsDummyGroup: true,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE age > 18 OR name = ? OR city = 'New York'",
+				Values:   []interface{}{"John"},
+			},
+		},
+		{
 			"WhereGroup",
 			"WhereGroup",
 			structs.Query{

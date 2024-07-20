@@ -104,6 +104,22 @@ func TestBuilder(t *testing.T) {
 			[]interface{}{"%@gmail.com%", "%@yahoo.com%", 18},
 		},
 		{
+			"WhereRaw",
+			func() *query.Builder {
+				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).WhereRaw("age > ?", 18)
+			},
+			"SELECT  FROM  WHERE age > ?",
+			[]interface{}{18},
+		},
+		{
+			"OrWhereRaw",
+			func() *query.Builder {
+				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).WhereRaw("age > ?", 18).OrWhereRaw("name= ?", "John")
+			},
+			"SELECT  FROM  WHERE age > ? OR name= ?",
+			[]interface{}{18, "John"},
+		},
+		{
 			"WhereQuery",
 			func() *query.Builder {
 				sq := query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Select("id").Table("users").Where("name", "=", "John")

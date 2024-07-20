@@ -83,6 +83,18 @@ func (qb *QueryBuilder) OrWhere(column string, condition string, value interface
 	return qb
 }
 
+func (qb *QueryBuilder) WhereRaw(raw string, value ...interface{}) *QueryBuilder {
+	qb.whereQueryBuilder.WhereRaw(raw, value)
+
+	return qb
+}
+
+func (qb *QueryBuilder) OrWhereRaw(raw string, value ...interface{}) *QueryBuilder {
+	qb.whereQueryBuilder.OrWhereRaw(raw, value)
+
+	return qb
+}
+
 // WhereQuery
 func (qb *QueryBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *QueryBuilder {
 	qb.whereQueryBuilder.WhereQuery(column, condition, q)

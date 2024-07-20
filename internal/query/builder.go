@@ -119,6 +119,16 @@ func (b *Builder) OrWhere(column string, condition string, value ...interface{})
 	return b
 }
 
+func (b *Builder) WhereRaw(raw string, value ...interface{}) *Builder {
+	b.whereBuilder.WhereRaw(raw, value...)
+	return b
+}
+
+func (b *Builder) OrWhereRaw(raw string, value ...interface{}) *Builder {
+	b.whereBuilder.OrWhereRaw(raw, value...)
+	return b
+}
+
 func (b *Builder) WhereQuery(column string, condition string, q *Builder) *Builder {
 	b.whereBuilder.WhereQuery(column, condition, q)
 

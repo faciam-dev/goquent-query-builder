@@ -51,6 +51,16 @@ func (wb *WhereQueryBuilder) OrWhereQuery(column string, condition string, q *Qu
 	return wb
 }
 
+func (wb *WhereQueryBuilder) WhereRaw(raw string, value interface{}) *WhereQueryBuilder {
+	wb.builder.WhereRaw(raw, value)
+	return wb
+}
+
+func (wb *WhereQueryBuilder) OrWhereRaw(raw string, value interface{}) *WhereQueryBuilder {
+	wb.builder.OrWhereRaw(raw, value)
+	return wb
+}
+
 // WhereGroup
 func (wb *WhereQueryBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *WhereQueryBuilder {
 	wb.builder.WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
