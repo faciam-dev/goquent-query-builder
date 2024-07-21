@@ -5,13 +5,13 @@ import (
 	"time"
 )
 
-// AsyncQueryCache は、非同期キャッシュを管理する構造体です。
+// AsyncQueryCache is a struct that manages an asynchronous query cache.
 type AsyncQueryCache struct {
 	cache map[string]cacheItem
 	mutex sync.RWMutex
 }
 
-// cacheItem は、キャッシュされたアイテムとその有効期限を保持します。
+// cacheItem is a struct that holds the cached item and its expiration.
 type cacheItem struct {
 	value      string
 	expiration time.Time
@@ -22,7 +22,7 @@ func NewAsyncQueryCache() *AsyncQueryCache {
 	return &AsyncQueryCache{cache: make(map[string]cacheItem)}
 }
 
-// Get は、キャッシュから値を取得します。
+// Get is a method that retrieves a value from the cache.
 func (aqc *AsyncQueryCache) Get(key string) (string, bool) {
 	aqc.mutex.RLock()
 	defer aqc.mutex.RUnlock()
@@ -33,7 +33,7 @@ func (aqc *AsyncQueryCache) Get(key string) (string, bool) {
 	return item.value, true
 }
 
-// Set は、キャッシュに値を非同期で設定します。
+// Set is a method that sets a value in the cache asynchronously.
 func (aqc *AsyncQueryCache) Set(key, value string) {
 	go func() {
 		aqc.mutex.Lock()
@@ -42,7 +42,7 @@ func (aqc *AsyncQueryCache) Set(key, value string) {
 	}()
 }
 
-// SetWithExpiry は、キャッシュに有効期限付きで値を非同期で設定します。
+// SetWithExpiry is a method that sets a value in the cache with an expiration asynchronously.
 func (aqc *AsyncQueryCache) SetWithExpiry(key, value string, duration time.Duration) {
 	go func() {
 		expiration := time.Now().Add(duration)

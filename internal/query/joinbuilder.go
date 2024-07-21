@@ -1,8 +1,10 @@
 package query
 
 import (
+	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db"
 )
 
 type JoinBuilder struct {
@@ -12,10 +14,13 @@ type JoinBuilder struct {
 	joinValues   []interface{}
 }
 
-func NewJoinBuilder(j *structs.Joins) *JoinBuilder {
+func NewJoinBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *JoinBuilder {
 	return &JoinBuilder{
 		Table: &structs.Table{},
-		Joins: j,
+		Joins: &structs.Joins{
+			Joins: &[]structs.Join{},
+		},
+		whereBuilder: NewWhereBuilder(dbBuilder, cache),
 	}
 }
 
@@ -82,9 +87,30 @@ func (b *JoinBuilder) JoinQuery(table string, fn func(j *JoinClauseBuilder) *Joi
 
 	jq := fn(NewJoinClauseBuilder())
 
-	b.Joins.Name = table
-	b.Joins.TargetNameMap = map[string]string{
+	jq.JoinClause.Name = table
+	jq.JoinClause.TargetNameMap = map[string]string{
 		consts.Join_INNER: table,
+	}
+
+	/*
+		b.Joins.Name = table
+		b.Joins.TargetNameMap = map[string]string{
+			consts.Join_INNER: table,
+		}
+	*/
+
+	b.Joins.JoinClause = jq.JoinClause
+
+	return b
+}
+
+func (b *JoinBuilder) LeftJoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *JoinBuilder {
+
+	jq := fn(NewJoinClauseBuilder())
+
+	jq.JoinClause.Name = table
+	jq.JoinClause.TargetNameMap = map[string]string{
+		consts.Join_LEFT: table,
 	}
 
 	b.Joins.JoinClause = jq.JoinClause
@@ -92,22 +118,36 @@ func (b *JoinBuilder) JoinQuery(table string, fn func(j *JoinClauseBuilder) *Joi
 	return b
 }
 
-func (b *JoinBuilder) JoinSub(table string, q *Builder) *JoinBuilder {
-	b.joinSubCommon(consts.Join_INNER, table, q)
+func (b *JoinBuilder) RightJoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *JoinBuilder {
+
+	jq := fn(NewJoinClauseBuilder())
+
+	jq.JoinClause.Name = table
+	jq.JoinClause.TargetNameMap = map[string]string{
+		consts.Join_RIGHT: table,
+	}
+
+	b.Joins.JoinClause = jq.JoinClause
+
 	return b
 }
 
-func (b *JoinBuilder) LeftJoinSub(table string, q *Builder) *JoinBuilder {
-	b.joinSubCommon(consts.Join_LEFT, table, q)
+func (b *JoinBuilder) JoinSub(q *Builder, alias, my, condition, target string) *JoinBuilder {
+	b.joinSubCommon(consts.Join_INNER, q, alias, my, condition, target)
 	return b
 }
 
-func (b *JoinBuilder) RightJoinSub(table string, q *Builder) *JoinBuilder {
-	b.joinSubCommon(consts.Join_RIGHT, table, q)
+func (b *JoinBuilder) LeftJoinSub(q *Builder, alias, my, condition, target string) *JoinBuilder {
+	b.joinSubCommon(consts.Join_LEFT, q, alias, my, condition, target)
 	return b
 }
 
-func (b *JoinBuilder) joinSubCommon(joinType string, table string, q *Builder) *JoinBuilder {
+func (b *JoinBuilder) RightJoinSub(q *Builder, alias, my, condition, target string) *JoinBuilder {
+	b.joinSubCommon(consts.Join_RIGHT, q, alias, my, condition, target)
+	return b
+}
+
+func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, condition, target string) *JoinBuilder {
 
 	*q.whereBuilder.query.ConditionGroups = append(*q.whereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.whereBuilder.query.Conditions,
@@ -126,9 +166,12 @@ func (b *JoinBuilder) joinSubCommon(joinType string, table string, q *Builder) *
 	args := &structs.Join{
 		Name: myTable,
 		TargetNameMap: map[string]string{
-			joinType: table,
+			joinType: alias,
 		},
-		Query: sq,
+		SearchColumn:       my,
+		SearchCondition:    condition,
+		SearchTargetColumn: target,
+		Query:              sq,
 	}
 
 	// todo: use cache
@@ -137,5 +180,4 @@ func (b *JoinBuilder) joinSubCommon(joinType string, table string, q *Builder) *
 	*b.Joins.Joins = append(*b.Joins.Joins, *args)
 	b.joinValues = append(b.joinValues, value...)
 	return b
-
 }

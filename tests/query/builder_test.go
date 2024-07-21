@@ -241,7 +241,35 @@ func TestBuilder(t *testing.T) {
 					return b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
 				})
 			},
-			"SELECT users.*, .* FROM  INNER JOIN users ON users.id = profiles.user_id OR users.id = profiles.alter_user_id AND profiles.age > ?",
+			"SELECT users.* FROM  INNER JOIN users ON users.id = profiles.user_id OR users.id = profiles.alter_user_id AND profiles.age > ?",
+			[]interface{}{18},
+		},
+		{
+			"LeftJoinQuery",
+			func() *query.Builder {
+				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).LeftJoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
+					return b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
+				})
+			},
+			"SELECT users.* FROM  LEFT JOIN users ON users.id = profiles.user_id OR users.id = profiles.alter_user_id AND profiles.age > ?",
+			[]interface{}{18},
+		},
+		{
+			"RightJoinQuery",
+			func() *query.Builder {
+				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).RightJoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
+					return b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
+				})
+			},
+			"SELECT users.* FROM  RIGHT JOIN users ON users.id = profiles.user_id OR users.id = profiles.alter_user_id AND profiles.age > ?",
+			[]interface{}{18},
+		},
+		{
+			"JoinSub",
+			func() *query.Builder {
+				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).JoinSub(query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Select("id").Table("profiles").Where("age", ">", 18), "profiles", "users.id", "=", "profiles.user_id")
+			},
+			"SELECT profiles.*, .* FROM  INNER JOIN (SELECT id FROM profiles WHERE age > ?) AS profiles ON users.id = profiles.user_id",
 			[]interface{}{18},
 		},
 		{

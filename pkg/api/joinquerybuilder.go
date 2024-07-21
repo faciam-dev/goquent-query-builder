@@ -34,17 +34,17 @@ func (jb *JoinQueryBuilder) JoinQuery(table string, fn func(b *query.JoinClauseB
 	return jb
 }
 
-func (jb *JoinQueryBuilder) JoinSub(table string, qb *QueryBuilder) *JoinQueryBuilder {
-	jb.builder.JoinSub(table, qb.builder)
+func (jb *JoinQueryBuilder) JoinSub(qb *QueryBuilder, alias, my, condition, target string) *JoinQueryBuilder {
+	jb.builder.JoinSub(qb.builder, alias, my, condition, target)
 	return jb
 }
 
-func (jb *JoinQueryBuilder) LeftJoinSub(table string, qb *QueryBuilder) *JoinQueryBuilder {
-	jb.builder.LeftJoinSub(table, qb.builder)
+func (jb *JoinQueryBuilder) LeftJoinSub(qb *QueryBuilder, alias, my, condition, target string) *JoinQueryBuilder {
+	jb.builder.LeftJoinSub(qb.builder, alias, my, condition, target)
 	return jb
 }
 
-func (jb *JoinQueryBuilder) RightJoinSub(table string, qb *QueryBuilder) *JoinQueryBuilder {
-	jb.builder.RightJoinSub(table, qb.builder)
+func (jb *JoinQueryBuilder) RightJoinSub(qb *QueryBuilder, alias, my, condition, target string) *JoinQueryBuilder {
+	jb.builder.RightJoinSub(qb.builder, alias, my, condition, target)
 	return jb
 }

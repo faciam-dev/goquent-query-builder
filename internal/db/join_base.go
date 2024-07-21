@@ -37,11 +37,18 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 		values := make([]interface{}, 0, len(*joins.JoinClause.Conditions))
 
 		j := structs.Join{
-			TargetNameMap: joins.TargetNameMap,
-			Name:          joins.Name,
+			TargetNameMap: joins.JoinClause.TargetNameMap,
+			Name:          joins.JoinClause.Name,
 		}
 
 		joinType, targetName := processJoin(j, tableName, &joinedTablesForSelect)
+
+		if joins.JoinClause.Query != nil {
+			b := &BaseQueryBuilder{}
+			sqQuery, sqValues := b.Build(joins.JoinClause.Query)
+			targetName = "(" + sqQuery + ")" + " AS " + targetName
+			values = append(values, sqValues...)
+		}
 
 		join := ""
 		join += joinType + " JOIN " + targetName + " ON "
@@ -81,10 +88,18 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 
 	joinedTablesForSelect := make([]structs.Column, 0, len(*joins.Joins))
 	joinStrings := make([]string, 0, len(*joins.Joins))
+	values := make([]interface{}, 0) //  length is unknown
 	for _, join := range *joins.Joins {
 		joinType, targetName := processJoin(join, tableName, &joinedTablesForSelect)
 		if joinType == "" && targetName == "" {
 			continue
+		}
+
+		if join.Query != nil {
+			b := &BaseQueryBuilder{}
+			sqQuery, sqValues := b.Build(join.Query)
+			targetName = "(" + sqQuery + ")" + " AS " + targetName
+			values = append(values, sqValues...)
 		}
 
 		joinQuery := joinType + " JOIN " + targetName + " ON " + join.SearchColumn + " " + join.SearchCondition + " " + join.SearchTargetColumn
@@ -96,7 +111,7 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 
 	}
 
-	return &joinedTablesForSelect, joinStrings, nil
+	return &joinedTablesForSelect, joinStrings, values
 }
 
 func processJoin(join structs.Join, tableName string, joinedTablesForSelect *[]structs.Column) (string, string) {

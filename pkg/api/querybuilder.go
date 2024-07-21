@@ -21,9 +21,7 @@ func NewQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCa
 			builder: query.NewWhereBuilder(strategy, cache),
 		},
 		joinQueryBuilder: &JoinQueryBuilder{
-			builder: query.NewJoinBuilder(&structs.Joins{
-				Joins: &[]structs.Join{},
-			}),
+			builder: query.NewJoinBuilder(strategy, cache),
 		},
 		orderByQueryBuilder: &OrderByQueryBuilder{
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
@@ -152,6 +150,21 @@ func (qb *QueryBuilder) CrossJoin(table, my, condition, target string) *QueryBui
 func (qb *QueryBuilder) JoinQuery(table string, fn func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder) *QueryBuilder {
 	qb.joinQueryBuilder.JoinQuery(table, fn)
 
+	return qb
+}
+
+func (qb *QueryBuilder) JoinSub(q *QueryBuilder, alias, my, condition, target string) *QueryBuilder {
+	qb.joinQueryBuilder.JoinSub(q, alias, my, condition, target)
+	return qb
+}
+
+func (qb *QueryBuilder) LeftJoinSub(q *QueryBuilder, alias, my, condition, target string) *QueryBuilder {
+	qb.joinQueryBuilder.LeftJoinSub(q, alias, my, condition, target)
+	return qb
+}
+
+func (qb *QueryBuilder) RightJoinSub(q *QueryBuilder, alias, my, condition, target string) *QueryBuilder {
+	qb.joinQueryBuilder.RightJoinSub(q, alias, my, condition, target)
 	return qb
 }
 

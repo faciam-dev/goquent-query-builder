@@ -33,12 +33,10 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 			Offset:   &structs.Offset{},
 			Lock:     &structs.Lock{},
 		},
-		selectValues:  []interface{}{},
-		groupByValues: []interface{}{},
-		whereBuilder:  NewWhereBuilder(dbBuilder, cache),
-		joinBuilder: NewJoinBuilder(&structs.Joins{
-			Joins: &[]structs.Join{},
-		}),
+		selectValues:   []interface{}{},
+		groupByValues:  []interface{}{},
+		whereBuilder:   NewWhereBuilder(dbBuilder, cache),
+		joinBuilder:    NewJoinBuilder(dbBuilder, cache),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 }
@@ -185,6 +183,36 @@ func (b *Builder) CrossJoin(table string) *Builder {
 
 func (b *Builder) JoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
 	b.joinBuilder.JoinQuery(table, fn)
+
+	return b
+}
+
+func (b *Builder) LeftJoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
+	b.joinBuilder.LeftJoinQuery(table, fn)
+
+	return b
+}
+
+func (b *Builder) RightJoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
+	b.joinBuilder.RightJoinQuery(table, fn)
+
+	return b
+}
+
+func (b *Builder) JoinSub(q *Builder, alias, my, condition, target string) *Builder {
+	b.joinBuilder.JoinSub(q, alias, my, condition, target)
+
+	return b
+}
+
+func (b *Builder) LeftJoinSub(q *Builder, alias, my, condition, target string) *Builder {
+	b.joinBuilder.LeftJoinSub(q, alias, my, condition, target)
+
+	return b
+}
+
+func (b *Builder) RightJoinSub(q *Builder, alias, my, condition, target string) *Builder {
+	b.joinBuilder.RightJoinSub(q, alias, my, condition, target)
 
 	return b
 }

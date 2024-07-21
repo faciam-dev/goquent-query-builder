@@ -80,6 +80,9 @@ type JoinClause struct {
 	On              *[]On
 	ConditionGroups *[]WhereGroup
 	Conditions      *[]Where
+	Name            string
+	TargetNameMap   map[string]string
+	Query           *Query
 }
 
 type Join struct {
