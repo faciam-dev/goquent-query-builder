@@ -19,7 +19,7 @@ func TestUseCacheTest(t *testing.T) {
 		{
 			"Complex_Query",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Select("id", "name").
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -32,8 +32,8 @@ func TestUseCacheTest(t *testing.T) {
 		{
 			"Complex_Query_With_Subquery",
 			func() *query.Builder {
-				sq := query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				sq := query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					SelectRaw("id, name, profiles.point * ? AS profiles_point", 1.05).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").

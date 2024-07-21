@@ -2,7 +2,6 @@ package bench_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
@@ -20,13 +19,13 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		query, _ := qb.Build()
-		blankCache.SetWithExpiry(query, query, 5*time.Minute)
+		qb.Build()
+		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
 	// go test -benchmem -run=^$ -bench BenchmarkSimpleSelectQuery -benchtime=1s
 	// before refactor
-	// 52083             21763 ns/op              20 B/op          2 allocs/op
+	// 2335863               509.9 ns/op           528 B/op        18 allocs/op
 	// after refactor
 	// 3636319               318.8 ns/op           488 B/op        14 allocs/op
 }
@@ -45,13 +44,13 @@ func BenchmarkNormalSelectQuery(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		query, _ := qb.Build()
-		blankCache.SetWithExpiry(query, query, 5*time.Minute)
+		qb.Build()
+		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
 	// go test -benchmem -run=^$ -bench BenchmarkNormalSelectQuery -benchtime=1s
 	// before refactor
-	// 31920             38882 ns/op              20 B/op          2 allocs/op
+	// 818690              1405 ns/op            1738 B/op        47 allocs/op
 	// after refactor
 	// 950131              1190 ns/op            1810 B/op        42 allocs/op
 }
@@ -74,13 +73,13 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		query, _ := qb.Build()
-		blankCache.SetWithExpiry(query, query, 5*time.Minute)
+		qb.Build()
+		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
 	// go test -benchmem -run=^$ -bench BenchmarkComplexSelectQuery -benchtime=1s
 	// before refactor
-	// 22543            104210 ns/op              20 B/op          2 allocs/op
+	// 675976              1747 ns/op           2323 B/op          57 allocs/op
 	// after refactor
 	// 785894              1486 ns/op           2139 B/op          51 allocs/op
 }
@@ -88,7 +87,7 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 	dbStrategy := &db.MySQLQueryBuilder{}
 
-	blankCache := cache.NewAsyncQueryCache()
+	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewQueryBuilder(dbStrategy, blankCache).
 		Table("users").
@@ -108,13 +107,15 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		query, _ := qb.Build()
-		blankCache.SetWithExpiry(query, query, 5*time.Minute)
+		qb.Build()
+		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
 	// go test -benchmem -run=^$ -bench BenchmarkComplexSelectQueryWithUsingSubQuery -benchtime=1s
 	// before refactor
-	// 18946            117881 ns/op              20 B/op          2 allocs/op
+	// 640671              2157 ns/op            890 B/op          25 allocs/op
 	// after refactor
 	// 717132              1887 ns/op            738 B/op          15 allocs/op
+	// c.f.) use AsyncQueryCache
+	// 2705778             446.4 ns/op          673 B/op          14 allocs/op
 }

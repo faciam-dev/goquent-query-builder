@@ -14,7 +14,7 @@ func main() {
 	// データベースごとのクエリビルダーストラテジーを選択
 	dbStrategy := &db.MySQLQueryBuilder{}
 
-	asyncCache := cache.NewAsyncQueryCache()
+	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
 	qb := api.NewQueryBuilder(dbStrategy, asyncCache).

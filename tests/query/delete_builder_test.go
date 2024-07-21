@@ -18,7 +18,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_all",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Delete()
 			},
@@ -28,7 +28,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "=", 1).
 					Delete()
@@ -39,7 +39,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_JOINS",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
@@ -52,9 +52,9 @@ func TestDeleteBuilder(t *testing.T) {
 			{
 				"Delete_using",
 				func() *query.DeleteBuilder {
-					return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+					return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 						Table("users").
-						Using(query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+						Using(query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 							Table("profiles").
 							Select("name", "age").
 							Where("age", ">", 18).GetQuery()).

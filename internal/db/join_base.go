@@ -1,6 +1,8 @@
 package db
 
 import (
+	"strings"
+
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -30,7 +32,6 @@ func (BaseQueryBuilder) Join(tableName string, joins *structs.Joins) (*[]structs
 
 // buildJoinStatement builds the JOIN statement.
 func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Column, []string, []interface{}) {
-
 	if joins.JoinClause != nil {
 		joinedTablesForSelect := make([]structs.Column, 0, len(*joins.JoinClause.On))
 		joinStrings := make([]string, 0, len(*joins.JoinClause.On))
@@ -50,8 +51,11 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 			values = append(values, sqValues...)
 		}
 
-		join := ""
-		join += joinType + " JOIN " + targetName + " ON "
+		var joinBuilder strings.Builder
+		joinBuilder.WriteString(joinType)
+		joinBuilder.WriteString(" JOIN ")
+		joinBuilder.WriteString(targetName)
+		joinBuilder.WriteString(" ON ")
 
 		op := ""
 		for i, on := range *joins.JoinClause.On {
@@ -63,11 +67,15 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 				}
 			}
 
-			join += op + on.Column + " " + on.Condition + " "
+			joinBuilder.WriteString(op)
+			joinBuilder.WriteString(on.Column)
+			joinBuilder.WriteString(" ")
+			joinBuilder.WriteString(on.Condition)
 			if on.Value != "" {
-				join += on.Value.(string) // TODO: check if this is correct
+				joinBuilder.WriteString(on.Value.(string)) // TODO: check if this is correct
 			}
 		}
+
 		op = ""
 		for i, condition := range *joins.JoinClause.Conditions {
 			if i > 0 || len(*joins.JoinClause.On) > 0 {
@@ -77,13 +85,17 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 					op = " AND "
 				}
 			}
-			join += op + condition.Column + " " + condition.Condition + " ?" // TODO: check if this is correct
+			joinBuilder.WriteString(op)
+			joinBuilder.WriteString(condition.Column)
+			joinBuilder.WriteString(" ")
+			joinBuilder.WriteString(condition.Condition)
+			joinBuilder.WriteString(" ?") // TODO: check if this is correct
 			values = append(values, condition.Value...)
 		}
-		joinStrings = append(joinStrings, join)
+
+		joinStrings = append(joinStrings, joinBuilder.String())
 
 		return &joinedTablesForSelect, joinStrings, values
-
 	}
 
 	joinedTablesForSelect := make([]structs.Column, 0, len(*joins.Joins))
@@ -102,13 +114,24 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 			values = append(values, sqValues...)
 		}
 
-		joinQuery := joinType + " JOIN " + targetName + " ON " + join.SearchColumn + " " + join.SearchCondition + " " + join.SearchTargetColumn
+		var joinBuilder strings.Builder
+		joinBuilder.WriteString(joinType)
+		joinBuilder.WriteString(" JOIN ")
+		joinBuilder.WriteString(targetName)
+		joinBuilder.WriteString(" ON ")
+		joinBuilder.WriteString(join.SearchColumn)
+		joinBuilder.WriteString(" ")
+		joinBuilder.WriteString(join.SearchCondition)
+		joinBuilder.WriteString(" ")
+		joinBuilder.WriteString(join.SearchTargetColumn)
+
 		if _, ok := join.TargetNameMap[consts.Join_CROSS]; ok {
-			joinQuery = joinType + " JOIN " + targetName
+			joinBuilder.WriteString(joinType)
+			joinBuilder.WriteString(" JOIN ")
+			joinBuilder.WriteString(targetName)
 		}
 
-		joinStrings = append(joinStrings, joinQuery)
-
+		joinStrings = append(joinStrings, joinBuilder.String())
 	}
 
 	return &joinedTablesForSelect, joinStrings, values

@@ -2,6 +2,7 @@ package query
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -380,41 +381,69 @@ func (b *Builder) buildQuery() *structs.Query {
 }
 
 func generateCacheKey(q *structs.Query) string {
-	tableKey := q.Table.Name
+	var sb strings.Builder
 
-	columnKey := ""
+	// Table key
+	sb.WriteString(q.Table.Name)
+
+	// Column key
 	for _, c := range *q.Columns {
-		columnKey += c.Name + ","
+		sb.WriteString(c.Name)
+		sb.WriteString(",")
 	}
 
-	orderKey := ""
+	// Order key
 	for _, o := range *q.Order {
-		orderKey += o.Column + "," + o.Raw + "," + fmt.Sprint(o.IsAsc)
+		sb.WriteString(o.Column)
+		sb.WriteString(",")
+		sb.WriteString(o.Raw)
+		sb.WriteString(",")
+		sb.WriteString(fmt.Sprint(o.IsAsc))
 	}
 
-	joinKey := ""
+	// Join key
 	for _, j := range *q.Joins.Joins {
-		joinKey += j.Name + "," + j.SearchColumn + "," + j.SearchCondition + "," + j.SearchTargetColumn + ","
+		sb.WriteString(j.Name)
+		sb.WriteString(",")
+		sb.WriteString(j.SearchColumn)
+		sb.WriteString(",")
+		sb.WriteString(j.SearchCondition)
+		sb.WriteString(",")
+		sb.WriteString(j.SearchTargetColumn)
+		sb.WriteString(",")
+	}
+	if q.Joins.JoinClause != nil {
+		for _, o := range *q.Joins.JoinClause.On {
+			sb.WriteString(o.Column)
+			sb.WriteString(",")
+			sb.WriteString(o.Condition)
+			sb.WriteString(",")
+			if o.Operator == consts.LogicalOperator_OR {
+				sb.WriteString("OR")
+			} else {
+				sb.WriteString("AND")
+			}
+			sb.WriteString(",")
+		}
 	}
 
-	conditionKey := ""
+	// Condition key
 	for _, c := range *q.ConditionGroups {
-		conditionKey += fmt.Sprint(c.Operator) + ","
+		sb.WriteString(fmt.Sprint(c.Operator))
+		sb.WriteString(",")
 		for _, w := range c.Conditions {
-			conditionKey += w.Column + "," + w.Condition + ","
+			sb.WriteString(w.Column)
+			sb.WriteString(",")
+			sb.WriteString(w.Condition)
+			sb.WriteString(",")
 			if w.Query != nil {
-				conditionKey += generateCacheKey(w.Query) + ","
+				sb.WriteString(generateCacheKey(w.Query))
+				sb.WriteString(",")
 			}
 		}
 	}
 
-	return fmt.Sprintf("%s|%s|%s|%s|%s",
-		tableKey,
-		columnKey,
-		joinKey,
-		conditionKey,
-		orderKey,
-	)
+	return sb.String()
 }
 
 func (b *Builder) GetQuery() *structs.Query {

@@ -21,7 +21,7 @@ func (OrderByBaseBuilder) OrderBy(order *[]structs.Order) string {
 		return ""
 	}
 
-	orderBy := ""
+	var sb strings.Builder
 	rawOrderQuerys := make([]string, 0, len(*order))
 	orders := make([]string, 0, len(*order))
 	for _, order := range *order {
@@ -38,15 +38,18 @@ func (OrderByBaseBuilder) OrderBy(order *[]structs.Order) string {
 		}
 		orders = append(orders, order.Column+" "+desc)
 	}
-	orderByHeader := " ORDER BY "
 	if len(rawOrderQuerys) > 0 {
-		orderBy += orderByHeader + strings.Join(rawOrderQuerys, ", ")
-		orderByHeader = ", "
+		sb.WriteString(" ORDER BY ")
+		sb.WriteString(strings.Join(rawOrderQuerys, ", "))
 	}
 	if len(orders) > 0 {
-		orderBy += orderByHeader + strings.Join(orders, ", ")
+		if len(rawOrderQuerys) > 0 {
+			sb.WriteString(", ")
+		} else {
+			sb.WriteString(" ORDER BY ")
+		}
+		sb.WriteString(strings.Join(orders, ", "))
 	}
 
-	return orderBy
-
+	return sb.String()
 }

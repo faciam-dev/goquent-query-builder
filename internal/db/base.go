@@ -47,16 +47,17 @@ func (BaseQueryBuilder) GroupBy(groupBy *structs.GroupBy) (string, []interface{}
 		return "", []interface{}{}
 	}
 
-	query := " GROUP BY "
-	values := []interface{}{}
+	query := strings.Builder{}
+	values := make([]interface{}, 0)
 	groupByColumns := groupBy.Columns
 	if len(groupByColumns) > 0 {
-		query += strings.Join(groupByColumns, ", ")
+		query.WriteString(" GROUP BY ")
+		query.WriteString(strings.Join(groupByColumns, ", "))
 	}
 
 	if len(*groupBy.Having) > 0 {
-		havingRaw := ""
-		havingValues := []interface{}{}
+		havingRaw := strings.Builder{}
+		havingValues := make([]interface{}, 0, len(*groupBy.Having))
 		for n, having := range *groupBy.Having {
 			op := "AND"
 			if having.Operator == consts.LogicalOperator_AND {
@@ -67,9 +68,11 @@ func (BaseQueryBuilder) GroupBy(groupBy *structs.GroupBy) (string, []interface{}
 
 			if having.Raw != "" {
 				if n > 0 {
-					havingRaw += " " + op + " "
+					havingRaw.WriteString(" ")
+					havingRaw.WriteString(op)
+					havingRaw.WriteString(" ")
 				}
-				havingRaw += having.Raw
+				havingRaw.WriteString(having.Raw)
 				continue
 			}
 			if having.Column == "" {
@@ -84,14 +87,20 @@ func (BaseQueryBuilder) GroupBy(groupBy *structs.GroupBy) (string, []interface{}
 			havingValues = append(havingValues, having.Value)
 
 			if n > 0 {
-				havingRaw += " " + op + " "
+				havingRaw.WriteString(" ")
+				havingRaw.WriteString(op)
+				havingRaw.WriteString(" ")
 			}
-			havingRaw += having.Column + " " + having.Condition + " ?"
+			havingRaw.WriteString(having.Column)
+			havingRaw.WriteString(" ")
+			havingRaw.WriteString(having.Condition)
+			havingRaw.WriteString(" ?")
 
 		}
 
-		if havingRaw != "" {
-			query += " HAVING " + havingRaw
+		if havingRaw.Len() > 0 {
+			query.WriteString(" HAVING ")
+			query.WriteString(havingRaw.String())
 
 			if len(havingValues) > 0 {
 				values = append(values, havingValues...)
@@ -99,7 +108,7 @@ func (BaseQueryBuilder) GroupBy(groupBy *structs.GroupBy) (string, []interface{}
 		}
 	}
 
-	return query, values
+	return query.String(), values
 }
 
 func (BaseQueryBuilder) Limit(limit *structs.Limit) string {
@@ -143,36 +152,40 @@ func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 
 	// assemble the query
 	// SELECT AND FROM
-	query := fmt.Sprintf("SELECT %s %s", strings.Join(columns, ", "), m.From(q.Table.Name))
+	query := strings.Builder{}
+	query.WriteString("SELECT ")
+	query.WriteString(strings.Join(columns, ", "))
+	query.WriteString(" ")
+	query.WriteString(m.From(q.Table.Name))
 	values := colValues
 
 	// JOIN
-	query += join
+	query.WriteString(join)
 	values = append(values, joinValues...)
 
 	// WHERE
-	query += where
+	query.WriteString(where)
 	values = append(values, whereValues...)
 
 	// ORDER BY
-	query += orderBy
+	query.WriteString(orderBy)
 
 	// GROUP BY / HAVING
 	groupBy, groupByValues := m.GroupBy(q.Group)
-	query += groupBy
+	query.WriteString(groupBy)
 	values = append(values, groupByValues...)
 
 	// LIMIT
 	limit := m.Limit(q.Limit)
-	query += limit
+	query.WriteString(limit)
 
 	// OFFSET
 	offset := m.Offset(q.Offset)
-	query += offset
+	query.WriteString(offset)
 
 	// LOCK
 	lock := m.Lock(q.Lock)
-	query += lock
+	query.WriteString(lock)
 
-	return query, values
+	return query.String(), values
 }
