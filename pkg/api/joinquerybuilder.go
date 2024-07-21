@@ -3,7 +3,8 @@ package api
 import "github.com/faciam-dev/goquent-query-builder/internal/query"
 
 type JoinQueryBuilder struct {
-	builder *query.JoinBuilder
+	builder          *query.JoinBuilder
+	joinQueryBuilder *JoinQueryBuilder
 }
 
 func (qb *JoinQueryBuilder) Join(table, my, condition, target string) *JoinQueryBuilder {
@@ -24,4 +25,26 @@ func (qb *JoinQueryBuilder) RightJoin(table, my, condition, target string) *Join
 func (qb *JoinQueryBuilder) CrossJoin(table string) *JoinQueryBuilder {
 	qb.builder.CrossJoin(table)
 	return qb
+}
+
+func (jb *JoinQueryBuilder) JoinQuery(table string, fn func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder) *JoinQueryBuilder {
+	jb.builder.JoinQuery(table, func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
+		return fn(b)
+	})
+	return jb
+}
+
+func (jb *JoinQueryBuilder) JoinSub(qb *QueryBuilder, alias, my, condition, target string) *JoinQueryBuilder {
+	jb.builder.JoinSub(qb.builder, alias, my, condition, target)
+	return jb
+}
+
+func (jb *JoinQueryBuilder) LeftJoinSub(qb *QueryBuilder, alias, my, condition, target string) *JoinQueryBuilder {
+	jb.builder.LeftJoinSub(qb.builder, alias, my, condition, target)
+	return jb
+}
+
+func (jb *JoinQueryBuilder) RightJoinSub(qb *QueryBuilder, alias, my, condition, target string) *JoinQueryBuilder {
+	jb.builder.RightJoinSub(qb.builder, alias, my, condition, target)
+	return jb
 }

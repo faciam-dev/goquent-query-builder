@@ -21,7 +21,7 @@ func NewDeleteQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQ
 			builder: query.NewWhereBuilder(strategy, cache),
 		},
 		joinQueryBuilder: &JoinQueryBuilder{
-			builder: query.NewJoinBuilder(&[]structs.Join{}),
+			builder: query.NewJoinBuilder(strategy, cache),
 		},
 		orderByQueryBuilder: &OrderByQueryBuilder{
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),

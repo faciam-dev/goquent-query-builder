@@ -177,9 +177,11 @@ func TestBaseQueryBuilder(t *testing.T) {
 									Table:           structs.Table{Name: "users"},
 									ConditionGroups: &[]structs.WhereGroup{},
 									Conditions:      &[]structs.Where{},
-									Joins:           &[]structs.Join{},
-									Order:           &[]structs.Order{},
-									Group:           &structs.GroupBy{},
+									Joins: &structs.Joins{
+										Joins: &[]structs.Join{},
+									},
+									Order: &[]structs.Order{},
+									Group: &structs.GroupBy{},
 								},
 								Operator: consts.LogicalOperator_AND,
 							},
@@ -357,13 +359,15 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"Join",
 			structs.Query{
 				Table: structs.Table{Name: "users"},
-				Joins: &[]structs.Join{
-					{
-						Name:               "orders",
-						TargetNameMap:      map[string]string{"inner": "orders"},
-						SearchColumn:       "users.id",
-						SearchCondition:    "=",
-						SearchTargetColumn: "orders.user_id",
+				Joins: &structs.Joins{
+					Joins: &[]structs.Join{
+						{
+							Name:               "orders",
+							TargetNameMap:      map[string]string{"inner": "orders"},
+							SearchColumn:       "users.id",
+							SearchCondition:    "=",
+							SearchTargetColumn: "orders.user_id",
+						},
 					},
 				},
 			},
@@ -377,13 +381,15 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"Join",
 			structs.Query{
 				Table: structs.Table{Name: "users"},
-				Joins: &[]structs.Join{
-					{
-						Name:               "orders",
-						TargetNameMap:      map[string]string{"left": "orders"},
-						SearchColumn:       "users.id",
-						SearchCondition:    "=",
-						SearchTargetColumn: "orders.user_id",
+				Joins: &structs.Joins{
+					Joins: &[]structs.Join{
+						{
+							Name:               "orders",
+							TargetNameMap:      map[string]string{"left": "orders"},
+							SearchColumn:       "users.id",
+							SearchCondition:    "=",
+							SearchTargetColumn: "orders.user_id",
+						},
 					},
 				},
 			},
@@ -397,20 +403,22 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"Join",
 			structs.Query{
 				Table: structs.Table{Name: "users"},
-				Joins: &[]structs.Join{
-					{
-						Name:               "orders",
-						TargetNameMap:      map[string]string{"inner": "orders"},
-						SearchColumn:       "users.id",
-						SearchCondition:    "=",
-						SearchTargetColumn: "orders.user_id",
-					},
-					{
-						Name:               "products",
-						TargetNameMap:      map[string]string{"inner": "products"},
-						SearchColumn:       "users.id",
-						SearchCondition:    "=",
-						SearchTargetColumn: "products.user_id",
+				Joins: &structs.Joins{
+					Joins: &[]structs.Join{
+						{
+							Name:               "orders",
+							TargetNameMap:      map[string]string{"inner": "orders"},
+							SearchColumn:       "users.id",
+							SearchCondition:    "=",
+							SearchTargetColumn: "orders.user_id",
+						},
+						{
+							Name:               "products",
+							TargetNameMap:      map[string]string{"inner": "products"},
+							SearchColumn:       "users.id",
+							SearchCondition:    "=",
+							SearchTargetColumn: "products.user_id",
+						},
 					},
 				},
 			},
@@ -623,8 +631,9 @@ func TestBaseQueryBuilder(t *testing.T) {
 				got = whereString
 				gotValues = values
 			case "Join":
-				_, gotQuery := builder.Join(tt.input.Table.Name, tt.input.Joins)
+				_, gotQuery, values := builder.Join(tt.input.Table.Name, tt.input.Joins)
 				got = gotQuery
+				gotValues = values
 			case "OrderBy":
 				got = builder.OrderBy(tt.input.Order)
 			case "GroupBy":

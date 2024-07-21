@@ -36,7 +36,7 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache)
 		selectValues:   []interface{}{},
 		groupByValues:  []interface{}{},
 		whereBuilder:   NewWhereBuilder(dbBuilder, cache),
-		joinBuilder:    NewJoinBuilder(&[]structs.Join{}),
+		joinBuilder:    NewJoinBuilder(dbBuilder, cache),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 }
@@ -181,6 +181,42 @@ func (b *Builder) CrossJoin(table string) *Builder {
 	return b
 }
 
+func (b *Builder) JoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
+	b.joinBuilder.JoinQuery(table, fn)
+
+	return b
+}
+
+func (b *Builder) LeftJoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
+	b.joinBuilder.LeftJoinQuery(table, fn)
+
+	return b
+}
+
+func (b *Builder) RightJoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
+	b.joinBuilder.RightJoinQuery(table, fn)
+
+	return b
+}
+
+func (b *Builder) JoinSub(q *Builder, alias, my, condition, target string) *Builder {
+	b.joinBuilder.JoinSub(q, alias, my, condition, target)
+
+	return b
+}
+
+func (b *Builder) LeftJoinSub(q *Builder, alias, my, condition, target string) *Builder {
+	b.joinBuilder.LeftJoinSub(q, alias, my, condition, target)
+
+	return b
+}
+
+func (b *Builder) RightJoinSub(q *Builder, alias, my, condition, target string) *Builder {
+	b.joinBuilder.RightJoinSub(q, alias, my, condition, target)
+
+	return b
+}
+
 // OrderBy adds an ORDER BY clause.
 func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
 	b.orderByBuilder.OrderBy(column, ascDesc)
@@ -283,6 +319,7 @@ func (b *Builder) Build() (string, []interface{}) {
 	if cachedQuery, found := b.cache.Get(cacheKey); found {
 		values := []interface{}{}
 		values = append(values, b.selectValues...)
+		values = append(values, b.joinBuilder.joinValues...)
 		values = append(values, b.whereBuilder.whereValues...)
 		values = append(values, b.groupByValues...)
 		return cachedQuery, values
@@ -309,9 +346,14 @@ func (b *Builder) buildQuery() *structs.Query {
 	}
 
 	// preprocess JOIN
-	j := &[]structs.Join{}
-	if len(*b.joinBuilder.Joins) > 0 {
-		*j = append(*j, *b.joinBuilder.Joins...)
+	j := &structs.Joins{
+		Joins:         &[]structs.Join{},
+		Name:          b.joinBuilder.Table.Name,
+		TargetNameMap: b.joinBuilder.Joins.TargetNameMap,
+		JoinClause:    b.joinBuilder.Joins.JoinClause,
+	}
+	if len(*b.joinBuilder.Joins.Joins) > 0 {
+		*j.Joins = append(*j.Joins, *b.joinBuilder.Joins.Joins...)
 	}
 
 	// preprocess ORDER BY
@@ -351,7 +393,7 @@ func generateCacheKey(q *structs.Query) string {
 	}
 
 	joinKey := ""
-	for _, j := range *q.Joins {
+	for _, j := range *q.Joins.Joins {
 		joinKey += j.Name + "," + j.SearchColumn + "," + j.SearchCondition + "," + j.SearchTargetColumn + ","
 	}
 

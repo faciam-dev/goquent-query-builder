@@ -29,7 +29,7 @@ type WhereGroup struct {
 type Query struct {
 	Columns         *[]Column
 	Table           Table
-	Joins           *[]Join
+	Joins           *Joins
 	ConditionGroups *[]WhereGroup
 	Conditions      *[]Where
 	Limit           *Limit
@@ -69,12 +69,38 @@ type DeleteQuery struct {
 	Query *Query
 }
 
+type On struct {
+	Column    string
+	Condition string
+	Value     interface{}
+	Operator  int
+}
+
+type JoinClause struct {
+	On              *[]On
+	ConditionGroups *[]WhereGroup
+	Conditions      *[]Where
+	Name            string
+	TargetNameMap   map[string]string
+	Query           *Query
+}
+
 type Join struct {
 	Name               string
 	TargetNameMap      map[string]string
 	SearchColumn       string
 	SearchCondition    string
 	SearchTargetColumn string
+	Query              *Query
+}
+
+type Joins struct {
+	Name          string
+	TargetNameMap map[string]string
+	Joins         *[]Join
+	JoinClause    *JoinClause
+	Operator      int
+	IsDummyGroup  bool
 }
 
 type Limit struct {

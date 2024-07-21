@@ -130,7 +130,7 @@ func (BaseQueryBuilder) Lock(lock *structs.Lock) string {
 // Build builds the query.
 func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 	// JOIN
-	joinedTablesForSelect, join := m.Join(q.Table.Name, q.Joins)
+	joinedTablesForSelect, join, joinValues := m.Join(q.Table.Name, q.Joins)
 
 	// WHERE
 	where, whereValues := m.Where(q.ConditionGroups)
@@ -148,6 +148,7 @@ func (m BaseQueryBuilder) Build(q *structs.Query) (string, []interface{}) {
 
 	// JOIN
 	query += join
+	values = append(values, joinValues...)
 
 	// WHERE
 	query += where
