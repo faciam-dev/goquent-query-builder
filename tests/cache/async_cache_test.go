@@ -10,7 +10,7 @@ import (
 func TestAsyncQueryCache(t *testing.T) {
 	tests := []struct {
 		name        string
-		setup       func() *cache.AsyncQueryCache
+		setup       func() cache.Cache
 		key         string
 		expected    string
 		shouldExist bool
@@ -18,7 +18,7 @@ func TestAsyncQueryCache(t *testing.T) {
 	}{
 		{
 			"Set and Get",
-			func() *cache.AsyncQueryCache {
+			func() cache.Cache {
 				cache := cache.NewAsyncQueryCache()
 				cache.Set("SELECT * FROM users", "result")
 				return cache
@@ -30,7 +30,7 @@ func TestAsyncQueryCache(t *testing.T) {
 		},
 		{
 			"Get Nonexistent Key",
-			func() *cache.AsyncQueryCache {
+			func() cache.Cache {
 				return cache.NewAsyncQueryCache()
 			},
 			"SELECT * FROM users",
@@ -40,7 +40,7 @@ func TestAsyncQueryCache(t *testing.T) {
 		},
 		{
 			"Set With Expiry",
-			func() *cache.AsyncQueryCache {
+			func() cache.Cache {
 				cache := cache.NewAsyncQueryCache()
 				cache.SetWithExpiry("SELECT * FROM users", "result", 200*time.Millisecond)
 				return cache
@@ -52,7 +52,7 @@ func TestAsyncQueryCache(t *testing.T) {
 		},
 		{
 			"Get Expired Key",
-			func() *cache.AsyncQueryCache {
+			func() cache.Cache {
 				cache := cache.NewAsyncQueryCache()
 				cache.SetWithExpiry("SELECT * FROM users", "result", 200*time.Millisecond)
 				return cache

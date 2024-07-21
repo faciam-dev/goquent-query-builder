@@ -9,14 +9,14 @@ import (
 
 type DeleteBuilder struct {
 	dbBuilder      db.QueryBuilderStrategy
-	cache          *cache.AsyncQueryCache
+	cache          cache.Cache
 	query          *structs.DeleteQuery
 	whereBuilder   *WhereBuilder
 	joinBuilder    *JoinBuilder
 	orderByBuilder *OrderByBuilder
 }
 
-func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *DeleteBuilder {
+func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *DeleteBuilder {
 	return &DeleteBuilder{
 		dbBuilder: strategy,
 		cache:     cache,

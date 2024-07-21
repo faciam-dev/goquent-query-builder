@@ -14,7 +14,7 @@ type JoinBuilder struct {
 	joinValues   []interface{}
 }
 
-func NewJoinBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *JoinBuilder {
+func NewJoinBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *JoinBuilder {
 	return &JoinBuilder{
 		Table: &structs.Table{},
 		Joins: &structs.Joins{

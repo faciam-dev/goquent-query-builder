@@ -9,11 +9,11 @@ import (
 
 type InsertBuilder struct {
 	dbBuilder db.QueryBuilderStrategy
-	cache     *cache.AsyncQueryCache
+	cache     cache.Cache
 	query     *structs.InsertQuery
 }
 
-func NewInsertBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *InsertBuilder {
+func NewInsertBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *InsertBuilder {
 	return &InsertBuilder{
 		dbBuilder: dbBuilder,
 		cache:     cache,

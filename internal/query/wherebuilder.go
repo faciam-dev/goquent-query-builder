@@ -9,12 +9,12 @@ import (
 
 type WhereBuilder struct {
 	dbBuilder   db.QueryBuilderStrategy
-	cache       *cache.AsyncQueryCache
+	cache       cache.Cache
 	query       *structs.Query
 	whereValues []interface{}
 }
 
-func NewWhereBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *WhereBuilder {
+func NewWhereBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *WhereBuilder {
 	return &WhereBuilder{
 		dbBuilder: strategy,
 		cache:     cache,

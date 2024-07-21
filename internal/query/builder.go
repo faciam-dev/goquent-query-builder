@@ -11,7 +11,7 @@ import (
 
 type Builder struct {
 	dbBuilder      db.QueryBuilderStrategy
-	cache          *cache.AsyncQueryCache
+	cache          cache.Cache
 	query          *structs.SelectQuery
 	selectValues   []interface{}
 	groupByValues  []interface{}
@@ -20,7 +20,7 @@ type Builder struct {
 	orderByBuilder *OrderByBuilder
 }
 
-func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *Builder {
+func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
 	return &Builder{
 		dbBuilder: dbBuilder,
 		cache:     cache,

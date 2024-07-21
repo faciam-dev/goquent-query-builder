@@ -10,7 +10,7 @@ type WhereQueryBuilder struct {
 	builder *query.WhereBuilder
 }
 
-func NewWhereQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *WhereQueryBuilder {
+func NewWhereQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *WhereQueryBuilder {
 	return &WhereQueryBuilder{
 		builder: query.NewWhereBuilder(strategy, cache),
 	}

@@ -9,14 +9,14 @@ import (
 
 type UpdateBuilder struct {
 	dbBuilder      db.QueryBuilderStrategy
-	cache          *cache.AsyncQueryCache
+	cache          cache.Cache
 	query          *structs.UpdateQuery
 	whereBuilder   *WhereBuilder
 	joinBuilder    *JoinBuilder
 	orderByBuilder *OrderByBuilder
 }
 
-func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *UpdateBuilder {
+func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
 	return &UpdateBuilder{
 		dbBuilder: strategy,
 		cache:     cache,
