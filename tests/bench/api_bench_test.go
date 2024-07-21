@@ -6,7 +6,6 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
-	"github.com/faciam-dev/goquent-query-builder/internal/profiling"
 	"github.com/faciam-dev/goquent-query-builder/pkg/api"
 )
 
@@ -19,20 +18,17 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 		Table("users").
 		Select("id", "users.name AS name")
 
-	query, _ := qb.Build()
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		profiling.Profile(query, func() {
-			blankCache.SetWithExpiry(query, query, 5*time.Minute)
-		})
+		query, _ := qb.Build()
+		blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
-	// BenchmarkSimpleSelectQuery-32
+	// go test -benchmem -run=^$ -bench BenchmarkSimpleSelectQuery -benchtime=1s
 	// before refactor
-	// 153862             13493 ns/op        20 B/op          2 allocs/op
+	// 52083             21763 ns/op              20 B/op          2 allocs/op
 	// after refactor
-	//
+	// 3636319               318.8 ns/op           488 B/op        14 allocs/op
 }
 
 func BenchmarkNormalSelectQuery(b *testing.B) {
@@ -47,20 +43,17 @@ func BenchmarkNormalSelectQuery(b *testing.B) {
 		Where("profiles.age", ">", 18).
 		OrderBy("users.name", "ASC")
 
-	query, _ := qb.Build()
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		profiling.Profile(query, func() {
-			blankCache.SetWithExpiry(query, query, 5*time.Minute)
-		})
+		query, _ := qb.Build()
+		blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
-	// BenchmarkNormalSelectQuery-32
+	// go test -benchmem -run=^$ -bench BenchmarkNormalSelectQuery -benchtime=1s
 	// before refactor
-	// 122570             16933 ns/op        20 B/op          2 allocs/op
+	// 31920             38882 ns/op              20 B/op          2 allocs/op
 	// after refactor
-	//
+	// 950131              1190 ns/op            1810 B/op        42 allocs/op
 }
 
 func BenchmarkComplexSelectQuery(b *testing.B) {
@@ -79,26 +72,23 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 		GroupBy("users.id").
 		Having("COUNT(profiles.id)", ">", 1)
 
-	query, _ := qb.Build()
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		profiling.Profile(query, func() {
-			blankCache.SetWithExpiry(query, query, 5*time.Minute)
-		})
+		query, _ := qb.Build()
+		blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
-	// BenchmarkComplexSelectQuery-32
+	// go test -benchmem -run=^$ -bench BenchmarkComplexSelectQuery -benchtime=1s
 	// before refactor
-	// 135646             16405 ns/op        20 B/op          2 allocs/op
+	// 22543            104210 ns/op              20 B/op          2 allocs/op
 	// after refactor
-	//
+	// 785894              1486 ns/op           2139 B/op          51 allocs/op
 }
 
 func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 	dbStrategy := &db.MySQLQueryBuilder{}
 
-	blankCache := cache.NewBlankQueryCache()
+	blankCache := cache.NewAsyncQueryCache()
 
 	qb := api.NewQueryBuilder(dbStrategy, blankCache).
 		Table("users").
@@ -116,18 +106,15 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 				Where("profiles.age", ">", 18)
 		})
 
-	query, _ := qb.Build()
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		profiling.Profile(query, func() {
-			blankCache.SetWithExpiry(query, query, 5*time.Minute)
-		})
+		query, _ := qb.Build()
+		blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
-	// BenchmarkComplexSelectQueryWithUsingSubQuery-32
+	// go test -benchmem -run=^$ -bench BenchmarkComplexSelectQueryWithUsingSubQuery -benchtime=1s
 	// before refactor
-	// 111592       18156 ns/op              20 B/op          2 allocs/op
+	// 18946            117881 ns/op              20 B/op          2 allocs/op
 	// after refactor
-	//
+	// 717132              1887 ns/op            738 B/op          15 allocs/op
 }
