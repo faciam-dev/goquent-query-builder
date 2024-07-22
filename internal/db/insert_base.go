@@ -27,7 +27,6 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 	sb.WriteString("INSERT INTO ")
 	sb.WriteString(q.Table)
 	sb.WriteString(" ")
-	//query := "INSERT INTO " + q.Table + " "
 
 	columns := make([]string, 0, len(q.Values))
 	for column := range q.Values {
@@ -35,10 +34,8 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 	}
 	sort.Strings(columns)
 
-	//placeholders := make([]string, len(columns))
 	values := make([]interface{}, 0, len(columns))
 	for _, column := range columns {
-		//placeholders[i] = "?"
 		values = append(values, q.Values[column])
 	}
 
@@ -60,9 +57,6 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 	}
 	sb.WriteString(")")
 
-	//query += "(" + strings.Join(columns, ", ") + ") "
-	//query += "VALUES (" + strings.Join(placeholders, ", ") + ")"
-
 	query := sb.String()
 	sb.Reset()
 
@@ -78,7 +72,6 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	sb.WriteString("INSERT INTO ")
 	sb.WriteString(q.Table)
 	sb.WriteString(" ")
-	//query := "INSERT INTO " + q.Table + " "
 
 	// get all columns from all values
 	columnSet := make(map[string]struct{}, len(q.ValuesBatch))
@@ -105,16 +98,11 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	}
 	sb.WriteString(") VALUES ")
 
-	//query += "(" + strings.Join(columns, ", ") + ") VALUES "
-
 	// VALUES
-	//valuePlaceholders := make([]string, 0, len(q.ValuesBatch))
 	allValues := make([]interface{}, 0, len(q.ValuesBatch)*len(columns))
 	for i, values := range q.ValuesBatch {
-		//placeholders := make([]string, len(columns))
 		rowValues := make([]interface{}, 0, len(columns))
 		for _, column := range columns {
-			//placeholders[i] = "?"
 			if value, ok := values[column]; ok {
 				rowValues = append(rowValues, value)
 			} else {
@@ -135,12 +123,8 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 			sb.WriteString(", ")
 		}
 
-		// valuePlaceholders = append(valuePlaceholders, "("+strings.Join(placeholders, ", ")+")")
-
 		allValues = append(allValues, rowValues...)
 	}
-
-	//query += strings.Join(valuePlaceholders, ", ")
 
 	query := sb.String()
 	sb.Reset()
@@ -155,7 +139,6 @@ func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interf
 	// INSERT INTO
 	sb.WriteString("INSERT INTO ")
 	sb.WriteString(q.Table)
-	//query := "INSERT INTO " + q.Table
 
 	// COLUMNS
 	columns := make([]string, 0, len(q.Columns))
@@ -168,13 +151,11 @@ func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interf
 		sb.WriteString(column)
 	}
 	sb.WriteString(") ")
-	//query += " (" + strings.Join(columns, ", ") + ") "
 
 	// SELECT
 	b := &BaseQueryBuilder{}
 	selectQuery, selectValues := b.Build("", q.Query)
 	sb.WriteString(selectQuery)
-	//query += selectQuery
 
 	query := sb.String()
 	sb.Reset()

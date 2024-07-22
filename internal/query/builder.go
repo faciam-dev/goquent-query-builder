@@ -348,7 +348,6 @@ func (b *Builder) Build() (string, []interface{}) {
 
 func (b *Builder) buildQuery() {
 	// preprocess WHERE
-	//g := &[]structs.Where{}
 	wg := b.whereBuilder.query.ConditionGroups
 	if len(*b.whereBuilder.query.Conditions) > 0 {
 		*wg = append(*wg, structs.WhereGroup{
@@ -359,31 +358,8 @@ func (b *Builder) buildQuery() {
 		b.whereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
-	// preprocess JOIN
-
-	/*
-		j := &structs.Joins{
-			Joins:         b.joinBuilder.Joins.Joins,
-			Name:          b.joinBuilder.Table.Name,
-			TargetNameMap: b.joinBuilder.Joins.TargetNameMap,
-			JoinClause:    b.joinBuilder.Joins.JoinClause,
-		}
-	*/
-	/*
-		if len(*b.joinBuilder.Joins.Joins) > 0 {
-			j.Joins = b.joinBuilder.Joins.Joins
-			//*j.Joins = append(*j.Joins, *b.joinBuilder.Joins.Joins...)
-		}
-	*/
-
 	// preprocess ORDER BY
 	o := b.orderByBuilder.Order
-	/*
-		o := &[]structs.Order{}
-		if len(*b.orderByBuilder.Order) > 0 {
-			*o = append(*o, *b.orderByBuilder.Order...)
-		}
-	*/
 
 	b.query.Table = structs.Table{
 		Name: b.selectQuery.Table,
@@ -398,23 +374,6 @@ func (b *Builder) buildQuery() {
 	b.query.Lock = b.selectQuery.Lock
 	b.query.SubQuery = b.selectQuery.SubQuery
 
-	/*
-		return &structs.Query{
-			Table: structs.Table{
-				Name: b.selectQuery.Table,
-			},
-			Columns: b.selectQuery.Columns,
-			//Conditions:      g,
-			ConditionGroups: wg,
-			Joins:           b.joinBuilder.Joins,
-			Order:           o,
-			Group:           b.selectQuery.Group,
-			Limit:           b.selectQuery.Limit,
-			Offset:          b.selectQuery.Offset,
-			Lock:            b.selectQuery.Lock,
-			SubQuery:        b.selectQuery.SubQuery,
-		}
-	*/
 }
 
 func generateCacheKey(q *structs.Query) string {

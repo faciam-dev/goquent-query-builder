@@ -230,15 +230,8 @@ func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []in
 		sb.Grow(consts.StringBuffer_Long_Query_Grow)
 	}
 
-	// JOIN
-	//sb.Grow(consts.StringBuffer_Query_Grow)
-
-	// assemble the query
-	// SELECT AND FROM
-
-	sb.WriteString("SELECT ")
-
 	// SELECT
+	sb.WriteString("SELECT ")
 	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
 
 	sb.WriteString(" ")
@@ -247,21 +240,17 @@ func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []in
 
 	// JOIN
 	joinValues := m.Join(sb, q.Joins)
-	//sb.WriteString(join)
 	values = append(values, joinValues...)
 
 	// WHERE
 	whereValues := m.Where(sb, q.ConditionGroups)
-	//sb.WriteString(where)
 	values = append(values, whereValues...)
 
 	// ORDER BY
 	m.OrderBy(sb, q.Order)
-	//sb.WriteString(orderBy)
 
 	// GROUP BY / HAVING
 	groupByValues := m.GroupBy(sb, q.Group)
-	//sb.WriteString(groupBy)
 	values = append(values, groupByValues...)
 
 	// LIMIT

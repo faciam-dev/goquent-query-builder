@@ -36,8 +36,6 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 		return []interface{}{}
 	}
 	if joins.JoinClause != nil {
-		//joinedTablesForSelect := make([]structs.Column, 0, len(*joins.JoinClause.On))
-		//joinStrings := make([]string, 0, len(*joins.JoinClause.On))
 		values := make([]interface{}, 0, len(*joins.JoinClause.Conditions))
 
 		j := &structs.Join{
@@ -96,8 +94,6 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			values = append(values, condition.Value...)
 		}
 
-		//joinStrings = append(joinStrings, sb.String())
-
 		return values
 	}
 
@@ -105,9 +101,6 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 		return []interface{}{}
 	}
 
-	//joinedTablesForSelect := make([]structs.Column, 0, len(*joins.Joins))
-	//joinStrings := make([]string, 0, len(*joins.Joins))
-	//joinedTablesForSelect := ""
 	values := make([]interface{}, 0) //  length is unknown
 	for _, join := range *joins.Joins {
 		joinType, targetName := jb.processJoin(&join)
@@ -115,7 +108,6 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			continue
 		}
 
-		//joinedTablesForSelect = _joinedTablesForSelect
 		if joinType == "" {
 			continue
 		}
@@ -144,8 +136,6 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			sb.WriteString(" ")
 			sb.WriteString(join.SearchTargetColumn)
 		}
-
-		// joinStrings = append(joinStrings, sb.String())
 	}
 
 	return values
@@ -154,7 +144,6 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 func (j *JoinBaseBuilder) processJoin(join *structs.Join) (string, string) {
 	joinType := ""
 	targetName := ""
-	//joinedTablesForSelect := ""
 
 	if _, ok := join.TargetNameMap[consts.Join_CROSS]; ok {
 		targetName = join.TargetNameMap[consts.Join_CROSS]
@@ -177,29 +166,5 @@ func (j *JoinBaseBuilder) processJoin(join *structs.Join) (string, string) {
 		return "", ""
 	}
 
-	/*
-
-		name := tableName
-		if join.Name != "" {
-			name = join.Name
-		}
-
-		targetNameForSelect := targetName + ".*"
-
-		sb := strings.Builder{}
-		sb.Grow(consts.StringBuffer_Select_Grow)
-
-		if !sliceutils.Contains[string](*j.columnNames, targetNameForSelect) {
-			sb.WriteString(", ")
-			sb.WriteString(targetNameForSelect)
-			*j.columnNames = append(*j.columnNames, targetNameForSelect)
-		}
-		nameForSelect := name + ".*"
-		if !sliceutils.Contains[string](*j.columnNames, nameForSelect) {
-			sb.WriteString(", ")
-			sb.WriteString(nameForSelect)
-			*j.columnNames = append(*j.columnNames, nameForSelect)
-		}
-	*/
 	return joinType, targetName
 }

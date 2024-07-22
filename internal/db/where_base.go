@@ -107,19 +107,14 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup)
 				raw := c.Raw
 				wsb := strings.Builder{}
 				wsb.Grow(consts.StringBuffer_Where_Grow)
-				//condQuery := ""
 				if raw != "" {
 					wsb.WriteString(raw)
-					//condQuery = raw
 				} else {
 					wsb.WriteString(convertedColumn + " " + c.Condition)
-					//condQuery = convertedColumn + " " + c.Condition
 					if len(c.Value) > 1 {
 						wsb.WriteString(" (?)")
-						//condQuery += " (?)"
 					} else {
 						wsb.WriteString(" ?")
-						//condQuery += " ?"
 					}
 				}
 				condQuery := wsb.String()
