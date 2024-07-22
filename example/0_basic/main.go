@@ -17,7 +17,7 @@ func main() {
 	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
-	qb := api.NewQueryBuilder(dbStrategy, asyncCache).
+	qb := api.NewSelectBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -39,7 +39,7 @@ func main() {
 	})
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
-	iqb := api.NewInsertQueryBuilder(dbStrategy, asyncCache).
+	iqb := api.NewInsertBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Insert(map[string]interface{}{
 			"name": "John Doe",
@@ -54,7 +54,7 @@ func main() {
 	})
 
 	// UPDATE users SET age = ? WHERE id = ?
-	uqb := api.NewUpdateQueryBuilder(dbStrategy, asyncCache).
+	uqb := api.NewUpdateBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Update(map[string]interface{}{
 			"age": 40,
@@ -69,7 +69,7 @@ func main() {
 	})
 
 	// DELETE FROM users WHERE id = ?
-	dqb := api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
+	dqb := api.NewDeleteBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Where("id", "=", 1).
 		Delete()
