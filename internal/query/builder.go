@@ -13,7 +13,8 @@ import (
 type Builder struct {
 	dbBuilder      db.QueryBuilderStrategy
 	cache          cache.Cache
-	query          *structs.SelectQuery
+	query          *structs.Query
+	selectQuery    *structs.SelectQuery
 	selectValues   []interface{}
 	groupByValues  []interface{}
 	whereBuilder   *WhereBuilder
@@ -25,7 +26,19 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
 	return &Builder{
 		dbBuilder: dbBuilder,
 		cache:     cache,
-		query: &structs.SelectQuery{
+		query: &structs.Query{
+			Table:           structs.Table{},
+			Columns:         &[]structs.Column{},
+			ConditionGroups: &[]structs.WhereGroup{},
+			Joins:           &structs.Joins{},
+			Order:           &[]structs.Order{},
+			Group:           &structs.GroupBy{},
+			Limit:           &structs.Limit{},
+			Offset:          &structs.Offset{},
+			Lock:            &structs.Lock{},
+			SubQuery:        &[]structs.Query{},
+		},
+		selectQuery: &structs.SelectQuery{
 			Table:    "",
 			Columns:  &[]structs.Column{},
 			Limit:    &structs.Limit{},
@@ -55,20 +68,20 @@ func (b *Builder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
 }
 
 func (b *Builder) Table(table string) *Builder {
-	b.query.Table = table
+	b.selectQuery.Table = table
 	return b
 }
 
 func (b *Builder) Select(columns ...string) *Builder {
 	for _, column := range columns {
-		*b.query.Columns = append(*b.query.Columns, structs.Column{Name: column})
+		*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{Name: column})
 	}
 	return b
 }
 
 func (b *Builder) SelectRaw(raw string, value ...interface{}) *Builder {
 	b.selectValues = append(b.selectValues, value...)
-	*b.query.Columns = append(*b.query.Columns, structs.Column{Raw: raw, Values: value})
+	*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{Raw: raw, Values: value})
 	return b
 }
 
@@ -78,7 +91,7 @@ func (b *Builder) Count(columns ...string) *Builder {
 	}
 
 	for _, column := range columns {
-		*b.query.Columns = append(*b.query.Columns, structs.Column{
+		*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{
 			Name: column,
 			Raw:  fmt.Sprintf("COUNT(%s)", column),
 		})
@@ -87,7 +100,7 @@ func (b *Builder) Count(columns ...string) *Builder {
 }
 
 func (b *Builder) aggregate(column string, aggregateFunc string) *Builder {
-	*b.query.Columns = append(*b.query.Columns, structs.Column{
+	*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{
 		Name: column,
 		Raw:  fmt.Sprintf("%s(%s)", aggregateFunc, column),
 	})
@@ -239,7 +252,7 @@ func (b *Builder) OrderByRaw(raw string) *Builder {
 
 // GroupBy adds a GROUP BY clause.
 func (b *Builder) GroupBy(columns ...string) *Builder {
-	*b.query.Group = structs.GroupBy{
+	*b.selectQuery.Group = structs.GroupBy{
 		Columns: columns,
 		Having:  &[]structs.Having{},
 	}
@@ -248,7 +261,7 @@ func (b *Builder) GroupBy(columns ...string) *Builder {
 
 // Having adds a HAVING clause with an AND operator.
 func (b *Builder) Having(column string, condition string, value interface{}) *Builder {
-	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
+	*b.selectQuery.Group.Having = append(*b.selectQuery.Group.Having, structs.Having{
 		Column:    column,
 		Condition: condition,
 		Value:     value,
@@ -259,7 +272,7 @@ func (b *Builder) Having(column string, condition string, value interface{}) *Bu
 
 // HavingRaw adds a raw HAVING clause with an AND operator.
 func (b *Builder) HavingRaw(raw string) *Builder {
-	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
+	*b.selectQuery.Group.Having = append(*b.selectQuery.Group.Having, structs.Having{
 		Raw:      raw,
 		Operator: consts.LogicalOperator_AND,
 	})
@@ -268,7 +281,7 @@ func (b *Builder) HavingRaw(raw string) *Builder {
 
 // OrHaving adds a HAVING clause with an OR operator.
 func (b *Builder) OrHaving(column string, condition string, value interface{}) *Builder {
-	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
+	*b.selectQuery.Group.Having = append(*b.selectQuery.Group.Having, structs.Having{
 		Column:    column,
 		Condition: condition,
 		Value:     value,
@@ -279,7 +292,7 @@ func (b *Builder) OrHaving(column string, condition string, value interface{}) *
 
 // OrHavingRaw adds a raw HAVING clause with an OR operator.
 func (b *Builder) OrHavingRaw(raw string) *Builder {
-	*b.query.Group.Having = append(*b.query.Group.Having, structs.Having{
+	*b.selectQuery.Group.Having = append(*b.selectQuery.Group.Having, structs.Having{
 		Raw:      raw,
 		Operator: consts.LogicalOperator_OR,
 	})
@@ -287,24 +300,24 @@ func (b *Builder) OrHavingRaw(raw string) *Builder {
 }
 
 func (b *Builder) Limit(limit int64) *Builder {
-	b.query.Limit.Limit = limit
+	b.selectQuery.Limit.Limit = limit
 	return b
 }
 
 func (b *Builder) Offset(offset int64) *Builder {
-	b.query.Offset.Offset = offset
+	b.selectQuery.Offset.Offset = offset
 	return b
 }
 
 func (b *Builder) SharedLock() *Builder {
-	b.query.Lock = &structs.Lock{
+	b.selectQuery.Lock = &structs.Lock{
 		LockType: consts.Lock_SHARE_MODE,
 	}
 	return b
 }
 
 func (b *Builder) LockForUpdate() *Builder {
-	b.query.Lock = &structs.Lock{
+	b.selectQuery.Lock = &structs.Lock{
 		LockType: consts.Lock_FOR_UPDATE,
 	}
 	return b
@@ -313,12 +326,12 @@ func (b *Builder) LockForUpdate() *Builder {
 // Build generates the SQL query string and parameter values based on the query builder's current state.
 // It returns the generated query string and a slice of parameter values.
 func (b *Builder) Build() (string, []interface{}) {
-	q := b.buildQuery()
+	b.buildQuery()
 
-	cacheKey := generateCacheKey(q)
+	cacheKey := generateCacheKey(b.query)
 
 	if cachedQuery, found := b.cache.Get(cacheKey); found {
-		values := []interface{}{}
+		values := make([]interface{}, 0, len(b.selectValues)+len(b.joinBuilder.joinValues)+len(b.whereBuilder.whereValues)+len(b.groupByValues))
 		values = append(values, b.selectValues...)
 		values = append(values, b.joinBuilder.joinValues...)
 		values = append(values, b.whereBuilder.whereValues...)
@@ -326,16 +339,16 @@ func (b *Builder) Build() (string, []interface{}) {
 		return cachedQuery, values
 	}
 
-	query, values := b.dbBuilder.Build(q)
+	query, values := b.dbBuilder.Build(cacheKey, b.query)
 
 	b.cache.Set(cacheKey, query)
 
 	return query, values
 }
 
-func (b *Builder) buildQuery() *structs.Query {
+func (b *Builder) buildQuery() {
 	// preprocess WHERE
-	g := &[]structs.Where{}
+	//g := &[]structs.Where{}
 	wg := b.whereBuilder.query.ConditionGroups
 	if len(*b.whereBuilder.query.Conditions) > 0 {
 		*wg = append(*wg, structs.WhereGroup{
@@ -347,41 +360,66 @@ func (b *Builder) buildQuery() *structs.Query {
 	}
 
 	// preprocess JOIN
-	j := &structs.Joins{
-		Joins:         &[]structs.Join{},
-		Name:          b.joinBuilder.Table.Name,
-		TargetNameMap: b.joinBuilder.Joins.TargetNameMap,
-		JoinClause:    b.joinBuilder.Joins.JoinClause,
-	}
-	if len(*b.joinBuilder.Joins.Joins) > 0 {
-		*j.Joins = append(*j.Joins, *b.joinBuilder.Joins.Joins...)
-	}
+
+	/*
+		j := &structs.Joins{
+			Joins:         b.joinBuilder.Joins.Joins,
+			Name:          b.joinBuilder.Table.Name,
+			TargetNameMap: b.joinBuilder.Joins.TargetNameMap,
+			JoinClause:    b.joinBuilder.Joins.JoinClause,
+		}
+	*/
+	/*
+		if len(*b.joinBuilder.Joins.Joins) > 0 {
+			j.Joins = b.joinBuilder.Joins.Joins
+			//*j.Joins = append(*j.Joins, *b.joinBuilder.Joins.Joins...)
+		}
+	*/
 
 	// preprocess ORDER BY
-	o := &[]structs.Order{}
-	if len(*b.orderByBuilder.Order) > 0 {
-		*o = append(*o, *b.orderByBuilder.Order...)
-	}
+	o := b.orderByBuilder.Order
+	/*
+		o := &[]structs.Order{}
+		if len(*b.orderByBuilder.Order) > 0 {
+			*o = append(*o, *b.orderByBuilder.Order...)
+		}
+	*/
 
-	return &structs.Query{
-		Table: structs.Table{
-			Name: b.query.Table,
-		},
-		Columns:         b.query.Columns,
-		Conditions:      g,
-		ConditionGroups: wg,
-		Joins:           j,
-		Order:           o,
-		Group:           b.query.Group,
-		Limit:           b.query.Limit,
-		Offset:          b.query.Offset,
-		Lock:            b.query.Lock,
-		SubQuery:        b.query.SubQuery,
+	b.query.Table = structs.Table{
+		Name: b.selectQuery.Table,
 	}
+	b.query.Columns = b.selectQuery.Columns
+	b.query.ConditionGroups = wg
+	b.query.Joins = b.joinBuilder.Joins
+	b.query.Order = o
+	b.query.Group = b.selectQuery.Group
+	b.query.Limit = b.selectQuery.Limit
+	b.query.Offset = b.selectQuery.Offset
+	b.query.Lock = b.selectQuery.Lock
+	b.query.SubQuery = b.selectQuery.SubQuery
+
+	/*
+		return &structs.Query{
+			Table: structs.Table{
+				Name: b.selectQuery.Table,
+			},
+			Columns: b.selectQuery.Columns,
+			//Conditions:      g,
+			ConditionGroups: wg,
+			Joins:           b.joinBuilder.Joins,
+			Order:           o,
+			Group:           b.selectQuery.Group,
+			Limit:           b.selectQuery.Limit,
+			Offset:          b.selectQuery.Offset,
+			Lock:            b.selectQuery.Lock,
+			SubQuery:        b.selectQuery.SubQuery,
+		}
+	*/
 }
 
 func generateCacheKey(q *structs.Query) string {
 	var sb strings.Builder
+	sb.Grow(consts.StringBuffer_CacheKey_Grow)
 
 	// Table key
 	sb.WriteString(q.Table.Name)
@@ -391,6 +429,7 @@ func generateCacheKey(q *structs.Query) string {
 		sb.WriteString(c.Name)
 		sb.WriteString(",")
 	}
+	sb.WriteString("|")
 
 	// Order key
 	for _, o := range *q.Order {
@@ -398,19 +437,26 @@ func generateCacheKey(q *structs.Query) string {
 		sb.WriteString(",")
 		sb.WriteString(o.Raw)
 		sb.WriteString(",")
-		sb.WriteString(fmt.Sprint(o.IsAsc))
+		if o.IsAsc {
+			sb.WriteString("ASC")
+		} else {
+			sb.WriteString("DESC")
+		}
 	}
+	sb.WriteString("|")
 
 	// Join key
-	for _, j := range *q.Joins.Joins {
-		sb.WriteString(j.Name)
-		sb.WriteString(",")
-		sb.WriteString(j.SearchColumn)
-		sb.WriteString(",")
-		sb.WriteString(j.SearchCondition)
-		sb.WriteString(",")
-		sb.WriteString(j.SearchTargetColumn)
-		sb.WriteString(",")
+	if q.Joins.Joins != nil {
+		for _, j := range *q.Joins.Joins {
+			sb.WriteString(j.Name)
+			sb.WriteString(",")
+			sb.WriteString(j.SearchColumn)
+			sb.WriteString(",")
+			sb.WriteString(j.SearchCondition)
+			sb.WriteString(",")
+			sb.WriteString(j.SearchTargetColumn)
+			sb.WriteString(",")
+		}
 	}
 	if q.Joins.JoinClause != nil {
 		for _, o := range *q.Joins.JoinClause.On {
@@ -426,12 +472,22 @@ func generateCacheKey(q *structs.Query) string {
 			sb.WriteString(",")
 		}
 	}
+	sb.WriteString("|")
 
 	// Condition key
 	for _, c := range *q.ConditionGroups {
-		sb.WriteString(fmt.Sprint(c.Operator))
+		if c.Operator == consts.LogicalOperator_AND {
+			sb.WriteString("AND")
+		} else {
+			sb.WriteString("OR")
+		}
 		sb.WriteString(",")
 		for _, w := range c.Conditions {
+			if w.Operator == consts.LogicalOperator_AND {
+				sb.WriteString("AND")
+			} else {
+				sb.WriteString("OR")
+			}
 			sb.WriteString(w.Column)
 			sb.WriteString(",")
 			sb.WriteString(w.Condition)
@@ -443,9 +499,11 @@ func generateCacheKey(q *structs.Query) string {
 		}
 	}
 
-	return sb.String()
+	key := sb.String()
+
+	return key
 }
 
 func (b *Builder) GetQuery() *structs.Query {
-	return b.buildQuery()
+	return b.query
 }

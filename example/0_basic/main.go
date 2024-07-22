@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// データベースごとのクエリビルダーストラテジーを選択
-	dbStrategy := &db.MySQLQueryBuilder{}
+	dbStrategy := db.NewMySQLQueryBuilder()
 
 	asyncCache := cache.NewAsyncQueryCache(100)
 
@@ -29,7 +29,6 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// use cache
@@ -37,7 +36,6 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
@@ -53,7 +51,6 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// UPDATE users SET age = ? WHERE id = ?
@@ -69,7 +66,6 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// DELETE FROM users WHERE id = ?
@@ -83,7 +79,6 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 }

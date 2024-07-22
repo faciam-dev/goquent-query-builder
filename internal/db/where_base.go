@@ -17,9 +17,24 @@ func NewWhereBaseBuilder(wg *[]structs.WhereGroup) *WhereBaseBuilder {
 	}
 }
 
-func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface{}) {
+func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
+	if wg == nil || len(*wg) == 0 {
+		return []interface{}{}
+	}
+
 	// WHERE
-	var sb strings.Builder
+	hasCondition := false
+	for _, cg := range *wg {
+		if len(cg.Conditions) > 0 {
+			hasCondition = true
+			break
+		}
+	}
+
+	if hasCondition {
+		sb.WriteString(" WHERE ")
+	}
+
 	values := make([]interface{}, 0)
 
 	sep := ""
@@ -37,7 +52,7 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 			sep = " OR "
 		}
 
-		if sb.Len() > 0 {
+		if i > 0 {
 			sb.WriteString(sep)
 		}
 
@@ -67,7 +82,7 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 
 				// create subquery
 				b := &BaseQueryBuilder{}
-				sqQuery, sqValues := b.Build(c.Query)
+				sqQuery, sqValues := b.Build("", c.Query)
 
 				if c.Operator == consts.LogicalOperator_AND {
 					if op != "" {
@@ -90,17 +105,25 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 				values = append(values, sqValues...)
 			} else {
 				raw := c.Raw
-				condQuery := ""
+				wsb := strings.Builder{}
+				wsb.Grow(consts.StringBuffer_Where_Grow)
+				//condQuery := ""
 				if raw != "" {
-					condQuery = raw
+					wsb.WriteString(raw)
+					//condQuery = raw
 				} else {
-					condQuery = convertedColumn + " " + c.Condition
+					wsb.WriteString(convertedColumn + " " + c.Condition)
+					//condQuery = convertedColumn + " " + c.Condition
 					if len(c.Value) > 1 {
-						condQuery += " (?)"
+						wsb.WriteString(" (?)")
+						//condQuery += " (?)"
 					} else {
-						condQuery += " ?"
+						wsb.WriteString(" ?")
+						//condQuery += " ?"
 					}
 				}
+				condQuery := wsb.String()
+				wsb.Reset()
 
 				if c.Operator == consts.LogicalOperator_AND {
 					if op != "" {
@@ -117,7 +140,8 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 					if op != "" {
 						op = " OR "
 					}
-					sb.WriteString(op + condQuery)
+					sb.WriteString(op)
+					sb.WriteString(condQuery)
 					if len(c.Value) > 0 {
 						values = append(values, c.Value...)
 					}
@@ -130,10 +154,5 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 		sb.WriteString(parenthesesClose)
 	}
 
-	where := sb.String()
-	if where != "" {
-		where = " WHERE " + where
-	}
-
-	return where, values
+	return values
 }

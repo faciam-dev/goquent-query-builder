@@ -40,7 +40,7 @@ func (ib *InsertBuilder) InsertUsing(columns []string, q *structs.Query) *Insert
 	ib.query.Columns = columns
 
 	// If there are conditions, add them to the query
-	if len(*q.Conditions) > 0 {
+	if q.Conditions != nil && len(*q.Conditions) > 0 {
 		*q.ConditionGroups = append(*q.ConditionGroups, structs.WhereGroup{
 			Conditions:   *q.Conditions,
 			Operator:     consts.LogicalOperator_AND,

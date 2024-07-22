@@ -16,40 +16,71 @@ func NewOrderByBaseBuilder(order *[]structs.Order) *OrderByBaseBuilder {
 	}
 }
 
-func (OrderByBaseBuilder) OrderBy(order *[]structs.Order) string {
-	if len(*order) == 0 {
-		return ""
+func (OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
+	if order == nil || len(*order) == 0 {
+		return
 	}
 
-	var sb strings.Builder
-	rawOrderQuerys := make([]string, 0, len(*order))
-	orders := make([]string, 0, len(*order))
-	for _, order := range *order {
+	//	sb.Grow(consts.StringBuffer_OrderBy_Grow)
+	//rawOrderQuerys := make([]string, 0, len(*order))
+	//orders := make([]string, 0, len(*order))
+	sb.WriteString(" ORDER BY ")
+
+	for i, order := range *order {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
 		if order.Raw != "" {
-			rawOrderQuerys = append(rawOrderQuerys, order.Raw)
+			sb.WriteString(order.Raw)
 			continue
 		}
 		if order.Column == "" {
 			continue
 		}
+
 		desc := "DESC"
 		if order.IsAsc {
 			desc = "ASC"
 		}
-		orders = append(orders, order.Column+" "+desc)
-	}
-	if len(rawOrderQuerys) > 0 {
-		sb.WriteString(" ORDER BY ")
-		sb.WriteString(strings.Join(rawOrderQuerys, ", "))
-	}
-	if len(orders) > 0 {
-		if len(rawOrderQuerys) > 0 {
-			sb.WriteString(", ")
-		} else {
-			sb.WriteString(" ORDER BY ")
-		}
-		sb.WriteString(strings.Join(orders, ", "))
+		sb.WriteString(order.Column)
+		sb.WriteString(" ")
+		sb.WriteString(desc)
 	}
 
-	return sb.String()
+	/*
+
+				rawOrderQuerys = append(rawOrderQuerys, order.Raw)
+				continue
+			}
+			if order.Column == "" {
+				continue
+			}
+			desc := "DESC"
+			if order.IsAsc {
+				desc = "ASC"
+			}
+			orders = append(orders, order.Column+" "+desc)
+		}
+		if len(rawOrderQuerys) > 0 {
+			sb.WriteString(" ORDER BY ")
+			for i, rawOrderQuery := range rawOrderQuerys {
+				if i > 0 {
+					sb.WriteString(", ")
+				}
+				sb.WriteString(rawOrderQuery)
+			}
+		}
+
+		if len(orders) > 0 {
+			if len(rawOrderQuerys) == 0 {
+				sb.WriteString(" ORDER BY ")
+			}
+			for i, order := range orders {
+				if i > 0 {
+					sb.WriteString(", ")
+				}
+				sb.WriteString(order)
+			}
+		}
+	*/
 }

@@ -612,33 +612,37 @@ func TestBaseQueryBuilder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			sb := &strings.Builder{}
 
 			var got string
 			var gotValues []interface{} = nil
 			switch tt.method {
 			case "Select":
-				columns, values := builder.Select(tt.input.Columns, nil)
-				got = got + "SELECT " + strings.Join(columns, ", ")
+				values := builder.Select(sb, tt.input.Columns, "", nil)
+				columns := sb.String()
+				got = got + "SELECT " + columns
 				gotValues = values
 			case "From":
-				got = builder.From(tt.input.Table.Name)
+				builder.From(sb, tt.input.Table.Name)
+				got = sb.String()
 			case "Where":
-				whereString, values := builder.Where(tt.input.ConditionGroups)
-				got = whereString
+				values := builder.Where(sb, tt.input.ConditionGroups)
+				got = sb.String()
 				gotValues = values
 			case "WhereGroup":
-				whereString, values := builder.Where(tt.input.ConditionGroups)
-				got = whereString
+				values := builder.Where(sb, tt.input.ConditionGroups)
+				got = sb.String()
 				gotValues = values
 			case "Join":
-				_, gotQuery, values := builder.Join(tt.input.Table.Name, tt.input.Joins)
-				got = gotQuery
+				values := builder.Join(sb, tt.input.Joins)
+				got = sb.String()
 				gotValues = values
 			case "OrderBy":
-				got = builder.OrderBy(tt.input.Order)
+				builder.OrderBy(sb, tt.input.Order)
+				got = sb.String()
 			case "GroupBy":
-				gotString, values := builder.GroupBy(tt.input.Group)
-				got = gotString
+				values := builder.GroupBy(sb, tt.input.Group)
+				got = sb.String()
 				gotValues = values
 			case "Limit":
 				got = builder.Limit(tt.input.Limit)

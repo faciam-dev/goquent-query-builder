@@ -18,7 +18,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Select",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Select("id", "name")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id", "name")
 			},
 			"SELECT id, name FROM ",
 			nil,
@@ -26,7 +26,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"SelectRaw",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).SelectRaw("COUNT(*) as total")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).SelectRaw("COUNT(*) as total")
 			},
 			"SELECT COUNT(*) as total FROM ",
 			nil,
@@ -34,7 +34,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Count",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Count()
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Count()
 			},
 			"SELECT COUNT(*) FROM ",
 			nil,
@@ -42,7 +42,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Max",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Max("price")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Max("price")
 			},
 			"SELECT MAX(price) FROM ",
 			nil,
@@ -50,7 +50,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Min",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Min("price")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Min("price")
 			},
 			"SELECT MIN(price) FROM ",
 			nil,
@@ -58,7 +58,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Sum",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Sum("price")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Sum("price")
 			},
 			"SELECT SUM(price) FROM ",
 			nil,
@@ -66,7 +66,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Avg",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Avg("price")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Avg("price")
 			},
 			"SELECT AVG(price) FROM ",
 			nil,
@@ -74,7 +74,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"SelectRaw_With_Value",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).SelectRaw("price * ? as price_with_tax", 1.0825)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).SelectRaw("price * ? as price_with_tax", 1.0825)
 			},
 			"SELECT price * ? as price_with_tax FROM ",
 			[]interface{}{1.0825},
@@ -82,7 +82,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"From",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Table("users")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Table("users")
 			},
 			"SELECT  FROM users",
 			nil,
@@ -90,7 +90,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Where",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Where("age", ">", 18)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 18)
 			},
 			"SELECT  FROM  WHERE age > ?",
 			[]interface{}{18},
@@ -98,7 +98,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrWhere",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Where("email", "LIKE", "%@gmail.com%").OrWhere("email", "LIKE", "%@yahoo.com%").OrWhere("age", ">", 18)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("email", "LIKE", "%@gmail.com%").OrWhere("email", "LIKE", "%@yahoo.com%").OrWhere("age", ">", 18)
 			},
 			"SELECT  FROM  WHERE email LIKE ? OR email LIKE ? OR age > ?",
 			[]interface{}{"%@gmail.com%", "%@yahoo.com%", 18},
@@ -106,7 +106,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"WhereRaw",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).WhereRaw("age > ?", 18)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereRaw("age > ?", 18)
 			},
 			"SELECT  FROM  WHERE age > ?",
 			[]interface{}{18},
@@ -114,7 +114,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrWhereRaw",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).WhereRaw("age > ?", 18).OrWhereRaw("name= ?", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereRaw("age > ?", 18).OrWhereRaw("name= ?", "John")
 			},
 			"SELECT  FROM  WHERE age > ? OR name= ?",
 			[]interface{}{18, "John"},
@@ -122,8 +122,8 @@ func TestBuilder(t *testing.T) {
 		{
 			"WhereQuery",
 			func() *query.Builder {
-				sq := query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).WhereQuery("user_id", "IN", sq).Where("city", "=", "New York")
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereQuery("user_id", "IN", sq).Where("city", "=", "New York")
 			},
 			"SELECT  FROM  WHERE user_id IN (SELECT id FROM users WHERE name = ?) AND city = ?",
 			[]interface{}{"John", "New York"},
@@ -131,8 +131,8 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrWhereQuery",
 			func() *query.Builder {
-				sq := query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereQuery("user_id", "IN", sq)
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereQuery("user_id", "IN", sq)
 			},
 			"SELECT  FROM  WHERE city = ? OR user_id IN (SELECT id FROM users WHERE name = ?)",
 			[]interface{}{"New York", "John"},
@@ -140,7 +140,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"WhereGroup",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
 					})
@@ -151,7 +151,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"WhereGroup_And",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
 					}).Where("city", "=", "New York")
@@ -162,7 +162,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"WhereGroup_And_2",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Where("city", "=", "New York").
 					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
@@ -174,7 +174,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"WhereGroup_Or",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
 					}).OrWhere("city", "=", "New York")
@@ -185,7 +185,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"WhereGroup_Or_2",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Where("city", "=", "New York").
 					OrWhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
 						return b.Where("age", ">", 18).Where("name", "=", "John")
@@ -197,7 +197,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Inner_Join",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Join("orders", "users.id", "=", "orders.user_id")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Join("orders", "users.id", "=", "orders.user_id")
 			},
 			"SELECT orders.*, .* FROM  INNER JOIN orders ON users.id = orders.user_id",
 			nil,
@@ -205,7 +205,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Left_Join",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).LeftJoin("orders", "users.id", "=", "orders.user_id")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).LeftJoin("orders", "users.id", "=", "orders.user_id")
 			},
 			"SELECT orders.*, .* FROM  LEFT JOIN orders ON users.id = orders.user_id",
 			nil,
@@ -213,7 +213,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Right_Join",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).RightJoin("orders", "users.id", "=", "orders.user_id")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).RightJoin("orders", "users.id", "=", "orders.user_id")
 			},
 			"SELECT orders.*, .* FROM  RIGHT JOIN orders ON users.id = orders.user_id",
 			nil,
@@ -221,7 +221,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Cross_Join",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).CrossJoin("orders")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).CrossJoin("orders")
 			},
 			"SELECT orders.*, .* FROM  CROSS JOIN orders",
 			nil,
@@ -229,7 +229,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Join_and_Join",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Join("orders", "users.id", "=", "orders.user_id").Join("products", "orders.product_id", "=", "products.id")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Join("orders", "users.id", "=", "orders.user_id").Join("products", "orders.product_id", "=", "products.id")
 			},
 			"SELECT orders.*, .*, products.* FROM  INNER JOIN orders ON users.id = orders.user_id INNER JOIN products ON orders.product_id = products.id",
 			nil,
@@ -237,7 +237,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"JoinQuery",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).JoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).JoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
 					return b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
 				})
 			},
@@ -247,7 +247,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"LeftJoinQuery",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).LeftJoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).LeftJoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
 					return b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
 				})
 			},
@@ -257,7 +257,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"RightJoinQuery",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).RightJoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).RightJoinQuery("users", func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
 					return b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
 				})
 			},
@@ -267,7 +267,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"JoinSub",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).JoinSub(query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Select("id").Table("profiles").Where("age", ">", 18), "profiles", "users.id", "=", "profiles.user_id")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).JoinSub(query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("profiles").Where("age", ">", 18), "profiles", "users.id", "=", "profiles.user_id")
 			},
 			"SELECT profiles.*, .* FROM  INNER JOIN (SELECT id FROM profiles WHERE age > ?) AS profiles ON users.id = profiles.user_id",
 			[]interface{}{18},
@@ -275,7 +275,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrderBy",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).OrderBy("name", "asc")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).OrderBy("name", "asc")
 			},
 			"SELECT  FROM  ORDER BY name ASC",
 			nil,
@@ -283,7 +283,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrderByDesc_And_ReOrder",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).OrderBy("name", "asc").ReOrder().OrderBy("name", "desc")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).OrderBy("name", "asc").ReOrder().OrderBy("name", "desc")
 			},
 			"SELECT  FROM  ORDER BY name DESC",
 			nil,
@@ -291,7 +291,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrderByRaw",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).OrderByRaw("RAND()")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).OrderByRaw("RAND()")
 			},
 			"SELECT  FROM  ORDER BY RAND()",
 			nil,
@@ -299,7 +299,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).GroupBy("name", "age")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).GroupBy("name", "age")
 			},
 			"SELECT  FROM  GROUP BY name, age",
 			nil,
@@ -307,7 +307,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy_Having",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).GroupBy("name", "age").Having("age", ">", 18)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).GroupBy("name", "age").Having("age", ">", 18)
 			},
 			"SELECT  FROM  GROUP BY name, age HAVING age > ?",
 			[]interface{}{18},
@@ -315,7 +315,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy_Having_OR",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).GroupBy("name", "age").Having("age", ">", 18).OrHaving("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).GroupBy("name", "age").Having("age", ">", 18).OrHaving("name", "=", "John")
 			},
 			"SELECT  FROM  GROUP BY name, age HAVING age > ? OR name = ?",
 			[]interface{}{18, "John"},
@@ -323,7 +323,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy_Having_Raw",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).GroupBy("name", "age").HavingRaw("age > 18")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).GroupBy("name", "age").HavingRaw("age > 18")
 			},
 			"SELECT  FROM  GROUP BY name, age HAVING age > 18",
 			nil,
@@ -331,7 +331,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy_HavingRaw_OR",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).GroupBy("name", "age").HavingRaw("age > 18").OrHavingRaw("name = 'John'")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).GroupBy("name", "age").HavingRaw("age > 18").OrHavingRaw("name = 'John'")
 			},
 			"SELECT  FROM  GROUP BY name, age HAVING age > 18 OR name = 'John'",
 			nil,
@@ -339,7 +339,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Limit",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Limit(10)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Limit(10)
 			},
 			"SELECT  FROM  LIMIT 10",
 			nil,
@@ -347,7 +347,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Offset",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Offset(10)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Offset(10)
 			},
 			"SELECT  FROM  OFFSET 10",
 			nil,
@@ -355,7 +355,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Limit_And_Offset",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Limit(10).Offset(5)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Limit(10).Offset(5)
 			},
 			"SELECT  FROM  LIMIT 10 OFFSET 5",
 			nil,
@@ -363,7 +363,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Lock FOR UPDATE",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).LockForUpdate()
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).LockForUpdate()
 			},
 			"SELECT  FROM  FOR UPDATE",
 			nil,
@@ -371,7 +371,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Lock_Shared",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).SharedLock()
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).SharedLock()
 			},
 			"SELECT  FROM  LOCK IN SHARE MODE",
 			nil,
@@ -379,7 +379,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Complex_Query",
 			func() *query.Builder {
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Select("id", "name").
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -392,8 +392,8 @@ func TestBuilder(t *testing.T) {
 		{
 			"Complex_Query_With_Subquery",
 			func() *query.Builder {
-				sq := query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					SelectRaw("id, name, profiles.point * ? AS profiles_point", 1.05).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").

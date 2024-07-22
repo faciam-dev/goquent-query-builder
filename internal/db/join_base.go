@@ -4,58 +4,60 @@ import (
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
-	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 )
 
 type JoinBaseBuilder struct {
-	join *structs.Joins
+	join        *structs.Joins
+	columnNames *[]string
 }
 
 func NewJoinBaseBuilder(j *structs.Joins) *JoinBaseBuilder {
 	return &JoinBaseBuilder{
-		join: j,
+		join:        j,
+		columnNames: &[]string{},
 	}
 }
 
 // Join builds the JOIN query.
-func (BaseQueryBuilder) Join(tableName string, joins *structs.Joins) (*[]structs.Column, string, []interface{}) {
-	join := ""
-
-	joinedTablesForSelect, joinStrings, values := buildJoinStatement(tableName, joins)
-	for _, joinString := range joinStrings {
-		join += " " + joinString
+func (jb *JoinBaseBuilder) Join(sb *strings.Builder, joins *structs.Joins) []interface{} {
+	if jb.columnNames == nil {
+		jb.columnNames = &[]string{}
 	}
 
-	return joinedTablesForSelect, join, values
+	values := jb.buildJoinStatement(sb, joins)
+
+	return values
 }
 
 // buildJoinStatement builds the JOIN statement.
-func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Column, []string, []interface{}) {
+func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *structs.Joins) []interface{} {
+	if joins == nil {
+		return []interface{}{}
+	}
 	if joins.JoinClause != nil {
-		joinedTablesForSelect := make([]structs.Column, 0, len(*joins.JoinClause.On))
-		joinStrings := make([]string, 0, len(*joins.JoinClause.On))
+		//joinedTablesForSelect := make([]structs.Column, 0, len(*joins.JoinClause.On))
+		//joinStrings := make([]string, 0, len(*joins.JoinClause.On))
 		values := make([]interface{}, 0, len(*joins.JoinClause.Conditions))
 
-		j := structs.Join{
+		j := &structs.Join{
 			TargetNameMap: joins.JoinClause.TargetNameMap,
 			Name:          joins.JoinClause.Name,
 		}
 
-		joinType, targetName := processJoin(j, tableName, &joinedTablesForSelect)
+		joinType, targetName := jb.processJoin(j)
 
 		if joins.JoinClause.Query != nil {
 			b := &BaseQueryBuilder{}
-			sqQuery, sqValues := b.Build(joins.JoinClause.Query)
+			sqQuery, sqValues := b.Build("", joins.JoinClause.Query)
 			targetName = "(" + sqQuery + ")" + " AS " + targetName
 			values = append(values, sqValues...)
 		}
-
-		var joinBuilder strings.Builder
-		joinBuilder.WriteString(joinType)
-		joinBuilder.WriteString(" JOIN ")
-		joinBuilder.WriteString(targetName)
-		joinBuilder.WriteString(" ON ")
+		sb.WriteString(" ")
+		sb.WriteString(joinType)
+		sb.WriteString(" JOIN ")
+		sb.WriteString(targetName)
+		sb.WriteString(" ON ")
 
 		op := ""
 		for i, on := range *joins.JoinClause.On {
@@ -67,12 +69,13 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 				}
 			}
 
-			joinBuilder.WriteString(op)
-			joinBuilder.WriteString(on.Column)
-			joinBuilder.WriteString(" ")
-			joinBuilder.WriteString(on.Condition)
+			sb.WriteString(op)
+			sb.WriteString(on.Column)
+			sb.WriteString(" ")
+			sb.WriteString(on.Condition)
 			if on.Value != "" {
-				joinBuilder.WriteString(on.Value.(string)) // TODO: check if this is correct
+				sb.WriteString(" ")
+				sb.WriteString(on.Value.(string)) // TODO: check if this is correct
 			}
 		}
 
@@ -85,61 +88,73 @@ func buildJoinStatement(tableName string, joins *structs.Joins) (*[]structs.Colu
 					op = " AND "
 				}
 			}
-			joinBuilder.WriteString(op)
-			joinBuilder.WriteString(condition.Column)
-			joinBuilder.WriteString(" ")
-			joinBuilder.WriteString(condition.Condition)
-			joinBuilder.WriteString(" ?") // TODO: check if this is correct
+			sb.WriteString(op)
+			sb.WriteString(condition.Column)
+			sb.WriteString(" ")
+			sb.WriteString(condition.Condition)
+			sb.WriteString(" ?") // TODO: check if this is correct
 			values = append(values, condition.Value...)
 		}
 
-		joinStrings = append(joinStrings, joinBuilder.String())
+		//joinStrings = append(joinStrings, sb.String())
 
-		return &joinedTablesForSelect, joinStrings, values
+		return values
 	}
 
-	joinedTablesForSelect := make([]structs.Column, 0, len(*joins.Joins))
-	joinStrings := make([]string, 0, len(*joins.Joins))
+	if joins.Joins == nil {
+		return []interface{}{}
+	}
+
+	//joinedTablesForSelect := make([]structs.Column, 0, len(*joins.Joins))
+	//joinStrings := make([]string, 0, len(*joins.Joins))
+	//joinedTablesForSelect := ""
 	values := make([]interface{}, 0) //  length is unknown
 	for _, join := range *joins.Joins {
-		joinType, targetName := processJoin(join, tableName, &joinedTablesForSelect)
-		if joinType == "" && targetName == "" {
+		joinType, targetName := jb.processJoin(&join)
+		if targetName == "" {
+			continue
+		}
+
+		//joinedTablesForSelect = _joinedTablesForSelect
+		if joinType == "" {
 			continue
 		}
 
 		if join.Query != nil {
 			b := &BaseQueryBuilder{}
-			sqQuery, sqValues := b.Build(join.Query)
+			sqQuery, sqValues := b.Build("", join.Query)
 			targetName = "(" + sqQuery + ")" + " AS " + targetName
 			values = append(values, sqValues...)
 		}
 
-		var joinBuilder strings.Builder
-		joinBuilder.WriteString(joinType)
-		joinBuilder.WriteString(" JOIN ")
-		joinBuilder.WriteString(targetName)
-		joinBuilder.WriteString(" ON ")
-		joinBuilder.WriteString(join.SearchColumn)
-		joinBuilder.WriteString(" ")
-		joinBuilder.WriteString(join.SearchCondition)
-		joinBuilder.WriteString(" ")
-		joinBuilder.WriteString(join.SearchTargetColumn)
-
 		if _, ok := join.TargetNameMap[consts.Join_CROSS]; ok {
-			joinBuilder.WriteString(joinType)
-			joinBuilder.WriteString(" JOIN ")
-			joinBuilder.WriteString(targetName)
+			sb.WriteString(" ")
+			sb.WriteString(joinType)
+			sb.WriteString(" JOIN ")
+			sb.WriteString(targetName)
+		} else {
+			sb.WriteString(" ")
+			sb.WriteString(joinType)
+			sb.WriteString(" JOIN ")
+			sb.WriteString(targetName)
+			sb.WriteString(" ON ")
+			sb.WriteString(join.SearchColumn)
+			sb.WriteString(" ")
+			sb.WriteString(join.SearchCondition)
+			sb.WriteString(" ")
+			sb.WriteString(join.SearchTargetColumn)
 		}
 
-		joinStrings = append(joinStrings, joinBuilder.String())
+		// joinStrings = append(joinStrings, sb.String())
 	}
 
-	return &joinedTablesForSelect, joinStrings, values
+	return values
 }
 
-func processJoin(join structs.Join, tableName string, joinedTablesForSelect *[]structs.Column) (string, string) {
+func (j *JoinBaseBuilder) processJoin(join *structs.Join) (string, string) {
 	joinType := ""
 	targetName := ""
+	//joinedTablesForSelect := ""
 
 	if _, ok := join.TargetNameMap[consts.Join_CROSS]; ok {
 		targetName = join.TargetNameMap[consts.Join_CROSS]
@@ -162,32 +177,29 @@ func processJoin(join structs.Join, tableName string, joinedTablesForSelect *[]s
 		return "", ""
 	}
 
-	name := tableName
-	if join.Name != "" {
-		name = join.Name
-	}
+	/*
 
-	targetNameForSelect := targetName + ".*"
-	if !sliceutils.Contains[string](*getNowColNames(joinedTablesForSelect), targetNameForSelect) {
-		*joinedTablesForSelect = append(*joinedTablesForSelect, structs.Column{
-			Name: targetNameForSelect,
-		})
-	}
-	nameForSelect := name + ".*"
-	if !sliceutils.Contains[string](*getNowColNames(joinedTablesForSelect), nameForSelect) {
-		*joinedTablesForSelect = append(*joinedTablesForSelect, structs.Column{
-			Name: nameForSelect,
-		})
-	}
+		name := tableName
+		if join.Name != "" {
+			name = join.Name
+		}
 
-	return joinType, targetName //, joinedTablesForSelect
-}
+		targetNameForSelect := targetName + ".*"
 
-// getNowColNames returns the names of the columns in the slice.
-func getNowColNames(joinedTablesForSelect *[]structs.Column) *[]string {
-	nowColNames := make([]string, len(*joinedTablesForSelect))
-	for _, joinedTable := range *joinedTablesForSelect {
-		nowColNames = append(nowColNames, joinedTable.Name)
-	}
-	return &nowColNames
+		sb := strings.Builder{}
+		sb.Grow(consts.StringBuffer_Select_Grow)
+
+		if !sliceutils.Contains[string](*j.columnNames, targetNameForSelect) {
+			sb.WriteString(", ")
+			sb.WriteString(targetNameForSelect)
+			*j.columnNames = append(*j.columnNames, targetNameForSelect)
+		}
+		nameForSelect := name + ".*"
+		if !sliceutils.Contains[string](*j.columnNames, nameForSelect) {
+			sb.WriteString(", ")
+			sb.WriteString(nameForSelect)
+			*j.columnNames = append(*j.columnNames, nameForSelect)
+		}
+	*/
+	return joinType, targetName
 }

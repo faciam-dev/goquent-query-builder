@@ -2,7 +2,9 @@ package db
 
 import (
 	"sort"
+	"strings"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 )
 
@@ -19,12 +21,17 @@ func (m *UpdateBaseBuilder) Update(q *structs.UpdateQuery) *UpdateBaseBuilder {
 
 // UpdateBatch builds the Update query for Update.
 func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []interface{}) {
-	// JOIN
-	b := &BaseQueryBuilder{}
-	_, join, joinValues := b.Join(q.Table, q.Query.Joins)
+	sb := &strings.Builder{}
+	sb.Grow(consts.StringBuffer_Update_Grow)
 
 	// UPDATE
-	query := "UPDATE " + q.Table + join + " SET "
+	query := "UPDATE " + q.Table
+
+	// JOIN
+	b := &BaseQueryBuilder{}
+	joinValues := b.Join(sb, q.Query.Joins)
+
+	query += " SET "
 
 	values := make([]interface{}, 0, len(q.Values)+len(joinValues))
 	columns := make([]string, 0, len(q.Values))
@@ -46,15 +53,15 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	// WHERE
 	if len(*q.Query.ConditionGroups) > 0 {
 		wb := NewWhereBaseBuilder(q.Query.ConditionGroups)
-		where, whereValues := wb.Where(q.Query.ConditionGroups)
-		query += where
+		whereValues := wb.Where(sb, q.Query.ConditionGroups)
+		//query += where
 		values = append(values, whereValues...)
 	}
 
 	if len(*q.Query.Order) > 0 {
 		ob := NewOrderByBaseBuilder(q.Query.Order)
-		order := ob.OrderBy(q.Query.Order)
-		query += order
+		ob.OrderBy(sb, q.Query.Order)
+		//query += order
 	}
 
 	return query, values

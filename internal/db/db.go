@@ -1,14 +1,18 @@
 package db
 
-import "github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+import (
+	"strings"
+
+	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+)
 
 type QueryBuilderStrategy interface {
-	Select(columns *[]structs.Column, joinedTablesForSelect *[]structs.Column) ([]string, []interface{})
-	From(table string) string
-	Where(WhereGroups *[]structs.WhereGroup) (string, []interface{})
-	Join(tableName string, joins *structs.Joins) (*[]structs.Column, string, []interface{})
-	OrderBy(order *[]structs.Order) string
-	Build(q *structs.Query) (string, []interface{})
+	Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{}
+	From(sb *strings.Builder, table string)
+	Where(sb *strings.Builder, WhereGroups *[]structs.WhereGroup) []interface{}
+	Join(sb *strings.Builder, joins *structs.Joins) []interface{}
+	OrderBy(sb *strings.Builder, order *[]structs.Order)
+	Build(cacheKey string, q *structs.Query) (string, []interface{})
 
 	Insert(q *structs.InsertQuery) (string, []interface{})
 	InsertBatch(q *structs.InsertQuery) (string, []interface{})

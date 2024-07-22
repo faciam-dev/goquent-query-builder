@@ -156,8 +156,8 @@ func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, cond
 
 	sq := &structs.Query{
 		ConditionGroups: q.whereBuilder.query.ConditionGroups,
-		Table:           structs.Table{Name: q.query.Table},
-		Columns:         q.query.Columns,
+		Table:           structs.Table{Name: q.selectQuery.Table},
+		Columns:         q.selectQuery.Columns,
 		Joins:           q.joinBuilder.Joins,
 		Order:           q.orderByBuilder.Order,
 	}

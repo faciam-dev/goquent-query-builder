@@ -9,7 +9,8 @@ import (
 )
 
 func BenchmarkSimpleSelectQuery(b *testing.B) {
-	dbStrategy := &db.MySQLQueryBuilder{}
+
+	dbStrategy := db.NewMySQLQueryBuilder()
 
 	blankCache := cache.NewBlankQueryCache()
 
@@ -31,7 +32,7 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 }
 
 func BenchmarkNormalSelectQuery(b *testing.B) {
-	dbStrategy := &db.MySQLQueryBuilder{}
+	dbStrategy := db.NewMySQLQueryBuilder()
 
 	blankCache := cache.NewBlankQueryCache()
 
@@ -57,7 +58,7 @@ func BenchmarkNormalSelectQuery(b *testing.B) {
 
 func BenchmarkComplexSelectQuery(b *testing.B) {
 
-	dbStrategy := &db.MySQLQueryBuilder{}
+	dbStrategy := db.NewMySQLQueryBuilder()
 
 	blankCache := cache.NewBlankQueryCache()
 
@@ -85,8 +86,7 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 }
 
 func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
-	dbStrategy := &db.MySQLQueryBuilder{}
-
+	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewQueryBuilder(dbStrategy, blankCache).
@@ -115,7 +115,7 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 	// before refactor
 	// 640671              2157 ns/op            890 B/op          25 allocs/op
 	// after refactor
-	// 717132              1887 ns/op            738 B/op          15 allocs/op
+	// 717132              1887 ns/op            738 B/op          55 allocs/op
 	// c.f.) use AsyncQueryCache
 	// 2705778             446.4 ns/op          673 B/op          14 allocs/op
 }
