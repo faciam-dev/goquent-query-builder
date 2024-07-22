@@ -32,7 +32,7 @@ func (ib *InsertQueryBuilder) InsertBatch(data []map[string]interface{}) *Insert
 }
 
 func (ib *InsertQueryBuilder) InsertUsing(columns []string, qb *QueryBuilder) *InsertQueryBuilder {
-	ib.builder.InsertUsing(columns, qb.builder.GetQuery())
+	ib.builder.InsertUsing(columns, qb.builder)
 	return ib
 }
 

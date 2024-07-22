@@ -51,18 +51,10 @@ const (
 	StringBuffer_Middle_Query_Grow = 512
 	StringBuffer_Long_Query_Grow   = 1024
 
-	StringBuffer_Select_Grow   = 96
 	StringBuffer_Where_Grow    = 128
 	StringBuffer_Join_Grow     = 128
-	StringBuffer_Table_Grow    = 64
-	StringBuffer_GroupBy_Grow  = 48
-	StringBuffer_Having_Grow   = 128
-	StringBuffer_OrderBy_Grow  = 48
-	StringBuffer_Query_Grow    = 512
-	StringBuffer_CacheKey_Grow = 256
-	StringBuffer_Limit_Grow    = 32
-	StringBuffer_Offset_Grow   = 32
-	StringBuffer_Lock_Grow     = 32
-	StringBuffer_Update_Grow   = 128
-	StringBuffer_Delete_Grow   = 128
+	StringBuffer_CacheKey_Grow = 512
+
+	StringBuffer_Update_Grow = 128
+	StringBuffer_Delete_Grow = 128
 )

@@ -26,7 +26,7 @@ func (b *BaseQueryBuilder) Select(sb *strings.Builder, columns *[]structs.Column
 	//colNames := make([]string, 0, len(*columns))
 
 	// if there are no columns to select, select all columns
-	if len(*columns) == 0 {
+	if len(*columns) == 0 && joins.Joins != nil {
 		for i, join := range *joins.Joins {
 			b.processJoin(sb, &join, tableName, i)
 		}
