@@ -7,15 +7,15 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
-type DeleteQueryBuilder struct {
+type DeleteBuilder struct {
 	builder             *query.DeleteBuilder
 	whereQueryBuilder   *WhereQueryBuilder
 	joinQueryBuilder    *JoinQueryBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
-func NewDeleteQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *DeleteQueryBuilder {
-	return &DeleteQueryBuilder{
+func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *DeleteBuilder {
+	return &DeleteBuilder{
 		builder: query.NewDeleteBuilder(strategy, cache),
 		whereQueryBuilder: &WhereQueryBuilder{
 			builder: query.NewWhereBuilder(strategy, cache),
@@ -29,7 +29,7 @@ func NewDeleteQueryBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQ
 	}
 }
 
-func (qb *DeleteQueryBuilder) Delete() *DeleteQueryBuilder {
+func (qb *DeleteBuilder) Delete() *DeleteBuilder {
 	qb.builder.Delete()
 
 	return qb
@@ -44,92 +44,92 @@ func (ub *UpdateQueryBuilder) Using(qb *QueryBuilder) *UpdateQueryBuilder {
 }
 */
 
-func (qb *DeleteQueryBuilder) Table(table string) *DeleteQueryBuilder {
+func (qb *DeleteBuilder) Table(table string) *DeleteBuilder {
 	qb.builder.Table(table)
 	return qb
 }
 
 // Where
-func (ub *DeleteQueryBuilder) Where(column string, condition string, value interface{}) *DeleteQueryBuilder {
+func (ub *DeleteBuilder) Where(column string, condition string, value interface{}) *DeleteBuilder {
 	ub.whereQueryBuilder.Where(column, condition, value)
 
 	return ub
 }
 
 // OrWhere
-func (ub *DeleteQueryBuilder) OrWhere(column string, condition string, value interface{}) *DeleteQueryBuilder {
+func (ub *DeleteBuilder) OrWhere(column string, condition string, value interface{}) *DeleteBuilder {
 	ub.whereQueryBuilder.OrWhere(column, condition, value)
 
 	return ub
 }
 
 // WhereQuery
-func (ub *DeleteQueryBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *DeleteQueryBuilder {
+func (ub *DeleteBuilder) WhereQuery(column string, condition string, q *SelectBuilder) *DeleteBuilder {
 	ub.whereQueryBuilder.WhereQuery(column, condition, q)
 
 	return ub
 }
 
 // OrWhereQuery
-func (ub *DeleteQueryBuilder) OrWhereQuery(column string, condition string, q *QueryBuilder) *DeleteQueryBuilder {
+func (ub *DeleteBuilder) OrWhereQuery(column string, condition string, q *SelectBuilder) *DeleteBuilder {
 	ub.whereQueryBuilder.OrWhereQuery(column, condition, q)
 
 	return ub
 }
 
 // WhereGroup
-func (ub *DeleteQueryBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *DeleteQueryBuilder {
+func (ub *DeleteBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *DeleteBuilder {
 	ub.whereQueryBuilder.WhereGroup(fn)
 
 	return ub
 }
 
 // OrWhereGroup
-func (ub *DeleteQueryBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *DeleteQueryBuilder {
+func (ub *DeleteBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *DeleteBuilder {
 	ub.whereQueryBuilder.OrWhereGroup(fn)
 
 	return ub
 }
 
 // Join
-func (qb *DeleteQueryBuilder) Join(table, my, condition, target string) *DeleteQueryBuilder {
+func (qb *DeleteBuilder) Join(table, my, condition, target string) *DeleteBuilder {
 	qb.joinQueryBuilder.Join(table, my, condition, target)
 	return qb
 }
 
-func (qb *DeleteQueryBuilder) LeftJoin(table, my, condition, target string) *DeleteQueryBuilder {
+func (qb *DeleteBuilder) LeftJoin(table, my, condition, target string) *DeleteBuilder {
 	qb.joinQueryBuilder.LeftJoin(table, my, condition, target)
 	return qb
 }
 
-func (qb *DeleteQueryBuilder) RightJoin(table, my, condition, target string) *DeleteQueryBuilder {
+func (qb *DeleteBuilder) RightJoin(table, my, condition, target string) *DeleteBuilder {
 	qb.joinQueryBuilder.RightJoin(table, my, condition, target)
 	return qb
 }
 
-func (qb *DeleteQueryBuilder) CrossJoin(table, my, condition, target string) *DeleteQueryBuilder {
+func (qb *DeleteBuilder) CrossJoin(table, my, condition, target string) *DeleteBuilder {
 	qb.joinQueryBuilder.CrossJoin(table)
 	return qb
 }
 
 // OrderBy
 
-func (qb *DeleteQueryBuilder) OrderBy(column, ascDesc string) *DeleteQueryBuilder {
+func (qb *DeleteBuilder) OrderBy(column, ascDesc string) *DeleteBuilder {
 	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
 	return qb
 }
 
-func (qb *DeleteQueryBuilder) OrderByRaw(raw string) *DeleteQueryBuilder {
+func (qb *DeleteBuilder) OrderByRaw(raw string) *DeleteBuilder {
 	qb.orderByQueryBuilder.OrderByRaw(raw)
 	return qb
 }
 
-func (qb *DeleteQueryBuilder) ReOrder() *DeleteQueryBuilder {
+func (qb *DeleteBuilder) ReOrder() *DeleteBuilder {
 	qb.orderByQueryBuilder.ReOrder()
 	return qb
 }
 
-func (qb *DeleteQueryBuilder) Build() (string, []interface{}) {
+func (qb *DeleteBuilder) Build() (string, []interface{}) {
 	qb.builder.SetWhereBuilder(qb.whereQueryBuilder.builder)
 	qb.builder.SetJoinBuilder(qb.joinQueryBuilder.builder)
 	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)

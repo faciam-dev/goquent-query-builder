@@ -12,12 +12,12 @@ import (
 
 func main() {
 	// データベースごとのクエリビルダーストラテジーを選択
-	dbStrategy := &db.MySQLQueryBuilder{}
+	dbStrategy := db.NewMySQLQueryBuilder()
 
-	asyncCache := cache.NewAsyncQueryCache()
+	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
-	qb := api.NewQueryBuilder(dbStrategy, asyncCache).
+	qb := api.NewSelectBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -29,7 +29,6 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// use cache
@@ -37,11 +36,10 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
-	iqb := api.NewInsertQueryBuilder(dbStrategy, asyncCache).
+	iqb := api.NewInsertBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Insert(map[string]interface{}{
 			"name": "John Doe",
@@ -53,11 +51,10 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// UPDATE users SET age = ? WHERE id = ?
-	uqb := api.NewUpdateQueryBuilder(dbStrategy, asyncCache).
+	uqb := api.NewUpdateBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Update(map[string]interface{}{
 			"age": 40,
@@ -69,11 +66,10 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 	// DELETE FROM users WHERE id = ?
-	dqb := api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
+	dqb := api.NewDeleteBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Where("id", "=", 1).
 		Delete()
@@ -83,7 +79,6 @@ func main() {
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution
-		asyncCache.SetWithExpiry(query, query, 5*time.Minute)
 	})
 
 }

@@ -9,11 +9,11 @@ import (
 
 type InsertBuilder struct {
 	dbBuilder db.QueryBuilderStrategy
-	cache     *cache.AsyncQueryCache
+	cache     cache.Cache
 	query     *structs.InsertQuery
 }
 
-func NewInsertBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *InsertBuilder {
+func NewInsertBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *InsertBuilder {
 	return &InsertBuilder{
 		dbBuilder: dbBuilder,
 		cache:     cache,
@@ -36,20 +36,21 @@ func (ib *InsertBuilder) InsertBatch(data []map[string]interface{}) *InsertBuild
 	return ib
 }
 
-func (ib *InsertBuilder) InsertUsing(columns []string, q *structs.Query) *InsertBuilder {
+func (ib *InsertBuilder) InsertUsing(columns []string, b *Builder) *InsertBuilder {
 	ib.query.Columns = columns
 
 	// If there are conditions, add them to the query
-	if len(*q.Conditions) > 0 {
-		*q.ConditionGroups = append(*q.ConditionGroups, structs.WhereGroup{
-			Conditions:   *q.Conditions,
+	if b.whereBuilder.query.Conditions != nil && len(*b.whereBuilder.query.Conditions) > 0 {
+		*b.whereBuilder.query.ConditionGroups = append(*b.whereBuilder.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *b.whereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,
 		})
-		q.Conditions = &[]structs.Where{}
+		b.whereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
-	ib.query.Query = q
+	b.buildQuery()
+	ib.query.Query = b.GetQuery()
 
 	return ib
 }

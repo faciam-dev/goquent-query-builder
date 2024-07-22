@@ -18,7 +18,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_all",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Update(map[string]interface{}{
 						"name": "Joe",
@@ -31,7 +31,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "=", 1).
 					Update(map[string]interface{}{
@@ -45,7 +45,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_JOINS",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
@@ -60,7 +60,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_orderBy",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache()).
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					OrderBy("name", "ASC").
 					Update(map[string]interface{}{

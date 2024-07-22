@@ -9,12 +9,12 @@ import (
 
 type WhereBuilder struct {
 	dbBuilder   db.QueryBuilderStrategy
-	cache       *cache.AsyncQueryCache
+	cache       cache.Cache
 	query       *structs.Query
 	whereValues []interface{}
 }
 
-func NewWhereBuilder(strategy db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *WhereBuilder {
+func NewWhereBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *WhereBuilder {
 	return &WhereBuilder{
 		dbBuilder: strategy,
 		cache:     cache,
@@ -90,8 +90,8 @@ func (b *WhereBuilder) whereOrOrWhereQuery(column string, condition string, q *B
 
 	sq := &structs.Query{
 		ConditionGroups: q.whereBuilder.query.ConditionGroups,
-		Table:           structs.Table{Name: q.query.Table},
-		Columns:         q.query.Columns,
+		Table:           structs.Table{Name: q.selectQuery.Table},
+		Columns:         q.selectQuery.Columns,
 		Joins:           q.joinBuilder.Joins,
 		Order:           q.orderByBuilder.Order,
 	}
@@ -166,7 +166,7 @@ func (b *WhereBuilder) BuildSq(sq *structs.Query) (string, []interface{}) {
 		return cachedQuery, values
 	}
 
-	query, values := b.dbBuilder.Build(sq)
+	query, values := b.dbBuilder.Build(cacheKey, sq)
 
 	b.cache.Set(cacheKey, query)
 

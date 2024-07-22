@@ -1,6 +1,8 @@
 package db
 
 import (
+	"strings"
+
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 )
@@ -15,12 +17,26 @@ func NewWhereBaseBuilder(wg *[]structs.WhereGroup) *WhereBaseBuilder {
 	}
 }
 
-func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface{}) {
-	// WHERE
-	where := ""
-	values := []interface{}{}
+func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
+	if wg == nil || len(*wg) == 0 {
+		return []interface{}{}
+	}
 
-	//log.Default().Printf("wherewhere: %v", wherewhere)
+	// WHERE
+	hasCondition := false
+	for _, cg := range *wg {
+		if len(cg.Conditions) > 0 {
+			hasCondition = true
+			break
+		}
+	}
+
+	if hasCondition {
+		sb.WriteString(" WHERE ")
+	}
+
+	values := make([]interface{}, 0)
+
 	sep := ""
 	for i, cg := range *wg {
 		if len(cg.Conditions) == 0 {
@@ -36,8 +52,8 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 			sep = " OR "
 		}
 
-		if where != "" {
-			where += sep
+		if i > 0 {
+			sb.WriteString(sep)
 		}
 
 		parenthesesOpen := ""
@@ -49,7 +65,7 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 			parenthesesClose = ")"
 		}
 
-		where += parenthesesOpen
+		sb.WriteString(parenthesesOpen)
 
 		for j, c := range cg.Conditions {
 			convertedColumn := c.Column
@@ -60,31 +76,19 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 					op = " OR "
 				}
 			}
-			/*
-				convertedColumn := c.Colmun
-				convertedSelectColumns := []structs.Column{}
-				if c.Query.Columns != nil {
-					for _, column := range *c.Query.Columns {
-						convertedSelectColumn := column
-						if column.Raw != "" {
-							convertedSelectColumn.Raw = column.Raw
-						}
-						convertedSelectColumns = append(convertedSelectColumns, convertedSelectColumn)
-					}
-				}
-			*/
+
 			if c.Query != nil {
 				condQuery := convertedColumn + " " + c.Condition
 
 				// create subquery
 				b := &BaseQueryBuilder{}
-				sqQuery, sqValues := b.Build(c.Query)
+				sqQuery, sqValues := b.Build("", c.Query)
 
 				if c.Operator == consts.LogicalOperator_AND {
 					if op != "" {
 						op = " AND "
 					}
-					where += op + condQuery + " (" + sqQuery + ")"
+					sb.WriteString(op + condQuery + " (" + sqQuery + ")")
 					if op == "" {
 						op = " AND "
 					}
@@ -92,7 +96,7 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 					if op != "" {
 						op = " OR "
 					}
-					where += op + condQuery + " (" + sqQuery + ")"
+					sb.WriteString(op + condQuery + " (" + sqQuery + ")")
 					if op == "" {
 						op = " OR "
 					}
@@ -101,23 +105,26 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 				values = append(values, sqValues...)
 			} else {
 				raw := c.Raw
-				condQuery := ""
+				wsb := strings.Builder{}
+				wsb.Grow(consts.StringBuffer_Where_Grow)
 				if raw != "" {
-					condQuery = raw
+					wsb.WriteString(raw)
 				} else {
-					condQuery = convertedColumn + " " + c.Condition
+					wsb.WriteString(convertedColumn + " " + c.Condition)
 					if len(c.Value) > 1 {
-						condQuery += " (?)"
+						wsb.WriteString(" (?)")
 					} else {
-						condQuery += " ?"
+						wsb.WriteString(" ?")
 					}
 				}
+				condQuery := wsb.String()
+				wsb.Reset()
 
 				if c.Operator == consts.LogicalOperator_AND {
 					if op != "" {
 						op = " AND "
 					}
-					where += op + condQuery
+					sb.WriteString(op + condQuery)
 					if len(c.Value) > 0 {
 						values = append(values, c.Value...)
 					}
@@ -128,7 +135,8 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 					if op != "" {
 						op = " OR "
 					}
-					where += op + condQuery
+					sb.WriteString(op)
+					sb.WriteString(condQuery)
 					if len(c.Value) > 0 {
 						values = append(values, c.Value...)
 					}
@@ -138,12 +146,8 @@ func (wb *WhereBaseBuilder) Where(wg *[]structs.WhereGroup) (string, []interface
 				}
 			}
 		}
-		where += parenthesesClose
+		sb.WriteString(parenthesesClose)
 	}
 
-	if where != "" {
-		where = " WHERE " + where
-	}
-
-	return where, values
+	return values
 }

@@ -14,7 +14,7 @@ type JoinBuilder struct {
 	joinValues   []interface{}
 }
 
-func NewJoinBuilder(dbBuilder db.QueryBuilderStrategy, cache *cache.AsyncQueryCache) *JoinBuilder {
+func NewJoinBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *JoinBuilder {
 	return &JoinBuilder{
 		Table: &structs.Table{},
 		Joins: &structs.Joins{
@@ -75,29 +75,12 @@ func (b *JoinBuilder) CrossJoin(table string) *JoinBuilder {
 }
 
 func (b *JoinBuilder) JoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *JoinBuilder {
-	/*
-		if len(*b.Joins.Joins) > 0 {
-			*b.Joins.Joins = append(*b.Joins.Joins, structs.Join{
-				Conditions:   *b.query.Conditions,
-				Operator:     consts.LogicalOperator_AND,
-				IsDummyGroup: true,
-			})
-			*b.query.Conditions = []structs.Where{}
-		}*/
-
 	jq := fn(NewJoinClauseBuilder())
 
 	jq.JoinClause.Name = table
 	jq.JoinClause.TargetNameMap = map[string]string{
 		consts.Join_INNER: table,
 	}
-
-	/*
-		b.Joins.Name = table
-		b.Joins.TargetNameMap = map[string]string{
-			consts.Join_INNER: table,
-		}
-	*/
 
 	b.Joins.JoinClause = jq.JoinClause
 
@@ -156,8 +139,8 @@ func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, cond
 
 	sq := &structs.Query{
 		ConditionGroups: q.whereBuilder.query.ConditionGroups,
-		Table:           structs.Table{Name: q.query.Table},
-		Columns:         q.query.Columns,
+		Table:           structs.Table{Name: q.selectQuery.Table},
+		Columns:         q.selectQuery.Columns,
 		Joins:           q.joinBuilder.Joins,
 		Order:           q.orderByBuilder.Order,
 	}

@@ -45,3 +45,16 @@ const (
 	Lock_FOR_UPDATE = "FOR UPDATE"
 	Lock_SHARE_MODE = "LOCK IN SHARE MODE"
 )
+
+const (
+	StringBuffer_Short_Query_Grow  = 128
+	StringBuffer_Middle_Query_Grow = 512
+	StringBuffer_Long_Query_Grow   = 1024
+
+	StringBuffer_Where_Grow    = 128
+	StringBuffer_Join_Grow     = 128
+	StringBuffer_CacheKey_Grow = 512
+
+	StringBuffer_Update_Grow = 128
+	StringBuffer_Delete_Grow = 128
+)

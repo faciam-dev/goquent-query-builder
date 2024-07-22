@@ -16,37 +16,31 @@ func NewOrderByBaseBuilder(order *[]structs.Order) *OrderByBaseBuilder {
 	}
 }
 
-func (OrderByBaseBuilder) OrderBy(order *[]structs.Order) string {
-	if len(*order) == 0 {
-		return ""
+func (OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
+	if order == nil || len(*order) == 0 {
+		return
 	}
 
-	orderBy := ""
-	rawOrderQuerys := make([]string, 0, len(*order))
-	orders := make([]string, 0, len(*order))
-	for _, order := range *order {
+	sb.WriteString(" ORDER BY ")
+
+	for i, order := range *order {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
 		if order.Raw != "" {
-			rawOrderQuerys = append(rawOrderQuerys, order.Raw)
+			sb.WriteString(order.Raw)
 			continue
 		}
 		if order.Column == "" {
 			continue
 		}
+
 		desc := "DESC"
 		if order.IsAsc {
 			desc = "ASC"
 		}
-		orders = append(orders, order.Column+" "+desc)
+		sb.WriteString(order.Column)
+		sb.WriteString(" ")
+		sb.WriteString(desc)
 	}
-	orderByHeader := " ORDER BY "
-	if len(rawOrderQuerys) > 0 {
-		orderBy += orderByHeader + strings.Join(rawOrderQuerys, ", ")
-		orderByHeader = ", "
-	}
-	if len(orders) > 0 {
-		orderBy += orderByHeader + strings.Join(orders, ", ")
-	}
-
-	return orderBy
-
 }
