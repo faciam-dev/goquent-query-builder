@@ -124,7 +124,7 @@ func BenchmarkSimpleInsert(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertBuilder(dbStrategy, blankCache).
 		Table("users").
 		Insert(map[string]interface{}{
 			"name": "John",
@@ -147,7 +147,7 @@ func BenchmarkInsertBatch(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertBuilder(dbStrategy, blankCache).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -176,7 +176,7 @@ func BenchmarkInsertUsing(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertBuilder(dbStrategy, blankCache).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{

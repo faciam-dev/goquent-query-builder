@@ -6,36 +6,36 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
-type InsertQueryBuilder struct {
+type InsertBuilder struct {
 	builder *query.InsertBuilder
 }
 
-func NewInsertQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *InsertQueryBuilder {
-	return &InsertQueryBuilder{
+func NewInsertBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *InsertBuilder {
+	return &InsertBuilder{
 		builder: query.NewInsertBuilder(strategy, cache),
 	}
 }
 
-func (ib *InsertQueryBuilder) Table(table string) *InsertQueryBuilder {
+func (ib *InsertBuilder) Table(table string) *InsertBuilder {
 	ib.builder.Table(table)
 	return ib
 }
 
-func (ib *InsertQueryBuilder) Insert(data map[string]interface{}) *InsertQueryBuilder {
+func (ib *InsertBuilder) Insert(data map[string]interface{}) *InsertBuilder {
 	ib.builder.Insert(data)
 	return ib
 }
 
-func (ib *InsertQueryBuilder) InsertBatch(data []map[string]interface{}) *InsertQueryBuilder {
+func (ib *InsertBuilder) InsertBatch(data []map[string]interface{}) *InsertBuilder {
 	ib.builder.InsertBatch(data)
 	return ib
 }
 
-func (ib *InsertQueryBuilder) InsertUsing(columns []string, qb *QueryBuilder) *InsertQueryBuilder {
+func (ib *InsertBuilder) InsertUsing(columns []string, qb *QueryBuilder) *InsertBuilder {
 	ib.builder.InsertUsing(columns, qb.builder)
 	return ib
 }
 
-func (ib *InsertQueryBuilder) Build() (string, []interface{}) {
+func (ib *InsertBuilder) Build() (string, []interface{}) {
 	return ib.builder.Build()
 }
