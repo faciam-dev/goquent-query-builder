@@ -7,15 +7,15 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
-type UpdateQueryBuilder struct {
+type UpdateBuilder struct {
 	builder             *query.UpdateBuilder
 	whereQueryBuilder   *WhereQueryBuilder
 	joinQueryBuilder    *JoinQueryBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
-func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateQueryBuilder {
-	return &UpdateQueryBuilder{
+func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
+	return &UpdateBuilder{
 		builder: query.NewUpdateBuilder(strategy, cache),
 		whereQueryBuilder: &WhereQueryBuilder{
 			builder: query.NewWhereBuilder(strategy, cache),
@@ -30,100 +30,100 @@ func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) 
 }
 
 // Update
-func (ub *UpdateQueryBuilder) Update(data map[string]interface{}) *UpdateQueryBuilder {
+func (ub *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 	ub.builder.Update(data)
 
 	return ub
 }
 
 // Table
-func (ub *UpdateQueryBuilder) Table(table string) *UpdateQueryBuilder {
+func (ub *UpdateBuilder) Table(table string) *UpdateBuilder {
 	ub.builder.Table(table)
 	return ub
 }
 
 // Where
-func (ub *UpdateQueryBuilder) Where(column string, condition string, value interface{}) *UpdateQueryBuilder {
+func (ub *UpdateBuilder) Where(column string, condition string, value interface{}) *UpdateBuilder {
 	ub.whereQueryBuilder.Where(column, condition, value)
 
 	return ub
 }
 
 // OrWhere
-func (ub *UpdateQueryBuilder) OrWhere(column string, condition string, value interface{}) *UpdateQueryBuilder {
+func (ub *UpdateBuilder) OrWhere(column string, condition string, value interface{}) *UpdateBuilder {
 	ub.whereQueryBuilder.OrWhere(column, condition, value)
 
 	return ub
 }
 
 // WhereQuery
-func (ub *UpdateQueryBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *UpdateQueryBuilder {
+func (ub *UpdateBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *UpdateBuilder {
 	ub.whereQueryBuilder.WhereQuery(column, condition, q)
 
 	return ub
 }
 
 // OrWhereQuery
-func (ub *UpdateQueryBuilder) OrWhereQuery(column string, condition string, q *QueryBuilder) *UpdateQueryBuilder {
+func (ub *UpdateBuilder) OrWhereQuery(column string, condition string, q *QueryBuilder) *UpdateBuilder {
 	ub.whereQueryBuilder.OrWhereQuery(column, condition, q)
 
 	return ub
 }
 
 // WhereGroup
-func (ub *UpdateQueryBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *UpdateQueryBuilder {
+func (ub *UpdateBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *UpdateBuilder {
 	ub.whereQueryBuilder.WhereGroup(fn)
 
 	return ub
 }
 
 // OrWhereGroup
-func (ub *UpdateQueryBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *UpdateQueryBuilder {
+func (ub *UpdateBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *UpdateBuilder {
 	ub.whereQueryBuilder.OrWhereGroup(fn)
 
 	return ub
 }
 
 // Join
-func (qb *UpdateQueryBuilder) Join(table, my, condition, target string) *UpdateQueryBuilder {
+func (qb *UpdateBuilder) Join(table, my, condition, target string) *UpdateBuilder {
 	qb.joinQueryBuilder.Join(table, my, condition, target)
 	return qb
 }
 
-func (qb *UpdateQueryBuilder) LeftJoin(table, my, condition, target string) *UpdateQueryBuilder {
+func (qb *UpdateBuilder) LeftJoin(table, my, condition, target string) *UpdateBuilder {
 	qb.joinQueryBuilder.LeftJoin(table, my, condition, target)
 	return qb
 }
 
-func (qb *UpdateQueryBuilder) RightJoin(table, my, condition, target string) *UpdateQueryBuilder {
+func (qb *UpdateBuilder) RightJoin(table, my, condition, target string) *UpdateBuilder {
 	qb.joinQueryBuilder.RightJoin(table, my, condition, target)
 	return qb
 }
 
-func (qb *UpdateQueryBuilder) CrossJoin(table, my, condition, target string) *UpdateQueryBuilder {
+func (qb *UpdateBuilder) CrossJoin(table, my, condition, target string) *UpdateBuilder {
 	qb.joinQueryBuilder.CrossJoin(table)
 	return qb
 }
 
 // OrderBy
 
-func (qb *UpdateQueryBuilder) OrderBy(column, ascDesc string) *UpdateQueryBuilder {
+func (qb *UpdateBuilder) OrderBy(column, ascDesc string) *UpdateBuilder {
 	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
 	return qb
 }
 
-func (qb *UpdateQueryBuilder) OrderByRaw(raw string) *UpdateQueryBuilder {
+func (qb *UpdateBuilder) OrderByRaw(raw string) *UpdateBuilder {
 	qb.orderByQueryBuilder.OrderByRaw(raw)
 	return qb
 }
 
-func (qb *UpdateQueryBuilder) ReOrder() *UpdateQueryBuilder {
+func (qb *UpdateBuilder) ReOrder() *UpdateBuilder {
 	qb.orderByQueryBuilder.ReOrder()
 	return qb
 }
 
 // Build
-func (ub *UpdateQueryBuilder) Build() (string, []interface{}) {
+func (ub *UpdateBuilder) Build() (string, []interface{}) {
 	ub.builder.SetWhereBuilder(ub.whereQueryBuilder.builder)
 	ub.builder.SetJoinBuilder(ub.joinQueryBuilder.builder)
 	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)

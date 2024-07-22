@@ -206,3 +206,75 @@ func BenchmarkInsertUsing(b *testing.B) {
 	// after refactor
 	//  6972561               169.6 ns/op           712 B/op         5 allocs/op
 }
+
+func BenchmarkSimpleUpdate(b *testing.B) {
+	dbStrategy := db.NewMySQLQueryBuilder()
+	blankCache := cache.NewBlankQueryCache()
+
+	qb := api.NewUpdateBuilder(dbStrategy, blankCache).
+		Table("users").
+		Update(map[string]interface{}{
+			"name": "Joe",
+			"age":  31,
+		})
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		qb.Build()
+	}
+
+	// go test -benchmem -run=^$ -bench BenchmarkSimpleUpdate -benchtime=1s
+	// before refactor
+	//  5506760               214.4 ns/op           336 B/op         8 allocs/op
+	// after refactor
+	//  7360680               164.7 ns/op           600 B/op         4 allocs/op
+}
+
+func BenchmarkUpdateWhere(b *testing.B) {
+	dbStrategy := db.NewMySQLQueryBuilder()
+	blankCache := cache.NewBlankQueryCache()
+
+	qb := api.NewUpdateBuilder(dbStrategy, blankCache).
+		Table("users").
+		Where("id", "=", 1).
+		Update(map[string]interface{}{
+			"name": "Joe",
+			"age":  31,
+		})
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		qb.Build()
+	}
+
+	// go test -benchmem -run=^$ -bench BenchmarkUpdateWhere -benchtime=1s
+	// before refactor
+	//  3559383               339.8 ns/op           544 B/op        11 allocs/op
+	// after refactor
+	//  4128181               290.8 ns/op           808 B/op         7 allocs/op
+}
+
+func BenchmarkJoinUpdate(b *testing.B) {
+	dbStrategy := db.NewMySQLQueryBuilder()
+	blankCache := cache.NewBlankQueryCache()
+
+	qb := api.NewUpdateBuilder(dbStrategy, blankCache).
+		Table("users").
+		Join("profiles", "users.id", "=", "profiles.user_id").
+		Where("profiles.age", ">", 18).
+		Update(map[string]interface{}{
+			"name": "Joe",
+			"age":  31,
+		})
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		qb.Build()
+	}
+
+	// go test -benchmem -run=^$ -bench BenchmarkJoinUpdate -benchtime=1s
+	// before refactor
+	//  3003182               396.5 ns/op           544 B/op        11 allocs/op
+	// after refactor
+	//  3419262               349.0 ns/op           808 B/op         7 allocs/op
+}

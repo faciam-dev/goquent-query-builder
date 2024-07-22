@@ -22,33 +22,39 @@ func (m *UpdateBaseBuilder) Update(q *structs.UpdateQuery) *UpdateBaseBuilder {
 // UpdateBatch builds the Update query for Update.
 func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []interface{}) {
 	sb := &strings.Builder{}
-	sb.Grow(consts.StringBuffer_Update_Grow)
+	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
 
 	// UPDATE
-	query := "UPDATE " + q.Table
+	sb.WriteString("UPDATE ")
+	sb.WriteString(q.Table)
+	//query := "UPDATE " + q.Table
 
 	// JOIN
 	b := &BaseQueryBuilder{}
 	joinValues := b.Join(sb, q.Query.Joins)
-
-	query += " SET "
-
 	values := make([]interface{}, 0, len(q.Values)+len(joinValues))
-	columns := make([]string, 0, len(q.Values))
 
-	// JOIN
 	values = append(values, joinValues...)
 
+	sb.WriteString(" SET ")
+	//query += " SET "
+
 	// SET
+	columns := make([]string, 0, len(q.Values))
 	for column := range q.Values {
 		columns = append(columns, column)
 	}
 	sort.Strings(columns)
-	for _, column := range columns {
-		query += column + " = ?, "
+	for i, column := range columns {
+		sb.WriteString(column)
+		sb.WriteString(" = ?")
+		if i < len(columns)-1 {
+			sb.WriteString(", ")
+		}
+		//query += column + " = ?"
 		values = append(values, q.Values[column])
 	}
-	query = query[:len(query)-2]
+	//query = query[:len(query)-2]
 
 	// WHERE
 	if len(*q.Query.ConditionGroups) > 0 {
@@ -64,6 +70,8 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 		//query += order
 	}
 
-	return query, values
+	query := sb.String()
+	sb.Reset()
 
+	return query, values
 }
