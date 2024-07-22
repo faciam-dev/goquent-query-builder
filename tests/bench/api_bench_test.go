@@ -224,7 +224,7 @@ func BenchmarkSimpleUpdate(b *testing.B) {
 	}
 
 	// go test -benchmem -run=^$ -bench BenchmarkSimpleUpdate -benchtime=1s
-	// before refactor
+	// before refactor (after select query's refactor)
 	//  5506760               214.4 ns/op           336 B/op         8 allocs/op
 	// after refactor
 	//  7360680               164.7 ns/op           600 B/op         4 allocs/op
@@ -248,7 +248,7 @@ func BenchmarkUpdateWhere(b *testing.B) {
 	}
 
 	// go test -benchmem -run=^$ -bench BenchmarkUpdateWhere -benchtime=1s
-	// before refactor
+	// before refactor (after select query's refactor)
 	//  3559383               339.8 ns/op           544 B/op        11 allocs/op
 	// after refactor
 	//  4128181               290.8 ns/op           808 B/op         7 allocs/op
@@ -273,8 +273,49 @@ func BenchmarkJoinUpdate(b *testing.B) {
 	}
 
 	// go test -benchmem -run=^$ -bench BenchmarkJoinUpdate -benchtime=1s
-	// before refactor
+	// before refactor (after select query's refactor)
 	//  3003182               396.5 ns/op           544 B/op        11 allocs/op
 	// after refactor
 	//  3419262               349.0 ns/op           808 B/op         7 allocs/op
+}
+
+func BenchmarkDelete(b *testing.B) {
+	dbStrategy := db.NewMySQLQueryBuilder()
+	blankCache := cache.NewBlankQueryCache()
+
+	qb := api.NewDeleteBuilder(dbStrategy, blankCache).
+		Table("users").
+		Where("id", "=", 1)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		qb.Build()
+	}
+
+	// go test -benchmem -run=^$ -bench BenchmarkDelete -benchtime=1s
+	// before refactor (after select query's refactor)
+	//  7226889               164.1 ns/op           336 B/op         6 allocs/op
+	// after refactor
+	//  7271072               162.9 ns/op           312 B/op         5 allocs/op
+}
+
+func BenchmarkDeleteJoin(b *testing.B) {
+	dbStrategy := db.NewMySQLQueryBuilder()
+	blankCache := cache.NewBlankQueryCache()
+
+	qb := api.NewDeleteBuilder(dbStrategy, blankCache).
+		Table("users").
+		Join("profiles", "users.id", "=", "profiles.user_id").
+		Where("profiles.age", ">", 18)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		qb.Build()
+	}
+
+	// go test -benchmem -run=^$ -bench BenchmarkDeleteJoin -benchtime=1s
+	// before refactor (after select query's refactor)
+	//  5309685               220.1 ns/op           336 B/op         6 allocs/op
+	// after refactor
+	//  5201276               230.5 ns/op           312 B/op         5 allocs/op
 }

@@ -24,19 +24,25 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 	sb := &strings.Builder{}
 	sb.Grow(consts.StringBuffer_Delete_Grow)
 
-	// JOIN
-	b := &BaseQueryBuilder{}
-
 	// DELETE
-	query := "DELETE"
+	sb.WriteString("DELETE")
+	if q.Query.Joins != nil &&
+		q.Query.Joins.Joins != nil &&
+		(len(*q.Query.Joins.Joins) > 0 || q.Query.Joins.JoinClause != nil) {
+		sb.WriteString(" ")
+		sb.WriteString(q.Table)
+	}
+	//query := "DELETE"
 	//	if join != "" {
 	//		query += " " + q.Table
 	//	}
 
 	// FROM
-	query += " FROM " + q.Table
+	sb.WriteString(" FROM " + q.Table)
+	//query += " FROM " + q.Table
 
 	// JOIN
+	b := &BaseQueryBuilder{}
 	b.Join(sb, q.Query.Joins)
 	//query += join
 
@@ -54,6 +60,9 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 		ob.OrderBy(sb, q.Query.Order)
 		//query += order
 	}
+
+	query := sb.String()
+	sb.Reset()
 
 	return query, values
 }
