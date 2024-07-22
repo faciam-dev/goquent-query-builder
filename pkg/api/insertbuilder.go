@@ -31,7 +31,7 @@ func (ib *InsertBuilder) InsertBatch(data []map[string]interface{}) *InsertBuild
 	return ib
 }
 
-func (ib *InsertBuilder) InsertUsing(columns []string, qb *QueryBuilder) *InsertBuilder {
+func (ib *InsertBuilder) InsertUsing(columns []string, qb *SelectBuilder) *InsertBuilder {
 	ib.builder.InsertUsing(columns, qb.builder)
 	return ib
 }

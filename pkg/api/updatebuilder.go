@@ -57,14 +57,14 @@ func (ub *UpdateBuilder) OrWhere(column string, condition string, value interfac
 }
 
 // WhereQuery
-func (ub *UpdateBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *UpdateBuilder {
+func (ub *UpdateBuilder) WhereQuery(column string, condition string, q *SelectBuilder) *UpdateBuilder {
 	ub.whereQueryBuilder.WhereQuery(column, condition, q)
 
 	return ub
 }
 
 // OrWhereQuery
-func (ub *UpdateBuilder) OrWhereQuery(column string, condition string, q *QueryBuilder) *UpdateBuilder {
+func (ub *UpdateBuilder) OrWhereQuery(column string, condition string, q *SelectBuilder) *UpdateBuilder {
 	ub.whereQueryBuilder.OrWhereQuery(column, condition, q)
 
 	return ub

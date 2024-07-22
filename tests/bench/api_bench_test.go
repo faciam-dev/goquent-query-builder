@@ -14,7 +14,7 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectBuilder(dbStrategy, blankCache).
 		Table("users").
 		Select("id", "users.name AS name")
 
@@ -36,7 +36,7 @@ func BenchmarkNormalSelectQuery(b *testing.B) {
 
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectBuilder(dbStrategy, blankCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -62,7 +62,7 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectBuilder(dbStrategy, blankCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -89,7 +89,7 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectBuilder(dbStrategy, blankCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -98,7 +98,7 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 		OrderBy("profiles.age", "DESC").
 		GroupBy("users.id").
 		Having("COUNT(profiles.id)", ">", 1).
-		Where("users.id", "IN", func(qb *api.QueryBuilder) {
+		Where("users.id", "IN", func(qb *api.SelectBuilder) {
 			qb.Table("users").
 				Select("id").
 				Join("profiles", "users.id", "=", "profiles.user_id").
@@ -188,7 +188,7 @@ func BenchmarkInsertUsing(b *testing.B) {
 				"age":  25,
 			},
 		}).
-		InsertUsing([]string{"name", "age"}, api.NewQueryBuilder(dbStrategy, blankCache).
+		InsertUsing([]string{"name", "age"}, api.NewSelectBuilder(dbStrategy, blankCache).
 			Table("users").
 			Select("id").
 			Join("profiles", "users.id", "=", "profiles.user_id").

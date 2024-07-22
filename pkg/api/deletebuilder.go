@@ -64,14 +64,14 @@ func (ub *DeleteBuilder) OrWhere(column string, condition string, value interfac
 }
 
 // WhereQuery
-func (ub *DeleteBuilder) WhereQuery(column string, condition string, q *QueryBuilder) *DeleteBuilder {
+func (ub *DeleteBuilder) WhereQuery(column string, condition string, q *SelectBuilder) *DeleteBuilder {
 	ub.whereQueryBuilder.WhereQuery(column, condition, q)
 
 	return ub
 }
 
 // OrWhereQuery
-func (ub *DeleteBuilder) OrWhereQuery(column string, condition string, q *QueryBuilder) *DeleteBuilder {
+func (ub *DeleteBuilder) OrWhereQuery(column string, condition string, q *SelectBuilder) *DeleteBuilder {
 	ub.whereQueryBuilder.OrWhereQuery(column, condition, q)
 
 	return ub
