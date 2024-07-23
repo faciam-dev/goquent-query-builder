@@ -91,6 +91,34 @@ func (ub *DeleteBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.Whe
 	return ub
 }
 
+// WhereNot
+func (ub *DeleteBuilder) WhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *DeleteBuilder {
+	ub.whereQueryBuilder.WhereNot(fn)
+
+	return ub
+}
+
+// OrWhereNot
+func (ub *DeleteBuilder) OrWhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *DeleteBuilder {
+	ub.whereQueryBuilder.OrWhereNot(fn)
+
+	return ub
+}
+
+// WhereAll
+func (qb *DeleteBuilder) WhereAll(columns []string, condition string, value interface{}) *DeleteBuilder {
+	qb.whereQueryBuilder.WhereAll(columns, condition, value)
+
+	return qb
+}
+
+// WhereAny
+func (qb *DeleteBuilder) WhereAny(columns []string, condition string, value interface{}) *DeleteBuilder {
+	qb.whereQueryBuilder.WhereAny(columns, condition, value)
+
+	return qb
+}
+
 // Join
 func (qb *DeleteBuilder) Join(table, my, condition, target string) *DeleteBuilder {
 	qb.joinQueryBuilder.Join(table, my, condition, target)

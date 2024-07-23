@@ -75,3 +75,27 @@ func (wb *WhereQueryBuilder) OrWhereGroup(fn func(wb *query.WhereBuilder) *query
 	})
 	return wb
 }
+
+func (wb *WhereQueryBuilder) WhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *WhereQueryBuilder {
+	wb.builder.WhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
+		return fn(b)
+	})
+	return wb
+}
+
+func (wb *WhereQueryBuilder) OrWhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *WhereQueryBuilder {
+	wb.builder.OrWhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
+		return fn(b)
+	})
+	return wb
+}
+
+func (wb *WhereQueryBuilder) WhereAny(columns []string, condition string, value interface{}) *WhereQueryBuilder {
+	wb.builder.WhereAny(columns, condition, value)
+	return wb
+}
+
+func (wb *WhereQueryBuilder) WhereAll(columns []string, condition string, value interface{}) *WhereQueryBuilder {
+	wb.builder.WhereAll(columns, condition, value)
+	return wb
+}

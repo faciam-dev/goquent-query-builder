@@ -88,113 +88,6 @@ func TestBuilder(t *testing.T) {
 			nil,
 		},
 		{
-			"Where",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 18)
-			},
-			"SELECT  FROM  WHERE age > ?",
-			[]interface{}{18},
-		},
-		{
-			"OrWhere",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("email", "LIKE", "%@gmail.com%").OrWhere("email", "LIKE", "%@yahoo.com%").OrWhere("age", ">", 18)
-			},
-			"SELECT  FROM  WHERE email LIKE ? OR email LIKE ? OR age > ?",
-			[]interface{}{"%@gmail.com%", "%@yahoo.com%", 18},
-		},
-		{
-			"WhereRaw",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereRaw("age > ?", 18)
-			},
-			"SELECT  FROM  WHERE age > ?",
-			[]interface{}{18},
-		},
-		{
-			"OrWhereRaw",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereRaw("age > ?", 18).OrWhereRaw("name= ?", "John")
-			},
-			"SELECT  FROM  WHERE age > ? OR name= ?",
-			[]interface{}{18, "John"},
-		},
-		{
-			"WhereQuery",
-			func() *query.Builder {
-				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereQuery("user_id", "IN", sq).Where("city", "=", "New York")
-			},
-			"SELECT  FROM  WHERE user_id IN (SELECT id FROM users WHERE name = ?) AND city = ?",
-			[]interface{}{"John", "New York"},
-		},
-		{
-			"OrWhereQuery",
-			func() *query.Builder {
-				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereQuery("user_id", "IN", sq)
-			},
-			"SELECT  FROM  WHERE city = ? OR user_id IN (SELECT id FROM users WHERE name = ?)",
-			[]interface{}{"New York", "John"},
-		},
-		{
-			"WhereGroup",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
-					})
-			},
-			"SELECT  FROM  WHERE (age > ? AND name = ?)",
-			[]interface{}{18, "John"},
-		},
-		{
-			"WhereGroup_And",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
-					}).Where("city", "=", "New York")
-			},
-			"SELECT  FROM  WHERE (age > ? AND name = ?) AND city = ?",
-			[]interface{}{18, "John", "New York"},
-		},
-		{
-			"WhereGroup_And_2",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					Where("city", "=", "New York").
-					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
-					})
-			},
-			"SELECT  FROM  WHERE city = ? AND (age > ? AND name = ?)",
-			[]interface{}{"New York", 18, "John"},
-		},
-		{
-			"WhereGroup_Or",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
-					}).OrWhere("city", "=", "New York")
-			},
-			"SELECT  FROM  WHERE (age > ? AND name = ?) OR city = ?",
-			[]interface{}{18, "John", "New York"},
-		},
-		{
-			"WhereGroup_Or_2",
-			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					Where("city", "=", "New York").
-					OrWhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
-					})
-			},
-			"SELECT  FROM  WHERE city = ? OR (age > ? AND name = ?)",
-			[]interface{}{"New York", 18, "John"},
-		},
-		{
 			"Inner_Join",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Join("orders", "users.id", "=", "orders.user_id")
@@ -407,6 +300,188 @@ func TestBuilder(t *testing.T) {
 		},
 	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			builder := tt.setup()
+			query, values := builder.Build()
+
+			if query != tt.expectedQuery {
+				t.Errorf("expected '%s' but got '%s'", tt.expectedQuery, query)
+			}
+
+			if len(values) != len(tt.expectedValues) {
+				t.Errorf("expected values %v but got %v", tt.expectedValues, values)
+			}
+
+			for i := range values {
+				if values[i] != tt.expectedValues[i] {
+					t.Errorf("expected value %v at index %d but got %v", tt.expectedValues[i], i, values[i])
+				}
+			}
+		})
+	}
+}
+
+func TestWhereSelectBuilder(t *testing.T) {
+	tests := []struct {
+		name           string
+		setup          func() *query.Builder
+		expectedQuery  string
+		expectedValues []interface{}
+	}{
+		{
+			"Where",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 18)
+			},
+			"SELECT  FROM  WHERE age > ?",
+			[]interface{}{18},
+		},
+		{
+			"OrWhere",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("email", "LIKE", "%@gmail.com%").OrWhere("email", "LIKE", "%@yahoo.com%").OrWhere("age", ">", 18)
+			},
+			"SELECT  FROM  WHERE email LIKE ? OR email LIKE ? OR age > ?",
+			[]interface{}{"%@gmail.com%", "%@yahoo.com%", 18},
+		},
+		{
+			"WhereRaw",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereRaw("age > ?", 18)
+			},
+			"SELECT  FROM  WHERE age > ?",
+			[]interface{}{18},
+		},
+		{
+			"OrWhereRaw",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereRaw("age > ?", 18).OrWhereRaw("name= ?", "John")
+			},
+			"SELECT  FROM  WHERE age > ? OR name= ?",
+			[]interface{}{18, "John"},
+		},
+		{
+			"WhereQuery",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereQuery("user_id", "IN", sq).Where("city", "=", "New York")
+			},
+			"SELECT  FROM  WHERE user_id IN (SELECT id FROM users WHERE name = ?) AND city = ?",
+			[]interface{}{"John", "New York"},
+		},
+		{
+			"OrWhereQuery",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereQuery("user_id", "IN", sq)
+			},
+			"SELECT  FROM  WHERE city = ? OR user_id IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"New York", "John"},
+		},
+		{
+			"WhereGroup",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					})
+			},
+			"SELECT  FROM  WHERE (age > ? AND name = ?)",
+			[]interface{}{18, "John"},
+		},
+		{
+			"WhereGroup_And",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					}).Where("city", "=", "New York")
+			},
+			"SELECT  FROM  WHERE (age > ? AND name = ?) AND city = ?",
+			[]interface{}{18, "John", "New York"},
+		},
+		{
+			"WhereGroup_And_2",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					Where("city", "=", "New York").
+					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					})
+			},
+			"SELECT  FROM  WHERE city = ? AND (age > ? AND name = ?)",
+			[]interface{}{"New York", 18, "John"},
+		},
+		{
+			"WhereGroup_Or",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					}).OrWhere("city", "=", "New York")
+			},
+			"SELECT  FROM  WHERE (age > ? AND name = ?) OR city = ?",
+			[]interface{}{18, "John", "New York"},
+		},
+		{
+			"WhereGroup_Or_2",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					Where("city", "=", "New York").
+					OrWhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					})
+			},
+			"SELECT  FROM  WHERE city = ? OR (age > ? AND name = ?)",
+			[]interface{}{"New York", 18, "John"},
+		},
+		{
+			"WhereNot",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					WhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					})
+			},
+			"SELECT  FROM  WHERE NOT (age > ? AND name = ?)",
+			[]interface{}{18, "John"},
+		},
+		{
+			"OrWhereNot",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					Where("city", "=", "New York").
+					OrWhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					})
+			},
+			"SELECT  FROM  WHERE city = ? OR NOT (age > ? AND name = ?)",
+			[]interface{}{"New York", 18, "John"},
+		},
+		{
+			"WhereAll",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					Where("age", ">", 18).
+					WhereAll([]string{"name", "city"}, "LIKE", "%test%")
+			},
+			"SELECT  FROM  WHERE age > ? AND (name LIKE ? AND city LIKE ?)",
+			[]interface{}{18, "%test%", "%test%"},
+		},
+		{
+			"WhereAny",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					Where("age", ">", 18).
+					WhereAny([]string{"name", "city"}, "LIKE", "%test%")
+			},
+			"SELECT  FROM  WHERE age > ? AND (name LIKE ? OR city LIKE ?)",
+			[]interface{}{18, "%test%", "%test%"},
+		},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()

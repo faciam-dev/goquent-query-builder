@@ -81,6 +81,28 @@ func (b *DeleteBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *De
 	return b
 }
 
+func (b *DeleteBuilder) WhereNot(fn func(b *WhereBuilder) *WhereBuilder) *DeleteBuilder {
+	b.whereBuilder.WhereNot(fn)
+
+	return b
+}
+
+func (b *DeleteBuilder) OrWhereNot(fn func(b *WhereBuilder) *WhereBuilder) *DeleteBuilder {
+	b.whereBuilder.OrWhereNot(fn)
+
+	return b
+}
+
+func (b *DeleteBuilder) WhereAny(columns []string, condition string, value interface{}) *DeleteBuilder {
+	b.whereBuilder.WhereAny(columns, condition, value)
+	return b
+}
+
+func (b *DeleteBuilder) WhereAll(columns []string, condition string, value interface{}) *DeleteBuilder {
+	b.whereBuilder.WhereAll(columns, condition, value)
+	return b
+}
+
 func (b *DeleteBuilder) Delete() *DeleteBuilder {
 	return b
 }

@@ -49,6 +49,47 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"Update Where Not",
+			"Update",
+			&structs.UpdateQuery{
+				Table: "users",
+				Values: map[string]interface{}{
+					"name": "Joe",
+					"age":  30,
+				},
+				Query: &structs.Query{
+					ConditionGroups: &[]structs.WhereGroup{
+						{
+							Conditions: []structs.Where{
+								{
+									Column:    "id",
+									Condition: "!=",
+									Value:     []interface{}{1},
+								},
+								{
+									Column:    "age",
+									Condition: ">",
+									Value:     []interface{}{18},
+								},
+								{
+									Column:    "name",
+									Condition: "=",
+									Value:     []interface{}{"John"},
+								},
+							},
+							IsNot:        true,
+							IsDummyGroup: false,
+						},
+					},
+					Order: &[]structs.Order{},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "UPDATE users SET age = ?, name = ? WHERE NOT (id != ? AND age > ? AND name = ?)",
+				Values:   []interface{}{30, "Joe", 1, 18, "John"},
+			},
+		},
+		{
 			"Update JOIN",
 			"Update",
 			&structs.UpdateQuery{

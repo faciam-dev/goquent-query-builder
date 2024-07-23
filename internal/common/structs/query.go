@@ -24,6 +24,7 @@ type WhereGroup struct {
 	Subgroups    []WhereGroup
 	Operator     int
 	IsDummyGroup bool
+	IsNot        bool
 }
 
 type Query struct {

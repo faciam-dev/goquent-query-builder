@@ -112,34 +112,32 @@ func (b *WhereBuilder) whereOrOrWhereQuery(column string, condition string, q *B
 
 // WhereGroup adds a where group with AND operator
 func (b *WhereBuilder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
-	if len(*b.query.Conditions) > 0 {
-		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *b.query.Conditions,
-			Operator:     consts.LogicalOperator_AND,
-			IsDummyGroup: true,
-		})
-		*b.query.Conditions = []structs.Where{}
-	}
-
-	cQ := fn(b)
-
-	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-		Conditions: *cQ.query.Conditions,
-		Subgroups:  []structs.WhereGroup{},
-		Operator:   consts.LogicalOperator_AND,
-	})
-	*cQ.query.Conditions = []structs.Where{}
-
-	return b
+	return b.addWhereGroup(fn, consts.LogicalOperator_AND, false)
 }
 
 // OrWhereGroup adds a where group with OR operator
 func (b *WhereBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
+	return b.addWhereGroup(fn, consts.LogicalOperator_OR, false)
+}
+
+// WhereNot adds a not where group with AND operator
+func (b *WhereBuilder) WhereNot(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
+	return b.addWhereGroup(fn, consts.LogicalOperator_AND, true)
+}
+
+// OrWhereNot adds a not where group with OR operator
+func (b *WhereBuilder) OrWhereNot(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
+	return b.addWhereGroup(fn, consts.LogicalOperator_OR, true)
+}
+
+// addWhereGroup adds a where group with the specified operator
+func (b *WhereBuilder) addWhereGroup(fn func(b *WhereBuilder) *WhereBuilder, operator int, isNot bool) *WhereBuilder {
 	if len(*b.query.Conditions) > 0 {
 		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *b.query.Conditions,
-			Operator:     consts.LogicalOperator_OR,
+			Operator:     operator,
 			IsDummyGroup: true,
+			IsNot:        false,
 		})
 		*b.query.Conditions = []structs.Where{}
 	}
@@ -149,13 +147,57 @@ func (b *WhereBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Whe
 	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
 		Conditions: *cQ.query.Conditions,
 		Subgroups:  []structs.WhereGroup{},
-		Operator:   consts.LogicalOperator_OR,
+		Operator:   operator,
+		IsNot:      isNot,
 	})
 	*cQ.query.Conditions = []structs.Where{}
 
 	return b
 }
 
+// WhereAny adds where clauses with AND operator
+func (b *WhereBuilder) WhereAll(columns []string, condition string, value interface{}) *WhereBuilder {
+	return b.addWhereConditions(columns, condition, value, consts.LogicalOperator_AND)
+}
+
+// OrWhereAny adds where clauses with OR operator
+func (b *WhereBuilder) WhereAny(columns []string, condition string, value interface{}) *WhereBuilder {
+	return b.addWhereConditions(columns, condition, value, consts.LogicalOperator_OR)
+}
+
+func (b *WhereBuilder) addWhereConditions(columns []string, condition string, value interface{}, operator int) *WhereBuilder {
+	// already have conditions, add them to the query
+	if len(*b.query.Conditions) > 0 {
+		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *b.query.Conditions,
+			Operator:     operator,
+			IsDummyGroup: true,
+			IsNot:        false,
+		})
+		*b.query.Conditions = []structs.Where{}
+	}
+
+	conditions := []structs.Where{}
+	for _, c := range columns {
+		conditions = append(conditions, structs.Where{
+			Column:    c,
+			Condition: condition,
+			Value:     []interface{}{value},
+			Operator:  operator,
+		})
+		b.whereValues = append(b.whereValues, value)
+	}
+
+	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+		Conditions: conditions,
+		Subgroups:  []structs.WhereGroup{},
+		Operator:   consts.LogicalOperator_AND,
+	})
+
+	return b
+}
+
+// WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder) BuildSq(sq *structs.Query) (string, []interface{}) {
 	cacheKey := generateCacheKey(sq)

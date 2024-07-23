@@ -123,6 +123,34 @@ func (qb *SelectBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.Whe
 	return qb
 }
 
+// WhereNot
+func (qb *SelectBuilder) WhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *SelectBuilder {
+	qb.whereQueryBuilder.WhereNot(fn)
+
+	return qb
+}
+
+// OrWhereNot
+func (qb *SelectBuilder) OrWhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *SelectBuilder {
+	qb.whereQueryBuilder.OrWhereNot(fn)
+
+	return qb
+}
+
+// WhereAny
+func (qb *SelectBuilder) WhereAny(columns []string, condition string, value interface{}) *SelectBuilder {
+	qb.whereQueryBuilder.WhereAny(columns, condition, value)
+
+	return qb
+}
+
+// WhereAll
+func (qb *SelectBuilder) WhereAll(columns []string, condition string, value interface{}) *SelectBuilder {
+	qb.whereQueryBuilder.WhereAll(columns, condition, value)
+
+	return qb
+}
+
 func (qb *SelectBuilder) Join(table, my, condition, target string) *SelectBuilder {
 	qb.joinQueryBuilder.Join(table, my, condition, target)
 

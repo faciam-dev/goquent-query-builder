@@ -46,6 +46,37 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"Delete_where_not",
+			"Delete",
+			&structs.DeleteQuery{
+				Table: "users",
+				Query: &structs.Query{
+					ConditionGroups: &[]structs.WhereGroup{
+						{
+							Conditions: []structs.Where{
+								{
+									Column:    "id",
+									Condition: "!=",
+									Value:     []interface{}{1},
+								},
+							},
+							Operator:     consts.LogicalOperator_OR,
+							IsDummyGroup: false,
+							IsNot:        true,
+						},
+					},
+					Joins: &structs.Joins{
+						Joins: &[]structs.Join{},
+					},
+					Order: &[]structs.Order{},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "DELETE FROM users WHERE NOT (id != ?)",
+				Values:   []interface{}{1},
+			},
+		},
+		{
 			"Delete_JOINS",
 			"Delete",
 			&structs.DeleteQuery{
