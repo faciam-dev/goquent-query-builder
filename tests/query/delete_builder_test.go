@@ -37,6 +37,32 @@ func TestDeleteBuilder(t *testing.T) {
 			[]interface{}{1},
 		},
 		{
+			"Delete_where_not",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					Where("id", "!=", 1).
+					OrWhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
+						return b.Where("age", ">", 18).Where("name", "=", "John")
+					}).
+					Delete()
+			},
+			"DELETE FROM users WHERE id != ? OR NOT (age > ? AND name = ?)",
+			[]interface{}{1, 18, "John"},
+		},
+		{
+			"Delete_where_all",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					Where("id", ">", 10000).
+					WhereAll([]string{"firstname", "lastname"}, "LIKE", "%test%").
+					Delete()
+			},
+			"DELETE FROM users WHERE id > ? AND (firstname LIKE ? AND lastname LIKE ?)",
+			[]interface{}{10000, "%test%", "%test%"},
+		},
+		{
 			"Delete_JOINS",
 			func() *query.DeleteBuilder {
 				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).

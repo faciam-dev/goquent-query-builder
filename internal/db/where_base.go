@@ -38,6 +38,7 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup)
 	values := make([]interface{}, 0)
 
 	sep := ""
+	notSep := ""
 	for i, cg := range *wg {
 		if len(cg.Conditions) == 0 {
 			continue
@@ -61,10 +62,16 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup)
 		op := ""
 
 		if !cg.IsDummyGroup {
+			if cg.IsNot {
+				notSep = "NOT "
+			} else {
+				notSep = ""
+			}
 			parenthesesOpen = "("
 			parenthesesClose = ")"
 		}
 
+		sb.WriteString(notSep)
 		sb.WriteString(parenthesesOpen)
 
 		for j, c := range cg.Conditions {

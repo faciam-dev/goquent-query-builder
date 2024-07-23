@@ -84,6 +84,30 @@ func (ub *UpdateBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.Whe
 	return ub
 }
 
+// WhereNot
+func (ub *UpdateBuilder) WhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *UpdateBuilder {
+	ub.whereQueryBuilder.WhereNot(fn)
+
+	return ub
+}
+
+// OrWhereNot
+func (ub *UpdateBuilder) OrWhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *UpdateBuilder {
+	ub.whereQueryBuilder.OrWhereNot(fn)
+
+	return ub
+}
+
+func (qb *UpdateBuilder) WhereAll(columns []string, condition string, value interface{}) *UpdateBuilder {
+	qb.whereQueryBuilder.WhereAll(columns, condition, value)
+	return qb
+}
+
+func (qb *UpdateBuilder) WhereAny(columns []string, condition string, value interface{}) *UpdateBuilder {
+	qb.whereQueryBuilder.WhereAny(columns, condition, value)
+	return qb
+}
+
 // Join
 func (qb *UpdateBuilder) Join(table, my, condition, target string) *UpdateBuilder {
 	qb.joinQueryBuilder.Join(table, my, condition, target)

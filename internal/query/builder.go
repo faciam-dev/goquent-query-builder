@@ -167,6 +167,30 @@ func (b *Builder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Builder 
 	return b
 }
 
+func (b *Builder) WhereNot(fn func(b *WhereBuilder) *WhereBuilder) *Builder {
+	b.whereBuilder.WhereNot(fn)
+
+	return b
+}
+
+func (b *Builder) OrWhereNot(fn func(b *WhereBuilder) *WhereBuilder) *Builder {
+	b.whereBuilder.OrWhereNot(fn)
+
+	return b
+}
+
+func (b *Builder) WhereAll(columns []string, condition string, value interface{}) *Builder {
+	b.whereBuilder.WhereAll(columns, condition, value)
+
+	return b
+}
+
+func (b *Builder) WhereAny(columns []string, condition string, value interface{}) *Builder {
+	b.whereBuilder.WhereAny(columns, condition, value)
+
+	return b
+}
+
 // Join adds a JOIN clause.
 func (b *Builder) Join(table string, my string, condition string, target string) *Builder {
 	b.joinBuilder.Join(table, my, condition, target)
