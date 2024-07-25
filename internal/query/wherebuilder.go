@@ -400,6 +400,75 @@ func (b *WhereBuilder[T]) addWhereColumns(allColumns []string, columns [][]strin
 	return b.parent
 }
 
+// WhereBetween adds a where between clause with AND operator
+func (b *WhereBuilder[T]) WhereBetween(column string, from interface{}, to interface{}) *T {
+	return b.addWhereBetween(column, from, to, consts.Condition_BETWEEN, consts.LogicalOperator_AND, false)
+}
+
+// WhereNotBetween adds a not where between clause with AND operator
+func (b *WhereBuilder[T]) WhereNotBetween(column string, from interface{}, to interface{}) *T {
+	return b.addWhereBetween(column, from, to, consts.Condition_NOT_BETWEEN, consts.LogicalOperator_AND, true)
+}
+
+// OrWhereBetween adds a where between clause with OR operator
+func (b *WhereBuilder[T]) OrWhereBetween(column string, from interface{}, to interface{}) *T {
+	return b.addWhereBetween(column, from, to, consts.Condition_BETWEEN, consts.LogicalOperator_OR, false)
+}
+
+// OrWhereNotBetween adds a not where between clause with OR operator
+func (b *WhereBuilder[T]) OrWhereNotBetween(column string, from interface{}, to interface{}) *T {
+	return b.addWhereBetween(column, from, to, consts.Condition_NOT_BETWEEN, consts.LogicalOperator_OR, true)
+}
+
+// addWhereBetween adds a where between clause with the specified operator
+func (b *WhereBuilder[T]) addWhereBetween(column string, from interface{}, to interface{}, condition string, operator int, isNot bool) *T {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Between:   &structs.WhereBetween{From: from, To: to, IsNot: isNot},
+		Operator:  operator,
+		Condition: condition,
+	})
+	b.whereValues = append(b.whereValues, from, to)
+
+	return b.parent
+}
+
+// WhereBetweenColumns adds a where between columns clause with AND operator
+func (b *WhereBuilder[T]) WhereBetweenColumns(allColumns []string, column string, min string, max string) *T {
+	return b.addWhereBetweenColumns(allColumns, column, min, max, consts.Condition_BETWEEN, consts.LogicalOperator_AND, false)
+}
+
+// WhereNotBetweenColumns adds a not where between columns clause with AND operator
+func (b *WhereBuilder[T]) WhereNotBetweenColumns(allColumns []string, column string, min string, max string) *T {
+	return b.addWhereBetweenColumns(allColumns, column, min, max, consts.Condition_NOT_BETWEEN, consts.LogicalOperator_AND, true)
+}
+
+// OrWhereBetweenColumns adds a where between columns clause with OR operator
+func (b *WhereBuilder[T]) OrWhereBetweenColumns(allColumns []string, column string, min string, max string) *T {
+	return b.addWhereBetweenColumns(allColumns, column, min, max, consts.Condition_BETWEEN, consts.LogicalOperator_OR, false)
+}
+
+// OrWhereNotBetweenColumns adds a not where between columns clause with OR operator
+func (b *WhereBuilder[T]) OrWhereNotBetweenColumns(allColumns []string, column string, min string, max string) *T {
+	return b.addWhereBetweenColumns(allColumns, column, min, max, consts.Condition_NOT_BETWEEN, consts.LogicalOperator_OR, true)
+}
+
+func (b *WhereBuilder[T]) addWhereBetweenColumns(allColumns []string, column string, min string, max string, condition string, operator int, isNot bool) *T {
+	if !sliceutils.Contains(allColumns, column) {
+		return b.parent
+	}
+
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Between:   &structs.WhereBetween{From: min, To: max, IsColumn: true, IsNot: isNot},
+		Operator:  operator,
+		Condition: condition,
+	})
+	b.whereValues = append(b.whereValues, min, max)
+
+	return b.parent
+}
+
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {

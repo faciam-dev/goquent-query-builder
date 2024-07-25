@@ -90,6 +90,42 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"Update Where Between",
+			"Update",
+			&structs.UpdateQuery{
+				Table: "users",
+				Values: map[string]interface{}{
+					"name": "Joe",
+					"age":  30,
+				},
+				Query: &structs.Query{
+					ConditionGroups: &[]structs.WhereGroup{
+						{
+							Conditions: []structs.Where{
+								{
+									Column:    "id",
+									Condition: consts.Condition_BETWEEN,
+									Value:     []interface{}{1, 10},
+									Between: &structs.WhereBetween{
+										To:       10,
+										From:     1,
+										IsColumn: false,
+										IsNot:    false,
+									},
+								},
+							},
+							IsDummyGroup: true,
+						},
+					},
+					Order: &[]structs.Order{},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: "UPDATE users SET age = ?, name = ? WHERE id BETWEEN ? AND ?",
+				Values:   []interface{}{30, "Joe", 1, 10},
+			},
+		},
+		{
 			"Update JOIN",
 			"Update",
 			&structs.UpdateQuery{

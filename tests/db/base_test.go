@@ -400,6 +400,91 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"WhereBetween",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column: "age",
+								Between: &structs.WhereBetween{
+									From:  18,
+									To:    30,
+									IsNot: false,
+								},
+								Condition: consts.Condition_BETWEEN,
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE age BETWEEN ? AND ?",
+				Values:   []interface{}{18, 30},
+			},
+		},
+		{
+			"WhereNotBetween",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column: "age",
+								Between: &structs.WhereBetween{
+									From:  18,
+									To:    30,
+									IsNot: true,
+								},
+								Condition: consts.Condition_NOT_BETWEEN,
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE age NOT BETWEEN ? AND ?",
+				Values:   []interface{}{18, 30},
+			},
+		},
+		{
+			"WhereNotBetweenColumns",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column: "age",
+								Between: &structs.WhereBetween{
+									From:     "users.age",
+									To:       "users.age",
+									IsColumn: true,
+									IsNot:    true,
+								},
+								Condition: consts.Condition_NOT_BETWEEN,
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE age NOT BETWEEN users.age AND users.age",
+				Values:   nil,
+			},
+		},
+		{
 			"Join",
 			"Join",
 			structs.Query{

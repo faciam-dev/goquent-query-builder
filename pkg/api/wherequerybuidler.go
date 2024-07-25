@@ -167,26 +167,31 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereNotInSubQuery(column string, q *Select
 	return wb.parent
 }
 
+// WhereNull is a function that allows you to add a where null condition
 func (wb *WhereQueryBuilder[T, C]) WhereNull(column string) *T {
 	wb.builder.WhereNull(column)
 	return wb.parent
 }
 
+// WhereNotNull is a function that allows you to add a where not null condition
 func (wb *WhereQueryBuilder[T, C]) WhereNotNull(column string) *T {
 	wb.builder.WhereNotNull(column)
 	return wb.parent
 }
 
+// OrWhereNull is a function that allows you to add a or where null condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereNull(column string) *T {
 	wb.builder.OrWhereNull(column)
 	return wb.parent
 }
 
+// OrWhereNotNull is a function that allows you to add a or where not null condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereNotNull(column string) *T {
 	wb.builder.OrWhereNotNull(column)
 	return wb.parent
 }
 
+// WhereColumn is a function that allows you to add a where column condition
 func (wb *WhereQueryBuilder[T, C]) WhereColumn(allColumns []string, column string, cond ...string) *T {
 	operator := consts.Condition_EQUAL
 	valueColumn := column
@@ -202,6 +207,7 @@ func (wb *WhereQueryBuilder[T, C]) WhereColumn(allColumns []string, column strin
 	return wb.parent
 }
 
+// OrWhereColumn is a function that allows you to add a or where column condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereColumn(allColumns []string, column string, cond ...string) *T {
 	operator := consts.Condition_EQUAL
 	valueColumn := column
@@ -217,12 +223,62 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereColumn(allColumns []string, column str
 	return wb.parent
 }
 
+// WhereColumns is a function that allows you to add a where columns condition
 func (wb *WhereQueryBuilder[T, C]) WhereColumns(allColumns []string, columns [][]string) *T {
 	wb.builder.WhereColumns(allColumns, columns)
 	return wb.parent
 }
 
+// OrWhereColumns is a function that allows you to add a or where columns condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereColumns(allColumns []string, columns [][]string) *T {
 	wb.builder.OrWhereColumns(allColumns, columns)
+	return wb.parent
+}
+
+// WhereBetween is a function that allows you to add a where between condition
+func (wb *WhereQueryBuilder[T, C]) WhereBetween(column string, min interface{}, max interface{}) *T {
+	wb.builder.WhereBetween(column, min, max)
+	return wb.parent
+}
+
+// OrWhereBetween is a function that allows you to add a or where between condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereBetween(column string, min interface{}, max interface{}) *T {
+	wb.builder.OrWhereBetween(column, min, max)
+	return wb.parent
+}
+
+// WhereNotBetween is a function that allows you to add a where not between condition
+func (wb *WhereQueryBuilder[T, C]) WhereNotBetween(column string, min interface{}, max interface{}) *T {
+	wb.builder.WhereNotBetween(column, min, max)
+	return wb.parent
+}
+
+// OrWhereNotBetween is a function that allows you to add a or where not between condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereNotBetween(column string, min interface{}, max interface{}) *T {
+	wb.builder.OrWhereNotBetween(column, min, max)
+	return wb.parent
+}
+
+// WhereBetweenColumns is a function that allows you to add a where between columns condition
+func (wb *WhereQueryBuilder[T, C]) WhereBetweenColumns(allColumns []string, column string, min string, max string) *T {
+	wb.builder.WhereBetweenColumns(allColumns, column, min, max)
+	return wb.parent
+}
+
+// OrWhereBetweenColumns is a function that allows you to add a or where between columns condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereBetweenColumns(allColumns []string, column string, min string, max string) *T {
+	wb.builder.OrWhereBetweenColumns(allColumns, column, min, max)
+	return wb.parent
+}
+
+// WhereNotBetweenColumns is a function that allows you to add a where not between columns condition
+func (wb *WhereQueryBuilder[T, C]) WhereNotBetweenColumns(allColumns []string, column string, min string, max string) *T {
+	wb.builder.WhereNotBetweenColumns(allColumns, column, min, max)
+	return wb.parent
+}
+
+// OrWhereNotBetweenColumns is a function that allows you to add a or where not between columns condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereNotBetweenColumns(allColumns []string, column string, min string, max string) *T {
+	wb.builder.OrWhereNotBetweenColumns(allColumns, column, min, max)
 	return wb.parent
 }

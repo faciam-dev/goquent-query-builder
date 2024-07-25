@@ -129,6 +129,39 @@ func TestDeleteBuilder(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			"Delete_where_between",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereBetween("age", 18, 30).
+					Delete()
+			},
+			"DELETE FROM users WHERE age BETWEEN ? AND ?",
+			[]interface{}{18, 30},
+		},
+		{
+			"Delete_where_not_between",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereNotBetween("age", 18, 30).
+					Delete()
+			},
+			"DELETE FROM users WHERE age NOT BETWEEN ? AND ?",
+			[]interface{}{18, 30},
+		},
+		{
+			"Delete_where_between_columns",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at").
+					Delete()
+			},
+			"DELETE FROM users WHERE created_at BETWEEN updated_at AND deleted_at",
+			[]interface{}{},
+		},
+		{
 			"Delete_JOINS",
 			func() *query.DeleteBuilder {
 				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
