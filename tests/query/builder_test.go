@@ -667,6 +667,70 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"SELECT  FROM  WHERE created_at = updated_at OR deleted_at = updated_at",
 			nil,
 		},
+		{
+			"WhereBetween",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereBetween("age", 18, 30)
+			},
+			"SELECT  FROM  WHERE age BETWEEN ? AND ?",
+			[]interface{}{18, 30},
+		},
+		{
+			"OrWhereBetween",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereBetween("age", 18, 30)
+			},
+			"SELECT  FROM  WHERE city = ? OR age BETWEEN ? AND ?",
+			[]interface{}{"New York", 18, 30},
+		},
+		{
+			"WhereNotBetween",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNotBetween("age", 18, 30)
+			},
+			"SELECT  FROM  WHERE age NOT BETWEEN ? AND ?",
+			[]interface{}{18, 30},
+		},
+		{
+			"OrWhereNotBetween",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereNotBetween("age", 18, 30)
+			},
+			"SELECT  FROM  WHERE city = ? OR age NOT BETWEEN ? AND ?",
+			[]interface{}{"New York", 18, 30},
+		},
+		{
+			"WhereBetweenColumns",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
+			},
+			"SELECT  FROM  WHERE created_at BETWEEN updated_at AND deleted_at",
+			nil,
+		},
+		{
+			"OrWhereBetweenColumns",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).OrWhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
+			},
+			"SELECT  FROM  WHERE created_at BETWEEN updated_at AND deleted_at",
+			nil,
+		},
+		{
+			"WhereNotBetweenColumns",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNotBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
+			},
+			"SELECT  FROM  WHERE created_at NOT BETWEEN updated_at AND deleted_at",
+			nil,
+		},
+		{
+			"OrWhereNotBetweenColumns",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).OrWhereNotBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
+			},
+			"SELECT  FROM  WHERE created_at NOT BETWEEN updated_at AND deleted_at",
+			nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

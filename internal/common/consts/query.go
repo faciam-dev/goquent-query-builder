@@ -13,6 +13,8 @@ const (
 	Condition_NOT_IN                = "NOT IN"
 	Condition_IS_NULL               = "IS NULL"
 	Condition_IS_NOT_NULL           = "IS NOT NULL"
+	Condition_BETWEEN               = "BETWEEN"
+	Condition_NOT_BETWEEN           = "NOT BETWEEN"
 )
 
 const (

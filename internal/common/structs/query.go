@@ -17,7 +17,15 @@ type Where struct {
 	ValueColumn string
 	Operator    int
 	Query       *Query
+	Between     *WhereBetween
 	Raw         string
+}
+
+type WhereBetween struct {
+	IsColumn bool
+	IsNot    bool
+	From     interface{}
+	To       interface{}
 }
 
 type WhereGroup struct {

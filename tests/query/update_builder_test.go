@@ -132,6 +132,48 @@ func TestUpdateBuilder(t *testing.T) {
 			[]interface{}{31, "Joe"},
 		},
 		{
+			"Update_where_between",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereBetween("age", 18, 30).
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? WHERE age BETWEEN ? AND ?",
+			[]interface{}{31, "Joe", 18, 30},
+		},
+		{
+			"Update_where_not_between",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereNotBetween("age", 18, 30).
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? WHERE age NOT BETWEEN ? AND ?",
+			[]interface{}{31, "Joe", 18, 30},
+		},
+		{
+			"Update_where_between_column",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereBetweenColumns([]string{"age", "min_age", "max_age"}, "age", "min_age", "max_age").
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? WHERE age BETWEEN min_age AND max_age",
+			[]interface{}{31, "Joe"},
+		},
+		{
 			"Update_JOINS",
 			func() *query.UpdateBuilder {
 				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
