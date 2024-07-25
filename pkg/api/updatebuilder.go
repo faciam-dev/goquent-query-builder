@@ -8,18 +8,15 @@ import (
 )
 
 type UpdateBuilder struct {
+	WhereQueryBuilder[UpdateBuilder, query.UpdateBuilder]
 	builder             *query.UpdateBuilder
-	whereQueryBuilder   *WhereQueryBuilder
 	joinQueryBuilder    *JoinQueryBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
 func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
-	return &UpdateBuilder{
+	ub := &UpdateBuilder{
 		builder: query.NewUpdateBuilder(strategy, cache),
-		whereQueryBuilder: &WhereQueryBuilder{
-			builder: query.NewWhereBuilder(strategy, cache),
-		},
 		joinQueryBuilder: &JoinQueryBuilder{
 			builder: query.NewJoinBuilder(strategy, cache),
 		},
@@ -27,6 +24,12 @@ func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Upda
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
 	}
+
+	whereQueryBuilder := NewWhereQueryBuilder[UpdateBuilder, query.UpdateBuilder](strategy, cache)
+	whereQueryBuilder.SetParent(ub)
+	ub.WhereQueryBuilder = *whereQueryBuilder
+
+	return ub
 }
 
 // Update
@@ -40,72 +43,6 @@ func (ub *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 func (ub *UpdateBuilder) Table(table string) *UpdateBuilder {
 	ub.builder.Table(table)
 	return ub
-}
-
-// Where
-func (ub *UpdateBuilder) Where(column string, condition string, value interface{}) *UpdateBuilder {
-	ub.whereQueryBuilder.Where(column, condition, value)
-
-	return ub
-}
-
-// OrWhere
-func (ub *UpdateBuilder) OrWhere(column string, condition string, value interface{}) *UpdateBuilder {
-	ub.whereQueryBuilder.OrWhere(column, condition, value)
-
-	return ub
-}
-
-// WhereQuery
-func (ub *UpdateBuilder) WhereQuery(column string, condition string, q *SelectBuilder) *UpdateBuilder {
-	ub.whereQueryBuilder.WhereQuery(column, condition, q)
-
-	return ub
-}
-
-// OrWhereQuery
-func (ub *UpdateBuilder) OrWhereQuery(column string, condition string, q *SelectBuilder) *UpdateBuilder {
-	ub.whereQueryBuilder.OrWhereQuery(column, condition, q)
-
-	return ub
-}
-
-// WhereGroup
-func (ub *UpdateBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *UpdateBuilder {
-	ub.whereQueryBuilder.WhereGroup(fn)
-
-	return ub
-}
-
-// OrWhereGroup
-func (ub *UpdateBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *UpdateBuilder {
-	ub.whereQueryBuilder.OrWhereGroup(fn)
-
-	return ub
-}
-
-// WhereNot
-func (ub *UpdateBuilder) WhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *UpdateBuilder {
-	ub.whereQueryBuilder.WhereNot(fn)
-
-	return ub
-}
-
-// OrWhereNot
-func (ub *UpdateBuilder) OrWhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *UpdateBuilder {
-	ub.whereQueryBuilder.OrWhereNot(fn)
-
-	return ub
-}
-
-func (qb *UpdateBuilder) WhereAll(columns []string, condition string, value interface{}) *UpdateBuilder {
-	qb.whereQueryBuilder.WhereAll(columns, condition, value)
-	return qb
-}
-
-func (qb *UpdateBuilder) WhereAny(columns []string, condition string, value interface{}) *UpdateBuilder {
-	qb.whereQueryBuilder.WhereAny(columns, condition, value)
-	return qb
 }
 
 // Join
@@ -148,7 +85,8 @@ func (qb *UpdateBuilder) ReOrder() *UpdateBuilder {
 
 // Build
 func (ub *UpdateBuilder) Build() (string, []interface{}) {
-	ub.builder.SetWhereBuilder(ub.whereQueryBuilder.builder)
+	ub.builder.SetWhereBuilder(*ub.WhereQueryBuilder.builder)
+	//	ub.builder.SetWhereBuilder(ub.WhereQueryBuilder.builder)
 	ub.builder.SetJoinBuilder(ub.joinQueryBuilder.builder)
 	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
 

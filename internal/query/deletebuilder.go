@@ -8,29 +8,34 @@ import (
 )
 
 type DeleteBuilder struct {
-	dbBuilder      db.QueryBuilderStrategy
-	cache          cache.Cache
-	query          *structs.DeleteQuery
-	whereBuilder   *WhereBuilder
+	dbBuilder db.QueryBuilderStrategy
+	cache     cache.Cache
+	query     *structs.DeleteQuery
+	WhereBuilder[DeleteBuilder]
 	joinBuilder    *JoinBuilder
 	orderByBuilder *OrderByBuilder
 }
 
 func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *DeleteBuilder {
-	return &DeleteBuilder{
+	db := &DeleteBuilder{
 		dbBuilder: strategy,
 		cache:     cache,
 		query: &structs.DeleteQuery{
 			Query: &structs.Query{},
 		},
-		whereBuilder:   NewWhereBuilder(strategy, cache),
+		WhereBuilder:   *NewWhereBuilder[DeleteBuilder](strategy, cache),
 		joinBuilder:    NewJoinBuilder(strategy, cache),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
+
+	whereBuilder := NewWhereBuilder[DeleteBuilder](strategy, cache)
+	whereBuilder.SetParent(db)
+	db.WhereBuilder = *whereBuilder
+	return db
 }
 
-func (b *DeleteBuilder) SetWhereBuilder(whereBuilder *WhereBuilder) {
-	b.whereBuilder = whereBuilder
+func (b *DeleteBuilder) SetWhereBuilder(whereBuilder *WhereBuilder[DeleteBuilder]) {
+	b.WhereBuilder = *whereBuilder
 }
 
 func (b *DeleteBuilder) SetJoinBuilder(joinBuilder *JoinBuilder) {
@@ -47,79 +52,24 @@ func (b *DeleteBuilder) Table(table string) *DeleteBuilder {
 	return b
 }
 
-func (b *DeleteBuilder) Where(column string, condition string, value ...interface{}) *DeleteBuilder {
-	b.whereBuilder.Where(column, condition, value...)
-	return b
-}
-
-func (b *DeleteBuilder) OrWhere(column string, condition string, value ...interface{}) *DeleteBuilder {
-	b.whereBuilder.OrWhere(column, condition, value...)
-	return b
-}
-
-func (b *DeleteBuilder) WhereQuery(column string, condition string, q *Builder) *DeleteBuilder {
-	b.whereBuilder.WhereQuery(column, condition, q)
-
-	return b
-}
-
-func (b *DeleteBuilder) OrWhereQuery(column string, condition string, q *Builder) *DeleteBuilder {
-	b.whereBuilder.OrWhereQuery(column, condition, q)
-
-	return b
-}
-
-func (b *DeleteBuilder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *DeleteBuilder {
-	b.whereBuilder.WhereGroup(fn)
-
-	return b
-}
-
-func (b *DeleteBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *DeleteBuilder {
-	b.whereBuilder.OrWhereGroup(fn)
-
-	return b
-}
-
-func (b *DeleteBuilder) WhereNot(fn func(b *WhereBuilder) *WhereBuilder) *DeleteBuilder {
-	b.whereBuilder.WhereNot(fn)
-
-	return b
-}
-
-func (b *DeleteBuilder) OrWhereNot(fn func(b *WhereBuilder) *WhereBuilder) *DeleteBuilder {
-	b.whereBuilder.OrWhereNot(fn)
-
-	return b
-}
-
-func (b *DeleteBuilder) WhereAny(columns []string, condition string, value interface{}) *DeleteBuilder {
-	b.whereBuilder.WhereAny(columns, condition, value)
-	return b
-}
-
-func (b *DeleteBuilder) WhereAll(columns []string, condition string, value interface{}) *DeleteBuilder {
-	b.whereBuilder.WhereAll(columns, condition, value)
-	return b
-}
-
+// Delete
 func (b *DeleteBuilder) Delete() *DeleteBuilder {
 	return b
 }
 
 func (u *DeleteBuilder) Build() (string, []interface{}) {
 	// If there are conditions, add them to the query
-	if len(*u.whereBuilder.query.Conditions) > 0 {
-		*u.whereBuilder.query.ConditionGroups = append(*u.whereBuilder.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *u.whereBuilder.query.Conditions,
+	if len(*u.WhereBuilder.query.Conditions) > 0 {
+		*u.WhereBuilder.query.ConditionGroups = append(*u.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *u.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,
 		})
-		u.whereBuilder.query.Conditions = &[]structs.Where{}
+		u.WhereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
-	u.query.Query.Conditions = u.whereBuilder.query.Conditions
-	u.query.Query.ConditionGroups = u.whereBuilder.query.ConditionGroups
+	u.query.Query.Conditions = u.WhereBuilder.query.Conditions
+	u.query.Query.ConditionGroups = u.WhereBuilder.query.ConditionGroups
 	u.query.Query.Joins = u.joinBuilder.Joins
 	u.query.Query.Order = u.orderByBuilder.Order
 

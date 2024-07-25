@@ -1,5 +1,7 @@
 package sliceutils
 
+import "time"
+
 func Contains[T comparable](elems []T, v T) bool {
 	for _, s := range elems {
 		if v == s {
@@ -29,4 +31,79 @@ func Reverse[T comparable](s []T) []T {
 	}
 
 	return reversed
+}
+
+func ToInterfaceSlice(slice interface{}) []interface{} {
+	switch s := slice.(type) {
+	case []int64:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []string:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []float64:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []bool:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []int:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []int32:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []uint:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []uint32:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []uint64:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []float32:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []time.Time:
+		result := make([]interface{}, len(s))
+		for i, v := range s {
+			result[i] = v
+		}
+		return result
+	case []interface{}:
+		return s
+	default:
+		return nil
+	}
 }

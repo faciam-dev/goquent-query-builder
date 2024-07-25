@@ -11,26 +11,31 @@ type UpdateBuilder struct {
 	dbBuilder      db.QueryBuilderStrategy
 	cache          cache.Cache
 	query          *structs.UpdateQuery
-	whereBuilder   *WhereBuilder
 	joinBuilder    *JoinBuilder
 	orderByBuilder *OrderByBuilder
+	WhereBuilder[UpdateBuilder]
 }
 
 func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
-	return &UpdateBuilder{
+	ub := &UpdateBuilder{
 		dbBuilder: strategy,
 		cache:     cache,
 		query: &structs.UpdateQuery{
 			Query: &structs.Query{},
 		},
-		whereBuilder:   NewWhereBuilder(strategy, cache),
+		WhereBuilder:   *NewWhereBuilder[UpdateBuilder](strategy, cache),
 		joinBuilder:    NewJoinBuilder(strategy, cache),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
+
+	whereBuilder := NewWhereBuilder[UpdateBuilder](strategy, cache)
+	whereBuilder.SetParent(ub)
+	ub.WhereBuilder = *whereBuilder
+	return ub
 }
 
-func (b *UpdateBuilder) SetWhereBuilder(whereBuilder *WhereBuilder) {
-	b.whereBuilder = whereBuilder
+func (b *UpdateBuilder) SetWhereBuilder(whereBuilder WhereBuilder[UpdateBuilder]) {
+	b.WhereBuilder = whereBuilder
 }
 
 func (b *UpdateBuilder) SetJoinBuilder(joinBuilder *JoinBuilder) {
@@ -47,6 +52,7 @@ func (b *UpdateBuilder) Table(table string) *UpdateBuilder {
 	return b
 }
 
+/*
 func (b *UpdateBuilder) Where(column string, condition string, value ...interface{}) *UpdateBuilder {
 	b.whereBuilder.Where(column, condition, value...)
 	return b
@@ -102,6 +108,7 @@ func (b *UpdateBuilder) WhereAll(columns []string, condition string, value inter
 	b.whereBuilder.WhereAll(columns, condition, value)
 	return b
 }
+*/
 
 func (b *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 	b.query.Values = data
@@ -111,17 +118,17 @@ func (b *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 
 func (u *UpdateBuilder) Build() (string, []interface{}) {
 	// If there are conditions, add them to the query
-	if len(*u.whereBuilder.query.Conditions) > 0 {
-		*u.whereBuilder.query.ConditionGroups = append(*u.whereBuilder.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *u.whereBuilder.query.Conditions,
+	if len(*u.WhereBuilder.query.Conditions) > 0 {
+		*u.WhereBuilder.query.ConditionGroups = append(*u.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *u.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,
 		})
-		u.whereBuilder.query.Conditions = &[]structs.Where{}
+		u.WhereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
-	u.query.Query.Conditions = u.whereBuilder.query.Conditions
-	u.query.Query.ConditionGroups = u.whereBuilder.query.ConditionGroups
+	u.query.Query.Conditions = u.WhereBuilder.query.Conditions
+	u.query.Query.ConditionGroups = u.WhereBuilder.query.ConditionGroups
 	u.query.Query.Joins = u.joinBuilder.Joins
 	u.query.Query.Order = u.orderByBuilder.Order
 

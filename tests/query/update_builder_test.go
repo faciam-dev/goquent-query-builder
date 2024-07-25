@@ -45,11 +45,13 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_not",
 			func() *query.UpdateBuilder {
+
 				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					//					SetParent(query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100))).
 					Table("users").
 					Where("id", "!=", 1).
-					OrWhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					OrWhereNot(func(b *query.WhereBuilder[query.UpdateBuilder]) *query.WhereBuilder[query.UpdateBuilder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					}).
 					Update(map[string]interface{}{
 						"name": "Joe",
@@ -72,6 +74,20 @@ func TestUpdateBuilder(t *testing.T) {
 			},
 			"UPDATE users SET age = ?, name = ? WHERE (name LIKE ? OR note LIKE ?)",
 			[]interface{}{31, "Joe", "%test%", "%test%"},
+		},
+		{
+			"Update_where_in",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereIn("id", []interface{}{1, 2, 3}).
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? WHERE id IN (?, ?, ?)",
+			[]interface{}{31, "Joe", 1, 2, 3},
 		},
 		{
 			"Update_JOINS",

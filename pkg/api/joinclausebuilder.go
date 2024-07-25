@@ -5,8 +5,7 @@ import (
 )
 
 type JoinClauseBuilder struct {
-	builder           *query.JoinClauseBuilder
-	joinClauseBuilder *JoinClauseBuilder
+	builder *query.JoinClauseBuilder
 }
 
 func NewJoinClauseBuilder() *JoinClauseBuilder {
