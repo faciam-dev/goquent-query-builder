@@ -101,8 +101,6 @@ func ToInterfaceSlice(slice interface{}) []interface{} {
 			result[i] = v
 		}
 		return result
-	case []interface{}:
-		return s
 	default:
 		return nil
 	}
