@@ -313,6 +313,33 @@ func (b *WhereBuilder[T]) addWhereInSubQuery(column string, operator int, condit
 	return b.parent
 }
 
+func (b *WhereBuilder[T]) WhereNull(column string) *T {
+	return b.addWhereNull(column, consts.LogicalOperator_AND, consts.Condition_IS_NULL)
+}
+
+func (b *WhereBuilder[T]) WhereNotNull(column string) *T {
+	return b.addWhereNull(column, consts.LogicalOperator_AND, consts.Condition_IS_NOT_NULL)
+}
+
+func (b *WhereBuilder[T]) OrWhereNull(column string) *T {
+	return b.addWhereNull(column, consts.LogicalOperator_OR, consts.Condition_IS_NULL)
+}
+
+func (b *WhereBuilder[T]) OrWhereNotNull(column string) *T {
+	return b.addWhereNull(column, consts.LogicalOperator_OR, consts.Condition_IS_NOT_NULL)
+}
+
+func (b *WhereBuilder[T]) addWhereNull(column string, operator int, condition string) *T {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Condition: condition,
+		Operator:  operator,
+		Value:     nil,
+	})
+
+	return b.parent
+}
+
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {

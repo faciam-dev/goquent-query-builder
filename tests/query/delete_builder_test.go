@@ -51,6 +51,39 @@ func TestDeleteBuilder(t *testing.T) {
 			[]interface{}{1, 18, "John"},
 		},
 		{
+			"Delete_where_in",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereIn("id", []interface{}{1, 2, 3}).
+					Delete()
+			},
+			"DELETE FROM users WHERE id IN (?, ?, ?)",
+			[]interface{}{1, 2, 3},
+		},
+		{
+			"Delete_where_not_in",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereNotIn("id", []interface{}{1, 2, 3}).
+					Delete()
+			},
+			"DELETE FROM users WHERE id NOT IN (?, ?, ?)",
+			[]interface{}{1, 2, 3},
+		},
+		{
+			"Delete_where_any",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereAny([]string{"name", "note"}, "LIKE", "%test%").
+					Delete()
+			},
+			"DELETE FROM users WHERE (name LIKE ? OR note LIKE ?)",
+			[]interface{}{"%test%", "%test%"},
+		},
+		{
 			"Delete_where_all",
 			func() *query.DeleteBuilder {
 				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
@@ -61,6 +94,17 @@ func TestDeleteBuilder(t *testing.T) {
 			},
 			"DELETE FROM users WHERE id > ? AND (firstname LIKE ? AND lastname LIKE ?)",
 			[]interface{}{10000, "%test%", "%test%"},
+		},
+		{
+			"Delete_where_null",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereNull("name").
+					Delete()
+			},
+			"DELETE FROM users WHERE name IS NULL",
+			[]interface{}{},
 		},
 		{
 			"Delete_JOINS",
