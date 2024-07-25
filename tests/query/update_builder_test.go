@@ -90,6 +90,20 @@ func TestUpdateBuilder(t *testing.T) {
 			[]interface{}{31, "Joe", 1, 2, 3},
 		},
 		{
+			"Update_where_null",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereNull("name").
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? WHERE name IS NULL",
+			[]interface{}{31, "Joe"},
+		},
+		{
 			"Update_JOINS",
 			func() *query.UpdateBuilder {
 				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).

@@ -587,6 +587,38 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"SELECT  FROM  WHERE age > ? OR id NOT IN (SELECT id FROM users WHERE name = ?)",
 			[]interface{}{19, "John"},
 		},
+		{
+			"WhereNull",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNull("deleted_at")
+			},
+			"SELECT  FROM  WHERE deleted_at IS NULL",
+			nil,
+		},
+		{
+			"WhereNotNull",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNotNull("deleted_at")
+			},
+			"SELECT  FROM  WHERE deleted_at IS NOT NULL",
+			nil,
+		},
+		{
+			"OrWhereNull",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 18).OrWhereNull("deleted_at")
+			},
+			"SELECT  FROM  WHERE age > ? OR deleted_at IS NULL",
+			[]interface{}{18},
+		},
+		{
+			"OrWhereNotNull",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 18).OrWhereNotNull("deleted_at")
+			},
+			"SELECT  FROM  WHERE age > ? OR deleted_at IS NOT NULL",
+			[]interface{}{18},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
