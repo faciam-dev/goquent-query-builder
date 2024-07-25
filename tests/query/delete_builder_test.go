@@ -107,6 +107,28 @@ func TestDeleteBuilder(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			"Delete_where_not_null",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereNotNull("name").
+					Delete()
+			},
+			"DELETE FROM users WHERE name IS NOT NULL",
+			[]interface{}{},
+		},
+		{
+			"Delete_where_column",
+			func() *query.DeleteBuilder {
+				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereColumn([]string{"name", "note"}, "name", "=", "note").
+					Delete()
+			},
+			"DELETE FROM users WHERE name = note",
+			[]interface{}{},
+		},
+		{
 			"Delete_JOINS",
 			func() *query.DeleteBuilder {
 				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).

@@ -104,6 +104,34 @@ func TestUpdateBuilder(t *testing.T) {
 			[]interface{}{31, "Joe"},
 		},
 		{
+			"Update_where_column",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereColumn([]string{"name", "note"}, "name", "=", "note").
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? WHERE name = note",
+			[]interface{}{31, "Joe"},
+		},
+		{
+			"Update_where_or_columns",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					OrWhereColumns([]string{"name", "nick_name", "memo", "note"}, [][]string{{"name", "=", "nick_name"}, {"memo", "=", "note"}}).
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? WHERE name = nick_name OR memo = note",
+			[]interface{}{31, "Joe"},
+		},
+		{
 			"Update_JOINS",
 			func() *query.UpdateBuilder {
 				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).

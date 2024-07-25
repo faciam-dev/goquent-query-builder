@@ -11,12 +11,13 @@ type Table struct {
 }
 
 type Where struct {
-	Column    string
-	Condition string
-	Value     []interface{}
-	Operator  int
-	Query     *Query
-	Raw       string
+	Column      string
+	Condition   string
+	Value       []interface{}
+	ValueColumn string
+	Operator    int
+	Query       *Query
+	Raw         string
 }
 
 type WhereGroup struct {

@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -183,5 +184,45 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereNull(column string) *T {
 
 func (wb *WhereQueryBuilder[T, C]) OrWhereNotNull(column string) *T {
 	wb.builder.OrWhereNotNull(column)
+	return wb.parent
+}
+
+func (wb *WhereQueryBuilder[T, C]) WhereColumn(allColumns []string, column string, cond ...string) *T {
+	operator := consts.Condition_EQUAL
+	valueColumn := column
+	if len(cond) > 0 {
+		valueColumn = cond[0]
+	}
+	if len(cond) > 1 {
+		operator = cond[0]
+		valueColumn = cond[1]
+	}
+
+	wb.builder.WhereColumn(allColumns, column, operator, valueColumn)
+	return wb.parent
+}
+
+func (wb *WhereQueryBuilder[T, C]) OrWhereColumn(allColumns []string, column string, cond ...string) *T {
+	operator := consts.Condition_EQUAL
+	valueColumn := column
+	if len(cond) > 0 {
+		valueColumn = cond[0]
+	}
+	if len(cond) > 1 {
+		operator = cond[0]
+		valueColumn = cond[1]
+	}
+
+	wb.builder.OrWhereColumn(allColumns, column, operator, valueColumn)
+	return wb.parent
+}
+
+func (wb *WhereQueryBuilder[T, C]) WhereColumns(allColumns []string, columns [][]string) *T {
+	wb.builder.WhereColumns(allColumns, columns)
+	return wb.parent
+}
+
+func (wb *WhereQueryBuilder[T, C]) OrWhereColumns(allColumns []string, columns [][]string) *T {
+	wb.builder.OrWhereColumns(allColumns, columns)
 	return wb.parent
 }

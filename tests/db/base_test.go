@@ -355,6 +355,51 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"WhereNull",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:    "name",
+								Condition: "IS NULL",
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE name IS NULL",
+				Values:   nil,
+			},
+		},
+		{
+			"WhereColumn",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:      "name",
+								Condition:   "=",
+								ValueColumn: "users.name",
+								Operator:    consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE name = users.name",
+				Values:   nil,
+			},
+		},
+		{
 			"Join",
 			"Join",
 			structs.Query{

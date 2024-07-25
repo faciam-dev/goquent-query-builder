@@ -118,7 +118,9 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup)
 					wsb.WriteString(raw)
 				} else {
 					wsb.WriteString(convertedColumn + " " + c.Condition)
-					if c.Value != nil {
+					if c.ValueColumn != "" {
+						wsb.WriteString(" " + c.ValueColumn)
+					} else if c.Value != nil {
 						if len(c.Value) > 1 {
 							wsb.WriteString(" (")
 							for k := 0; k < len(c.Value); k++ {

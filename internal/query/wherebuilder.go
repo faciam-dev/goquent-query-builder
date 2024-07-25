@@ -340,6 +340,66 @@ func (b *WhereBuilder[T]) addWhereNull(column string, operator int, condition st
 	return b.parent
 }
 
+// WhereColumn adds a where column condition
+func (b *WhereBuilder[T]) WhereColumn(allColumns []string, column string, condition string, valueColumn string) *T {
+	return b.addWhereCondition(allColumns, column, condition, valueColumn, consts.LogicalOperator_AND)
+}
+
+// OrWhereColumn adds a where column condition
+func (b *WhereBuilder[T]) OrWhereColumn(allColumns []string, column string, condition string, valueColumn string) *T {
+	return b.addWhereCondition(allColumns, column, condition, valueColumn, consts.LogicalOperator_OR)
+}
+
+// addWhereCondition adds a where condition with the specified operator
+func (b *WhereBuilder[T]) addWhereCondition(allColumns []string, column string, condition string, valueColumn string, operator int) *T {
+	if !sliceutils.Contains(allColumns, column) {
+		return b.parent
+	}
+
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:      column,
+		Condition:   condition,
+		ValueColumn: valueColumn,
+		Operator:    operator,
+	})
+	b.whereValues = append(b.whereValues, valueColumn)
+
+	return b.parent
+}
+
+// WhereColumns adds a where columns condition
+func (b *WhereBuilder[T]) WhereColumns(allColumns []string, columns [][]string) *T {
+	return b.addWhereColumns(allColumns, columns, consts.LogicalOperator_AND)
+}
+
+// OrWhereColumns adds a where columns condition
+func (b *WhereBuilder[T]) OrWhereColumns(allColumns []string, columns [][]string) *T {
+	return b.addWhereColumns(allColumns, columns, consts.LogicalOperator_OR)
+}
+
+// addWhereColumns adds a where columns condition with the specified operator
+func (b *WhereBuilder[T]) addWhereColumns(allColumns []string, columns [][]string, operator int) *T {
+	for _, c := range columns {
+		column := ""
+		cond := ""
+		valueColumn := ""
+		if len(c) == 2 {
+			column = c[0]
+			cond = consts.Condition_EQUAL
+			valueColumn = c[1]
+		} else if len(c) == 3 {
+			column = c[0]
+			cond = c[1]
+			valueColumn = c[2]
+		} else {
+			continue
+		}
+		b.addWhereCondition(allColumns, column, cond, valueColumn, operator)
+	}
+
+	return b.parent
+}
+
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {

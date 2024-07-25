@@ -619,6 +619,54 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"SELECT  FROM  WHERE age > ? OR deleted_at IS NOT NULL",
 			[]interface{}{18},
 		},
+		{
+			"WhereColumn",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "=", "updated_at")
+			},
+			"SELECT  FROM  WHERE created_at = updated_at",
+			nil,
+		},
+		{
+			"WhereColumn_With_Operator",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", ">", "updated_at")
+			},
+			"SELECT  FROM  WHERE created_at > updated_at",
+			nil,
+		},
+		{
+			"OrWhereColumn",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 18).OrWhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "=", "updated_at")
+			},
+			"SELECT  FROM  WHERE age > ? OR created_at = updated_at",
+			[]interface{}{18},
+		},
+		{
+			"OrWhereColumn_With_Operator",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 18).OrWhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", ">", "updated_at")
+			},
+			"SELECT  FROM  WHERE age > ? OR created_at > updated_at",
+			[]interface{}{18},
+		},
+		{
+			"WhereColumns",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereColumns([]string{"created_at", "updated_at", "deleted_at"}, [][]string{{"created_at", "=", "updated_at"}, {"deleted_at", "=", "updated_at"}})
+			},
+			"SELECT  FROM  WHERE created_at = updated_at AND deleted_at = updated_at",
+			nil,
+		},
+		{
+			"OrWhereColumns",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).OrWhereColumns([]string{"created_at", "updated_at", "deleted_at"}, [][]string{{"created_at", "=", "updated_at"}, {"deleted_at", "=", "updated_at"}})
+			},
+			"SELECT  FROM  WHERE created_at = updated_at OR deleted_at = updated_at",
+			nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
