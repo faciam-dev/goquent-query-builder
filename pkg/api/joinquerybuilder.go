@@ -3,8 +3,7 @@ package api
 import "github.com/faciam-dev/goquent-query-builder/internal/query"
 
 type JoinQueryBuilder struct {
-	builder          *query.JoinBuilder
-	joinQueryBuilder *JoinQueryBuilder
+	builder *query.JoinBuilder
 }
 
 func (qb *JoinQueryBuilder) Join(table, my, condition, target string) *JoinQueryBuilder {

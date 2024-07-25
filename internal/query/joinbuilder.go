@@ -8,10 +8,10 @@ import (
 )
 
 type JoinBuilder struct {
-	Table        *structs.Table
-	Joins        *structs.Joins
-	whereBuilder *WhereBuilder
-	joinValues   []interface{}
+	Table *structs.Table
+	Joins *structs.Joins
+	WhereBuilder[JoinBuilder]
+	joinValues []interface{}
 }
 
 func NewJoinBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *JoinBuilder {
@@ -20,7 +20,7 @@ func NewJoinBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *JoinB
 		Joins: &structs.Joins{
 			Joins: &[]structs.Join{},
 		},
-		whereBuilder: NewWhereBuilder(dbBuilder, cache),
+		WhereBuilder: *NewWhereBuilder[JoinBuilder](dbBuilder, cache),
 	}
 }
 
@@ -132,13 +132,13 @@ func (b *JoinBuilder) RightJoinSub(q *Builder, alias, my, condition, target stri
 
 func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, condition, target string) *JoinBuilder {
 
-	*q.whereBuilder.query.ConditionGroups = append(*q.whereBuilder.query.ConditionGroups, structs.WhereGroup{
-		Conditions:   *q.whereBuilder.query.Conditions,
+	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
 
 	sq := &structs.Query{
-		ConditionGroups: q.whereBuilder.query.ConditionGroups,
+		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
 		Joins:           q.joinBuilder.Joins,
@@ -158,7 +158,7 @@ func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, cond
 	}
 
 	// todo: use cache
-	_, value := b.whereBuilder.BuildSq(sq)
+	_, value := b.WhereBuilder.BuildSq(sq)
 
 	*b.Joins.Joins = append(*b.Joins.Joins, *args)
 	b.joinValues = append(b.joinValues, value...)

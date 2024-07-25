@@ -11,19 +11,19 @@ import (
 )
 
 type Builder struct {
-	dbBuilder      db.QueryBuilderStrategy
-	cache          cache.Cache
-	query          *structs.Query
-	selectQuery    *structs.SelectQuery
-	selectValues   []interface{}
-	groupByValues  []interface{}
-	whereBuilder   *WhereBuilder
+	dbBuilder     db.QueryBuilderStrategy
+	cache         cache.Cache
+	query         *structs.Query
+	selectQuery   *structs.SelectQuery
+	selectValues  []interface{}
+	groupByValues []interface{}
+	WhereBuilder[Builder]
 	joinBuilder    *JoinBuilder
 	orderByBuilder *OrderByBuilder
 }
 
 func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
-	return &Builder{
+	b := &Builder{
 		dbBuilder: dbBuilder,
 		cache:     cache,
 		query: &structs.Query{
@@ -49,14 +49,20 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
 		},
 		selectValues:   []interface{}{},
 		groupByValues:  []interface{}{},
-		whereBuilder:   NewWhereBuilder(dbBuilder, cache),
 		joinBuilder:    NewJoinBuilder(dbBuilder, cache),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
+
+	whereBuilder := NewWhereBuilder[Builder](dbBuilder, cache)
+	whereBuilder.SetParent(b)
+	b.WhereBuilder = *whereBuilder
+	//log.Default().Println("whereBuilder:", whereBuilder)
+
+	return b
 }
 
-func (b *Builder) SetWhereBuilder(whereBuilder *WhereBuilder) {
-	b.whereBuilder = whereBuilder
+func (b *Builder) SetWhereBuilder(whereBuilder *WhereBuilder[Builder]) {
+	b.WhereBuilder = *whereBuilder
 }
 
 func (b *Builder) SetJoinBuilder(joinBuilder *JoinBuilder) {
@@ -85,6 +91,7 @@ func (b *Builder) SelectRaw(raw string, value ...interface{}) *Builder {
 	return b
 }
 
+// Count adds a COUNT aggregate function to the query.
 func (b *Builder) Count(columns ...string) *Builder {
 	if len(columns) == 0 {
 		columns = append(columns, "*")
@@ -107,88 +114,24 @@ func (b *Builder) aggregate(column string, aggregateFunc string) *Builder {
 	return b
 }
 
+// Max adds a MAX aggregate function to the query.
 func (b *Builder) Max(column string) *Builder {
 	return b.aggregate(column, "MAX")
 }
 
+// Min adds a MIN aggregate function to the query.
 func (b *Builder) Min(column string) *Builder {
 	return b.aggregate(column, "MIN")
 }
 
+// Sum adds a SUM aggregate function to the query.
 func (b *Builder) Sum(column string) *Builder {
 	return b.aggregate(column, "SUM")
 }
 
+// Avg adds an AVG aggregate function to the query.
 func (b *Builder) Avg(column string) *Builder {
 	return b.aggregate(column, "AVG")
-}
-
-func (b *Builder) Where(column string, condition string, value ...interface{}) *Builder {
-	b.whereBuilder.Where(column, condition, value...)
-	return b
-}
-
-func (b *Builder) OrWhere(column string, condition string, value ...interface{}) *Builder {
-	b.whereBuilder.OrWhere(column, condition, value...)
-	return b
-}
-
-func (b *Builder) WhereRaw(raw string, value ...interface{}) *Builder {
-	b.whereBuilder.WhereRaw(raw, value...)
-	return b
-}
-
-func (b *Builder) OrWhereRaw(raw string, value ...interface{}) *Builder {
-	b.whereBuilder.OrWhereRaw(raw, value...)
-	return b
-}
-
-func (b *Builder) WhereQuery(column string, condition string, q *Builder) *Builder {
-	b.whereBuilder.WhereQuery(column, condition, q)
-
-	return b
-}
-
-func (b *Builder) OrWhereQuery(column string, condition string, q *Builder) *Builder {
-	b.whereBuilder.OrWhereQuery(column, condition, q)
-
-	return b
-}
-
-func (b *Builder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Builder {
-	b.whereBuilder.WhereGroup(fn)
-
-	return b
-}
-
-func (b *Builder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *Builder {
-	b.whereBuilder.OrWhereGroup(fn)
-
-	return b
-}
-
-func (b *Builder) WhereNot(fn func(b *WhereBuilder) *WhereBuilder) *Builder {
-	b.whereBuilder.WhereNot(fn)
-
-	return b
-}
-
-func (b *Builder) OrWhereNot(fn func(b *WhereBuilder) *WhereBuilder) *Builder {
-	b.whereBuilder.OrWhereNot(fn)
-
-	return b
-}
-
-func (b *Builder) WhereAll(columns []string, condition string, value interface{}) *Builder {
-	b.whereBuilder.WhereAll(columns, condition, value)
-
-	return b
-}
-
-func (b *Builder) WhereAny(columns []string, condition string, value interface{}) *Builder {
-	b.whereBuilder.WhereAny(columns, condition, value)
-
-	return b
 }
 
 // Join adds a JOIN clause.
@@ -355,10 +298,10 @@ func (b *Builder) Build() (string, []interface{}) {
 	cacheKey := generateCacheKey(b.query)
 
 	if cachedQuery, found := b.cache.Get(cacheKey); found {
-		values := make([]interface{}, 0, len(b.selectValues)+len(b.joinBuilder.joinValues)+len(b.whereBuilder.whereValues)+len(b.groupByValues))
+		values := make([]interface{}, 0, len(b.selectValues)+len(b.joinBuilder.joinValues)+len(b.WhereBuilder.whereValues)+len(b.groupByValues))
 		values = append(values, b.selectValues...)
 		values = append(values, b.joinBuilder.joinValues...)
-		values = append(values, b.whereBuilder.whereValues...)
+		values = append(values, b.WhereBuilder.whereValues...)
 		values = append(values, b.groupByValues...)
 		return cachedQuery, values
 	}
@@ -372,14 +315,14 @@ func (b *Builder) Build() (string, []interface{}) {
 
 func (b *Builder) buildQuery() {
 	// preprocess WHERE
-	wg := b.whereBuilder.query.ConditionGroups
-	if len(*b.whereBuilder.query.Conditions) > 0 {
+	wg := b.WhereBuilder.query.ConditionGroups
+	if len(*b.WhereBuilder.query.Conditions) > 0 {
 		*wg = append(*wg, structs.WhereGroup{
-			Conditions:   *b.whereBuilder.query.Conditions,
+			Conditions:   *b.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,
 		})
-		b.whereBuilder.query.Conditions = &[]structs.Where{}
+		b.WhereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
 	// preprocess ORDER BY

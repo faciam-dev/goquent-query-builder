@@ -8,18 +8,15 @@ import (
 )
 
 type DeleteBuilder struct {
+	WhereQueryBuilder[DeleteBuilder, query.DeleteBuilder]
 	builder             *query.DeleteBuilder
-	whereQueryBuilder   *WhereQueryBuilder
 	joinQueryBuilder    *JoinQueryBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
 func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *DeleteBuilder {
-	return &DeleteBuilder{
+	db := &DeleteBuilder{
 		builder: query.NewDeleteBuilder(strategy, cache),
-		whereQueryBuilder: &WhereQueryBuilder{
-			builder: query.NewWhereBuilder(strategy, cache),
-		},
 		joinQueryBuilder: &JoinQueryBuilder{
 			builder: query.NewJoinBuilder(strategy, cache),
 		},
@@ -27,6 +24,12 @@ func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Dele
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
 	}
+
+	whereBuilder := NewWhereQueryBuilder[DeleteBuilder, query.DeleteBuilder](strategy, cache)
+	whereBuilder.SetParent(db)
+	db.WhereQueryBuilder = *whereBuilder
+
+	return db
 }
 
 func (qb *DeleteBuilder) Delete() *DeleteBuilder {
@@ -46,76 +49,6 @@ func (ub *UpdateQueryBuilder) Using(qb *QueryBuilder) *UpdateQueryBuilder {
 
 func (qb *DeleteBuilder) Table(table string) *DeleteBuilder {
 	qb.builder.Table(table)
-	return qb
-}
-
-// Where
-func (ub *DeleteBuilder) Where(column string, condition string, value interface{}) *DeleteBuilder {
-	ub.whereQueryBuilder.Where(column, condition, value)
-
-	return ub
-}
-
-// OrWhere
-func (ub *DeleteBuilder) OrWhere(column string, condition string, value interface{}) *DeleteBuilder {
-	ub.whereQueryBuilder.OrWhere(column, condition, value)
-
-	return ub
-}
-
-// WhereQuery
-func (ub *DeleteBuilder) WhereQuery(column string, condition string, q *SelectBuilder) *DeleteBuilder {
-	ub.whereQueryBuilder.WhereQuery(column, condition, q)
-
-	return ub
-}
-
-// OrWhereQuery
-func (ub *DeleteBuilder) OrWhereQuery(column string, condition string, q *SelectBuilder) *DeleteBuilder {
-	ub.whereQueryBuilder.OrWhereQuery(column, condition, q)
-
-	return ub
-}
-
-// WhereGroup
-func (ub *DeleteBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *DeleteBuilder {
-	ub.whereQueryBuilder.WhereGroup(fn)
-
-	return ub
-}
-
-// OrWhereGroup
-func (ub *DeleteBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *DeleteBuilder {
-	ub.whereQueryBuilder.OrWhereGroup(fn)
-
-	return ub
-}
-
-// WhereNot
-func (ub *DeleteBuilder) WhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *DeleteBuilder {
-	ub.whereQueryBuilder.WhereNot(fn)
-
-	return ub
-}
-
-// OrWhereNot
-func (ub *DeleteBuilder) OrWhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *DeleteBuilder {
-	ub.whereQueryBuilder.OrWhereNot(fn)
-
-	return ub
-}
-
-// WhereAll
-func (qb *DeleteBuilder) WhereAll(columns []string, condition string, value interface{}) *DeleteBuilder {
-	qb.whereQueryBuilder.WhereAll(columns, condition, value)
-
-	return qb
-}
-
-// WhereAny
-func (qb *DeleteBuilder) WhereAny(columns []string, condition string, value interface{}) *DeleteBuilder {
-	qb.whereQueryBuilder.WhereAny(columns, condition, value)
-
 	return qb
 }
 
@@ -158,7 +91,8 @@ func (qb *DeleteBuilder) ReOrder() *DeleteBuilder {
 }
 
 func (qb *DeleteBuilder) Build() (string, []interface{}) {
-	qb.builder.SetWhereBuilder(qb.whereQueryBuilder.builder)
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
+	//qb.builder.SetWhereBuilder(qb.WhereBuilder.builder)
 	qb.builder.SetJoinBuilder(qb.joinQueryBuilder.builder)
 	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 

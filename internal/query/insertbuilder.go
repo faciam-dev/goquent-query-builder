@@ -40,13 +40,13 @@ func (ib *InsertBuilder) InsertUsing(columns []string, b *Builder) *InsertBuilde
 	ib.query.Columns = columns
 
 	// If there are conditions, add them to the query
-	if b.whereBuilder.query.Conditions != nil && len(*b.whereBuilder.query.Conditions) > 0 {
-		*b.whereBuilder.query.ConditionGroups = append(*b.whereBuilder.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *b.whereBuilder.query.Conditions,
+	if b.WhereBuilder.query.Conditions != nil && len(*b.WhereBuilder.query.Conditions) > 0 {
+		*b.WhereBuilder.query.ConditionGroups = append(*b.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *b.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,
 		})
-		b.whereBuilder.query.Conditions = &[]structs.Where{}
+		b.WhereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
 	b.buildQuery()

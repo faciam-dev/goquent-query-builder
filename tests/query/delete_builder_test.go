@@ -42,8 +42,8 @@ func TestDeleteBuilder(t *testing.T) {
 				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "!=", 1).
-					OrWhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					OrWhereNot(func(b *query.WhereBuilder[query.DeleteBuilder]) *query.WhereBuilder[query.DeleteBuilder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					}).
 					Delete()
 			},

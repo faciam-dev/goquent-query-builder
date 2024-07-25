@@ -8,18 +8,16 @@ import (
 )
 
 type SelectBuilder struct {
+	WhereQueryBuilder[SelectBuilder, query.Builder]
 	builder             *query.Builder
-	whereQueryBuilder   *WhereQueryBuilder
 	joinQueryBuilder    *JoinQueryBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
 func NewSelectBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *SelectBuilder {
-	return &SelectBuilder{
-		builder: query.NewBuilder(strategy, cache),
-		whereQueryBuilder: &WhereQueryBuilder{
-			builder: query.NewWhereBuilder(strategy, cache),
-		},
+	sb := &SelectBuilder{
+		WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
+		builder:           query.NewBuilder(strategy, cache),
 		joinQueryBuilder: &JoinQueryBuilder{
 			builder: query.NewJoinBuilder(strategy, cache),
 		},
@@ -27,6 +25,11 @@ func NewSelectBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Sele
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
 	}
+	whereBuilder := NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache)
+	whereBuilder.SetParent(sb)
+	sb.WhereQueryBuilder = *whereBuilder
+
+	return sb
 }
 
 func (qb *SelectBuilder) Table(table string) *SelectBuilder {
@@ -69,88 +72,7 @@ func (qb *SelectBuilder) Avg(column string) *SelectBuilder {
 	return qb
 }
 
-// Where
-func (qb *SelectBuilder) Where(column string, condition string, value interface{}) *SelectBuilder {
-	qb.whereQueryBuilder.Where(column, condition, value)
-
-	return qb
-}
-
-// OrWhere
-func (qb *SelectBuilder) OrWhere(column string, condition string, value interface{}) *SelectBuilder {
-	qb.whereQueryBuilder.OrWhere(column, condition, value)
-
-	return qb
-}
-
-func (qb *SelectBuilder) WhereRaw(raw string, value ...interface{}) *SelectBuilder {
-	qb.whereQueryBuilder.WhereRaw(raw, value)
-
-	return qb
-}
-
-func (qb *SelectBuilder) OrWhereRaw(raw string, value ...interface{}) *SelectBuilder {
-	qb.whereQueryBuilder.OrWhereRaw(raw, value)
-
-	return qb
-}
-
-// WhereQuery
-func (qb *SelectBuilder) WhereQuery(column string, condition string, q *SelectBuilder) *SelectBuilder {
-	qb.whereQueryBuilder.WhereQuery(column, condition, q)
-
-	return qb
-}
-
-// OrWhereQuery
-func (qb *SelectBuilder) OrWhereQuery(column string, condition string, q *SelectBuilder) *SelectBuilder {
-	qb.whereQueryBuilder.OrWhereQuery(column, condition, q)
-
-	return qb
-}
-
-// WhereGroup
-func (qb *SelectBuilder) WhereGroup(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *SelectBuilder {
-	qb.whereQueryBuilder.WhereGroup(fn)
-
-	return qb
-}
-
-// OrWhereGroup
-func (qb *SelectBuilder) OrWhereGroup(fn func(qb *query.WhereBuilder) *query.WhereBuilder) *SelectBuilder {
-	qb.whereQueryBuilder.OrWhereGroup(fn)
-
-	return qb
-}
-
-// WhereNot
-func (qb *SelectBuilder) WhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *SelectBuilder {
-	qb.whereQueryBuilder.WhereNot(fn)
-
-	return qb
-}
-
-// OrWhereNot
-func (qb *SelectBuilder) OrWhereNot(fn func(wb *query.WhereBuilder) *query.WhereBuilder) *SelectBuilder {
-	qb.whereQueryBuilder.OrWhereNot(fn)
-
-	return qb
-}
-
-// WhereAny
-func (qb *SelectBuilder) WhereAny(columns []string, condition string, value interface{}) *SelectBuilder {
-	qb.whereQueryBuilder.WhereAny(columns, condition, value)
-
-	return qb
-}
-
-// WhereAll
-func (qb *SelectBuilder) WhereAll(columns []string, condition string, value interface{}) *SelectBuilder {
-	qb.whereQueryBuilder.WhereAll(columns, condition, value)
-
-	return qb
-}
-
+// Join
 func (qb *SelectBuilder) Join(table, my, condition, target string) *SelectBuilder {
 	qb.joinQueryBuilder.Join(table, my, condition, target)
 
@@ -267,7 +189,8 @@ func (qb *SelectBuilder) LockForUpdate() *SelectBuilder {
 }
 
 func (qb *SelectBuilder) Build() (string, []interface{}) {
-	qb.builder.SetWhereBuilder(qb.whereQueryBuilder.builder)
+	//	qb.builder.SetWhereBuilder(qb.whereQueryBuilder.builder)
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
 	qb.builder.SetJoinBuilder(qb.joinQueryBuilder.builder)
 	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	return qb.builder.Build()

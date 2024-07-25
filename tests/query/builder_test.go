@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -385,8 +386,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereGroup",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					WhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					})
 			},
 			"SELECT  FROM  WHERE (age > ? AND name = ?)",
@@ -396,8 +397,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereGroup_And",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					WhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					}).Where("city", "=", "New York")
 			},
 			"SELECT  FROM  WHERE (age > ? AND name = ?) AND city = ?",
@@ -408,8 +409,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Where("city", "=", "New York").
-					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					WhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					})
 			},
 			"SELECT  FROM  WHERE city = ? AND (age > ? AND name = ?)",
@@ -419,8 +420,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereGroup_Or",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					WhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					}).OrWhere("city", "=", "New York")
 			},
 			"SELECT  FROM  WHERE (age > ? AND name = ?) OR city = ?",
@@ -431,8 +432,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Where("city", "=", "New York").
-					OrWhereGroup(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					OrWhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					})
 			},
 			"SELECT  FROM  WHERE city = ? OR (age > ? AND name = ?)",
@@ -442,8 +443,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereNot",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					WhereNot(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					})
 			},
 			"SELECT  FROM  WHERE NOT (age > ? AND name = ?)",
@@ -454,8 +455,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Where("city", "=", "New York").
-					OrWhereNot(func(b *query.WhereBuilder) *query.WhereBuilder {
-						return b.Where("age", ">", 18).Where("name", "=", "John")
+					OrWhereNot(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
+						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
 					})
 			},
 			"SELECT  FROM  WHERE city = ? OR NOT (age > ? AND name = ?)",
@@ -481,6 +482,111 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"SELECT  FROM  WHERE age > ? AND (name LIKE ? OR city LIKE ?)",
 			[]interface{}{18, "%test%", "%test%"},
 		},
+		{
+			"WhereIn",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereIn("id", []int64{1, 2, 3})
+			},
+			"SELECT  FROM  WHERE id IN (?, ?, ?)",
+			[]interface{}{1, 2, 3},
+		},
+		{
+			"WhereIn (Subquery)",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereIn("id", sq)
+			},
+			"SELECT  FROM  WHERE id IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"John"},
+		},
+		{
+			"WhereNotIn",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNotIn("id", []int64{1, 2, 3})
+			},
+			"SELECT  FROM  WHERE id NOT IN (?, ?, ?)",
+			[]interface{}{1, 2, 3},
+		},
+		{
+			"WhereNotIn (Subquery)",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNotIn("id", sq)
+			},
+			"SELECT  FROM  WHERE id NOT IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"John"},
+		},
+		{
+			"OrWhereIn",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 19).OrWhereIn("id", []int64{1, 2, 3})
+			},
+			"SELECT  FROM  WHERE age > ? OR id IN (?, ?, ?)",
+			[]interface{}{19, 1, 2, 3},
+		},
+		{
+			"OrWhereIn (Subquery)",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 19).OrWhereIn("id", sq)
+			},
+			"SELECT  FROM  WHERE age > ? OR id IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{19, "John"},
+		},
+		{
+			"OrWhereNotIn",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 19).OrWhereNotIn("id", []int64{1, 2, 3})
+			},
+			"SELECT  FROM  WHERE age > ? OR id NOT IN (?, ?, ?)",
+			[]interface{}{19, 1, 2, 3},
+		},
+		{
+			"OrWhereNotIn (Subquery)",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 19).OrWhereNotIn("id", sq)
+			},
+			"SELECT  FROM  WHERE age > ? OR id NOT IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{19, "John"},
+		},
+		{
+			"WhereInSubquery",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereInSubQuery("id", sq)
+			},
+			"SELECT  FROM  WHERE id IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"John"},
+		},
+
+		{
+			"WhereNotInSubquery",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNotInSubQuery("id", sq)
+			},
+			"SELECT  FROM  WHERE id NOT IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"John"},
+		},
+		{
+			"OrWhereInSubquery",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 19).OrWhereInSubQuery("id", sq)
+			},
+			"SELECT  FROM  WHERE age > ? OR id IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{19, "John"},
+		},
+		{
+			"OrWhereNotInSubquery",
+			func() *query.Builder {
+				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("age", ">", 19).OrWhereNotInSubQuery("id", sq)
+			},
+			"SELECT  FROM  WHERE age > ? OR id NOT IN (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{19, "John"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -497,7 +603,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 				t.Errorf("expected values %v but got %v", tt.expectedValues, values)
 			}
 
-			for i := range values {
+			convertedValues := sliceutils.ToInterfaceSlice(values)
+			for i := range convertedValues {
 				if values[i] != tt.expectedValues[i] {
 					t.Errorf("expected value %v at index %d but got %v", tt.expectedValues[i], i, values[i])
 				}

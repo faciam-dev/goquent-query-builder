@@ -1,32 +1,45 @@
 package query
 
 import (
+	"log"
+	"reflect"
+	"time"
+
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 )
 
-type WhereBuilder struct {
+type WhereBuilder[T any] struct {
 	dbBuilder   db.QueryBuilderStrategy
 	cache       cache.Cache
 	query       *structs.Query
 	whereValues []interface{}
+	parent      *T
 }
 
-func NewWhereBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *WhereBuilder {
-	return &WhereBuilder{
+func NewWhereBuilder[T any](strategy db.QueryBuilderStrategy, cache cache.Cache) *WhereBuilder[T] {
+	return &WhereBuilder[T]{
 		dbBuilder: strategy,
 		cache:     cache,
 		query: &structs.Query{
 			Conditions:      &[]structs.Where{},
 			ConditionGroups: &[]structs.WhereGroup{},
 		},
+		whereValues: []interface{}{},
 	}
 }
 
+func (b *WhereBuilder[T]) SetParent(parent *T) *T {
+	b.parent = parent
+
+	return b.parent
+}
+
 // Where adds a where clause with AND operator
-func (b *WhereBuilder) Where(column string, condition string, value ...interface{}) *WhereBuilder {
+func (b *WhereBuilder[T]) Where(column string, condition string, value ...interface{}) *T {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Column:    column,
 		Condition: condition,
@@ -34,11 +47,11 @@ func (b *WhereBuilder) Where(column string, condition string, value ...interface
 		Operator:  consts.LogicalOperator_AND,
 	})
 	b.whereValues = append(b.whereValues, value...)
-	return b
+	return b.parent
 }
 
 // OrWhere adds a where clause with OR operator
-func (b *WhereBuilder) OrWhere(column string, condition string, value ...interface{}) *WhereBuilder {
+func (b *WhereBuilder[T]) OrWhere(column string, condition string, value ...interface{}) *T {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Column:    column,
 		Condition: condition,
@@ -46,50 +59,50 @@ func (b *WhereBuilder) OrWhere(column string, condition string, value ...interfa
 		Operator:  consts.LogicalOperator_OR,
 	})
 	b.whereValues = append(b.whereValues, value...)
-	return b
+	return b.parent
 }
 
 // WhereRaw adds a raw where clause with AND operator
-func (b *WhereBuilder) WhereRaw(column string, value ...interface{}) *WhereBuilder {
+func (b *WhereBuilder[T]) WhereRaw(column string, value ...interface{}) *T {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Value:    value,
 		Raw:      column,
 		Operator: consts.LogicalOperator_AND,
 	})
 	b.whereValues = append(b.whereValues, value...)
-	return b
+	return b.parent
 }
 
 // OrWhereRaw adds a raw where clause with OR operator
-func (b *WhereBuilder) OrWhereRaw(column string, value ...interface{}) *WhereBuilder {
+func (b *WhereBuilder[T]) OrWhereRaw(column string, value ...interface{}) *T {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		Value:    value,
 		Raw:      column,
 		Operator: consts.LogicalOperator_OR,
 	})
 	b.whereValues = append(b.whereValues, value...)
-	return b
+	return b.parent
 }
 
 // WhereQuery adds a where clause with AND operator
-func (b *WhereBuilder) WhereQuery(column string, condition string, q *Builder) *WhereBuilder {
+func (b *WhereBuilder[T]) WhereQuery(column string, condition string, q *Builder) *T {
 	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_AND)
 }
 
 // OrWhereQuery adds a where clause with OR operator
-func (b *WhereBuilder) OrWhereQuery(column string, condition string, q *Builder) *WhereBuilder {
+func (b *WhereBuilder[T]) OrWhereQuery(column string, condition string, q *Builder) *T {
 	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_OR)
 }
 
 // whereOrOrWhereQuery adds a where clause with AND or OR operator
-func (b *WhereBuilder) whereOrOrWhereQuery(column string, condition string, q *Builder, operator int) *WhereBuilder {
-	*q.whereBuilder.query.ConditionGroups = append(*q.whereBuilder.query.ConditionGroups, structs.WhereGroup{
-		Conditions:   *q.whereBuilder.query.Conditions,
+func (b *WhereBuilder[T]) whereOrOrWhereQuery(column string, condition string, q *Builder, operator int) *T {
+	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
 
 	sq := &structs.Query{
-		ConditionGroups: q.whereBuilder.query.ConditionGroups,
+		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
 		Joins:           q.joinBuilder.Joins,
@@ -107,31 +120,31 @@ func (b *WhereBuilder) whereOrOrWhereQuery(column string, condition string, q *B
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
 	b.whereValues = append(b.whereValues, value...)
-	return b
+	return b.parent
 }
 
 // WhereGroup adds a where group with AND operator
-func (b *WhereBuilder) WhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
+func (b *WhereBuilder[T]) WhereGroup(fn func(b *WhereBuilder[T]) *WhereBuilder[T]) *T {
 	return b.addWhereGroup(fn, consts.LogicalOperator_AND, false)
 }
 
 // OrWhereGroup adds a where group with OR operator
-func (b *WhereBuilder) OrWhereGroup(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
+func (b *WhereBuilder[T]) OrWhereGroup(fn func(b *WhereBuilder[T]) *WhereBuilder[T]) *T {
 	return b.addWhereGroup(fn, consts.LogicalOperator_OR, false)
 }
 
 // WhereNot adds a not where group with AND operator
-func (b *WhereBuilder) WhereNot(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
+func (b *WhereBuilder[T]) WhereNot(fn func(b *WhereBuilder[T]) *WhereBuilder[T]) *T {
 	return b.addWhereGroup(fn, consts.LogicalOperator_AND, true)
 }
 
 // OrWhereNot adds a not where group with OR operator
-func (b *WhereBuilder) OrWhereNot(fn func(b *WhereBuilder) *WhereBuilder) *WhereBuilder {
+func (b *WhereBuilder[T]) OrWhereNot(fn func(b *WhereBuilder[T]) *WhereBuilder[T]) *T {
 	return b.addWhereGroup(fn, consts.LogicalOperator_OR, true)
 }
 
 // addWhereGroup adds a where group with the specified operator
-func (b *WhereBuilder) addWhereGroup(fn func(b *WhereBuilder) *WhereBuilder, operator int, isNot bool) *WhereBuilder {
+func (b *WhereBuilder[T]) addWhereGroup(fn func(b *WhereBuilder[T]) *WhereBuilder[T], operator int, isNot bool) *T {
 	if len(*b.query.Conditions) > 0 {
 		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *b.query.Conditions,
@@ -152,20 +165,20 @@ func (b *WhereBuilder) addWhereGroup(fn func(b *WhereBuilder) *WhereBuilder, ope
 	})
 	*cQ.query.Conditions = []structs.Where{}
 
-	return b
+	return b.parent
 }
 
 // WhereAny adds where clauses with AND operator
-func (b *WhereBuilder) WhereAll(columns []string, condition string, value interface{}) *WhereBuilder {
+func (b *WhereBuilder[T]) WhereAll(columns []string, condition string, value interface{}) *T {
 	return b.addWhereConditions(columns, condition, value, consts.LogicalOperator_AND)
 }
 
 // OrWhereAny adds where clauses with OR operator
-func (b *WhereBuilder) WhereAny(columns []string, condition string, value interface{}) *WhereBuilder {
+func (b *WhereBuilder[T]) WhereAny(columns []string, condition string, value interface{}) *T {
 	return b.addWhereConditions(columns, condition, value, consts.LogicalOperator_OR)
 }
 
-func (b *WhereBuilder) addWhereConditions(columns []string, condition string, value interface{}, operator int) *WhereBuilder {
+func (b *WhereBuilder[T]) addWhereConditions(columns []string, condition string, value interface{}, operator int) *T {
 	// already have conditions, add them to the query
 	if len(*b.query.Conditions) > 0 {
 		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
@@ -194,12 +207,115 @@ func (b *WhereBuilder) addWhereConditions(columns []string, condition string, va
 		Operator:   consts.LogicalOperator_AND,
 	})
 
-	return b
+	return b.parent
+}
+
+// WhereIn adds a where in clause with AND operator
+func (b *WhereBuilder[T]) WhereIn(column string, values interface{}) *T {
+	return b.addWhereIn(column, consts.LogicalOperator_AND, consts.Condition_IN, values)
+}
+
+// WhereNotIn adds a not where in clause with AND operator
+func (b *WhereBuilder[T]) WhereNotIn(column string, values interface{}) *T {
+	return b.addWhereIn(column, consts.LogicalOperator_AND, consts.Condition_NOT_IN, values)
+}
+
+// OrWhereIn adds a where in clause with OR operator
+func (b *WhereBuilder[T]) OrWhereIn(column string, values interface{}) *T {
+	return b.addWhereIn(column, consts.LogicalOperator_OR, consts.Condition_IN, values)
+}
+
+// OrWhereNotIn adds a not where in clause with OR operator
+func (b *WhereBuilder[T]) OrWhereNotIn(column string, values interface{}) *T {
+	return b.addWhereIn(column, consts.LogicalOperator_OR, consts.Condition_NOT_IN, values)
+}
+
+// addWhereIn adds a where in clause with the specified operator
+func (b *WhereBuilder[T]) addWhereIn(column string, operator int, condition string, values interface{}) *T {
+
+	switch casted := values.(type) {
+	case []interface{}:
+		*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+			Value:     casted,
+			Operator:  operator,
+			Column:    column,
+			Condition: condition,
+		})
+	case []bool, []int, []int32, []int64, []uint, []uint32, []uint64,
+		[]float32, []float64, []string, []time.Time:
+		nValues := sliceutils.ToInterfaceSlice(casted)
+		*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+			Value:     nValues,
+			Operator:  operator,
+			Column:    column,
+			Condition: condition,
+		})
+
+		b.whereValues = append(b.whereValues, nValues...)
+
+	case *Builder:
+		return b.addWhereInSubQuery(column, operator, condition, casted)
+	default:
+		log.Default().Printf("type: %T\n", reflect.TypeOf(values))
+		log.Default().Println("values: ", values)
+		//panic("Invalid type for values")
+	}
+
+	return b.parent
+}
+
+// WhereIn adds a where in clause with AND operator
+func (b *WhereBuilder[T]) WhereInSubQuery(column string, q *Builder) *T {
+	return b.addWhereInSubQuery(column, consts.LogicalOperator_AND, consts.Condition_IN, q)
+}
+
+// WhereNotIn adds a not where in clause with AND operator
+func (b *WhereBuilder[T]) WhereNotInSubQuery(column string, q *Builder) *T {
+	return b.addWhereInSubQuery(column, consts.LogicalOperator_AND, consts.Condition_NOT_IN, q)
+}
+
+// OrWhereIn adds a where in clause with OR operator
+func (b *WhereBuilder[T]) OrWhereInSubQuery(column string, q *Builder) *T {
+	return b.addWhereInSubQuery(column, consts.LogicalOperator_OR, consts.Condition_IN, q)
+}
+
+// OrWhereNotIn adds a not where in clause with OR operator
+func (b *WhereBuilder[T]) OrWhereNotInSubQuery(column string, q *Builder) *T {
+	return b.addWhereInSubQuery(column, consts.LogicalOperator_OR, consts.Condition_NOT_IN, q)
+}
+
+// addWhereIn adds a where in clause with the specified operator
+func (b *WhereBuilder[T]) addWhereInSubQuery(column string, operator int, condition string, q *Builder) *T {
+	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.WhereBuilder.query.Conditions,
+		IsDummyGroup: true,
+	})
+
+	sq := &structs.Query{
+		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
+		Table:           structs.Table{Name: q.selectQuery.Table},
+		Columns:         q.selectQuery.Columns,
+		Joins:           q.joinBuilder.Joins,
+		Order:           q.orderByBuilder.Order,
+	}
+
+	args := &structs.Where{
+		Column:    column,
+		Condition: condition,
+		Query:     sq,
+		Operator:  operator,
+	}
+
+	_, value := b.BuildSq(sq)
+
+	*b.query.Conditions = append(*b.query.Conditions, *args)
+	b.whereValues = append(b.whereValues, value...)
+	return b.parent
 }
 
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
-func (b *WhereBuilder) BuildSq(sq *structs.Query) (string, []interface{}) {
+func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {
 	cacheKey := generateCacheKey(sq)
 
 	if cachedQuery, found := b.cache.Get(cacheKey); found {
@@ -215,6 +331,6 @@ func (b *WhereBuilder) BuildSq(sq *structs.Query) (string, []interface{}) {
 	return query, values
 }
 
-func (b *WhereBuilder) GetQuery() *structs.Query {
+func (b *WhereBuilder[T]) GetQuery() *structs.Query {
 	return b.query
 }
