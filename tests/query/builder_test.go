@@ -731,6 +731,82 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"SELECT  FROM  WHERE created_at NOT BETWEEN updated_at AND deleted_at",
 			nil,
 		},
+		{
+			"WhereExists",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereExists(func(b *query.Builder) *query.Builder {
+					return b.Select("id").Table("users").Where("name", "=", "John")
+				})
+			},
+			"SELECT  FROM  WHERE EXISTS (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"John"},
+		},
+		{
+			"OrWhereExists",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereExists(func(b *query.Builder) *query.Builder {
+					return b.Select("id").Table("users").Where("name", "=", "John")
+				})
+			},
+			"SELECT  FROM  WHERE city = ? OR EXISTS (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"New York", "John"},
+		},
+		{
+			"WhereNotExists",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNotExists(func(b *query.Builder) *query.Builder {
+					return b.Select("id").Table("users").Where("name", "=", "John")
+				})
+			},
+			"SELECT  FROM  WHERE NOT EXISTS (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"John"},
+		},
+		{
+			"OrWhereNotExists",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereNotExists(func(b *query.Builder) *query.Builder {
+					return b.Select("id").Table("users").Where("name", "=", "John")
+				})
+			},
+			"SELECT  FROM  WHERE city = ? OR NOT EXISTS (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"New York", "John"},
+		},
+		{
+			"WhereExistsQuery",
+			func() *query.Builder {
+				q := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereExistsQuery(q)
+			},
+			"SELECT  FROM  WHERE EXISTS (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"John"},
+		},
+		{
+			"OrWhereExistsQuery",
+			func() *query.Builder {
+				q := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereExistsQuery(q)
+			},
+			"SELECT  FROM  WHERE city = ? OR EXISTS (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"New York", "John"},
+		},
+		{
+			"WhereNotExistsQuery",
+			func() *query.Builder {
+				q := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereNotExistsQuery(q)
+			},
+			"SELECT  FROM  WHERE NOT EXISTS (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"John"},
+		},
+		{
+			"OrWhereNotExistsQuery",
+			func() *query.Builder {
+				q := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereNotExistsQuery(q)
+			},
+			"SELECT  FROM  WHERE city = ? OR NOT EXISTS (SELECT id FROM users WHERE name = ?)",
+			[]interface{}{"New York", "John"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

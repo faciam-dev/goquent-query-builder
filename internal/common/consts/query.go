@@ -15,6 +15,10 @@ const (
 	Condition_IS_NOT_NULL           = "IS NOT NULL"
 	Condition_BETWEEN               = "BETWEEN"
 	Condition_NOT_BETWEEN           = "NOT BETWEEN"
+	Condition_ANY                   = "ANY"
+	Condition_ALL                   = "ALL"
+	Condition_EXISTS                = "EXISTS"
+	Condition_NOT_EXISTS            = "NOT EXISTS"
 )
 
 const (

@@ -18,6 +18,7 @@ type Where struct {
 	Operator    int
 	Query       *Query
 	Between     *WhereBetween
+	Exists      *Exists
 	Raw         string
 }
 
@@ -26,6 +27,11 @@ type WhereBetween struct {
 	IsNot    bool
 	From     interface{}
 	To       interface{}
+}
+
+type Exists struct {
+	IsNot bool
+	Query *Query
 }
 
 type WhereGroup struct {

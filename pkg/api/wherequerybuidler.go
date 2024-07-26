@@ -282,3 +282,19 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereNotBetweenColumns(allColumns []string,
 	wb.builder.OrWhereNotBetweenColumns(allColumns, column, min, max)
 	return wb.parent
 }
+
+func (wb *WhereQueryBuilder[T, C]) WhereExists(fn func(q *query.Builder) *query.Builder) *T {
+	wb.builder.WhereExists(fn)
+	return wb.parent
+}
+
+// WhereDateQuery is a function that allows you to add a where date condition
+func (wb *WhereQueryBuilder[T, C]) WhereExistsQuery(q *SelectBuilder) *T {
+	wb.builder.WhereExistsQuery(q.builder)
+	return wb.parent
+}
+
+// GetBuilder is a function that allows you to get the where builder
+func (wb *WhereQueryBuilder[T, C]) GetBuilder() *query.WhereBuilder[C] {
+	return wb.builder
+}
