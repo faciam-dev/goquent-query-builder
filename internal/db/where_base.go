@@ -110,6 +110,33 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup)
 				}
 
 				values = append(values, sqValues...)
+			} else if c.Exists != nil {
+				condQuery := c.Condition
+
+				// create subquery
+				b := &BaseQueryBuilder{}
+				sqQuery, sqValues := b.Build("", c.Exists.Query)
+
+				if c.Operator == consts.LogicalOperator_AND {
+					if op != "" {
+						op = " AND "
+					}
+					sb.WriteString(op + condQuery + " (" + sqQuery + ")")
+					if op == "" {
+						op = " AND "
+					}
+				} else if c.Operator == consts.LogicalOperator_OR {
+					if op != "" {
+						op = " OR "
+					}
+					sb.WriteString(op + condQuery + " (" + sqQuery + ")")
+					if op == "" {
+						op = " OR "
+					}
+				}
+
+				values = append(values, sqValues...)
+
 			} else if c.Between != nil {
 				wsb := strings.Builder{}
 				wsb.Grow(consts.StringBuffer_Where_Grow)

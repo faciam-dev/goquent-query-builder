@@ -469,6 +469,105 @@ func (b *WhereBuilder[T]) addWhereBetweenColumns(allColumns []string, column str
 	return b.parent
 }
 
+// WhereDate adds a where date clause with AND operator
+func (b *WhereBuilder[T]) WhereExists(fn func(b *Builder) *Builder) *T {
+	return b.addWhereExists(fn, consts.Condition_EXISTS, consts.LogicalOperator_AND, false)
+}
+
+// WhereNotExists adds a not where date clause with AND operator
+func (b *WhereBuilder[T]) WhereNotExists(fn func(b *Builder) *Builder) *T {
+	return b.addWhereExists(fn, consts.Condition_NOT_EXISTS, consts.LogicalOperator_AND, true)
+}
+
+// OrWhereDate adds a where date clause with OR operator
+func (b *WhereBuilder[T]) OrWhereExists(fn func(b *Builder) *Builder) *T {
+	return b.addWhereExists(fn, consts.Condition_EXISTS, consts.LogicalOperator_OR, false)
+}
+
+// OrWhereNotExists adds a not where date clause with OR operator
+func (b *WhereBuilder[T]) OrWhereNotExists(fn func(b *Builder) *Builder) *T {
+	return b.addWhereExists(fn, consts.Condition_NOT_EXISTS, consts.LogicalOperator_OR, true)
+}
+
+func (b *WhereBuilder[T]) addWhereExists(fn func(aq *Builder) *Builder, condition string, operator int, isNot bool) *T {
+	q := fn(NewBuilder(b.dbBuilder, b.cache))
+	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.WhereBuilder.query.Conditions,
+		IsDummyGroup: true,
+	})
+
+	sq := &structs.Query{
+		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
+		Table:           structs.Table{Name: q.selectQuery.Table},
+		Columns:         q.selectQuery.Columns,
+		Joins:           q.joinBuilder.Joins,
+		Order:           q.orderByBuilder.Order,
+	}
+
+	args := &structs.Where{
+		Column:    "",
+		Condition: condition,
+		Query:     nil,
+		Operator:  operator,
+		Exists:    &structs.Exists{IsNot: isNot, Query: sq},
+	}
+
+	_, value := b.BuildSq(sq)
+
+	*b.query.Conditions = append(*b.query.Conditions, *args)
+	b.whereValues = append(b.whereValues, value...)
+	return b.parent
+}
+
+// WhereExistsQuery adds a where exists query with AND operator
+func (b *WhereBuilder[T]) WhereExistsQuery(q *Builder) *T {
+	return b.addWhereExistsQuery(q, consts.Condition_EXISTS, consts.LogicalOperator_AND, false)
+}
+
+// WhereNotExistsQuery adds a not where exists query with AND operator
+func (b *WhereBuilder[T]) WhereNotExistsQuery(q *Builder) *T {
+	return b.addWhereExistsQuery(q, consts.Condition_NOT_EXISTS, consts.LogicalOperator_AND, true)
+}
+
+// OrWhereExistsQuery adds a where exists query with OR operator
+func (b *WhereBuilder[T]) OrWhereExistsQuery(q *Builder) *T {
+	return b.addWhereExistsQuery(q, consts.Condition_EXISTS, consts.LogicalOperator_OR, false)
+}
+
+// OrWhereNotExistsQuery adds a not where exists query with OR operator
+func (b *WhereBuilder[T]) OrWhereNotExistsQuery(q *Builder) *T {
+	return b.addWhereExistsQuery(q, consts.Condition_NOT_EXISTS, consts.LogicalOperator_OR, true)
+}
+
+func (b *WhereBuilder[T]) addWhereExistsQuery(q *Builder, condition string, operator int, isNot bool) *T {
+	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.WhereBuilder.query.Conditions,
+		IsDummyGroup: true,
+	})
+
+	sq := &structs.Query{
+		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
+		Table:           structs.Table{Name: q.selectQuery.Table},
+		Columns:         q.selectQuery.Columns,
+		Joins:           q.joinBuilder.Joins,
+		Order:           q.orderByBuilder.Order,
+	}
+
+	args := &structs.Where{
+		Column:    "",
+		Condition: condition,
+		Query:     nil,
+		Operator:  operator,
+		Exists:    &structs.Exists{IsNot: isNot, Query: sq},
+	}
+
+	_, value := b.BuildSq(sq)
+
+	*b.query.Conditions = append(*b.query.Conditions, *args)
+	b.whereValues = append(b.whereValues, value...)
+	return b.parent
+}
+
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {

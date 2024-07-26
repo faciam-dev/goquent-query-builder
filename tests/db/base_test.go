@@ -485,6 +485,82 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"WhereExists",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Exists: &structs.Exists{
+									Query: &structs.Query{
+										Columns: &[]structs.Column{
+											{Name: "id"},
+										},
+										Table:           structs.Table{Name: "users"},
+										ConditionGroups: &[]structs.WhereGroup{},
+										Conditions:      &[]structs.Where{},
+										Joins: &structs.Joins{
+											Joins: &[]structs.Join{},
+										},
+										Order: &[]structs.Order{},
+										Group: &structs.GroupBy{},
+									},
+									IsNot: false,
+								},
+								Condition: consts.Condition_EXISTS,
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE EXISTS (SELECT id FROM users)",
+				Values:   nil,
+			},
+		},
+		{
+			"WhereNotExists",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Exists: &structs.Exists{
+									Query: &structs.Query{
+										Columns: &[]structs.Column{
+											{Name: "id"},
+										},
+										Table:           structs.Table{Name: "users"},
+										ConditionGroups: &[]structs.WhereGroup{},
+										Conditions:      &[]structs.Where{},
+										Joins: &structs.Joins{
+											Joins: &[]structs.Join{},
+										},
+										Order: &[]structs.Order{},
+										Group: &structs.GroupBy{},
+									},
+									IsNot: true,
+								},
+								Condition: consts.Condition_NOT_EXISTS,
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE NOT EXISTS (SELECT id FROM users)",
+				Values:   nil,
+			},
+		},
+		{
 			"Join",
 			"Join",
 			structs.Query{
