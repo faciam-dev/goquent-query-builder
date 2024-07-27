@@ -294,6 +294,54 @@ func (wb *WhereQueryBuilder[T, C]) WhereExistsQuery(q *SelectBuilder) *T {
 	return wb.parent
 }
 
+// OrWhereExists is a function that allows you to add a or where exists condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereExists(fn func(q *query.Builder) *query.Builder) *T {
+	wb.builder.OrWhereExists(fn)
+	return wb.parent
+}
+
+// OrWhereExistsQuery is a function that allows you to add a or where exists condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereExistsQuery(q *SelectBuilder) *T {
+	wb.builder.OrWhereExistsQuery(q.builder)
+	return wb.parent
+}
+
+// WhereNotExists is a function that allows you to add a where not exists condition
+func (wb *WhereQueryBuilder[T, C]) WhereNotExists(fn func(q *query.Builder) *query.Builder) *T {
+	wb.builder.WhereNotExists(fn)
+	return wb.parent
+}
+
+// WhereNotExistsQuery is a function that allows you to add a where not exists condition
+func (wb *WhereQueryBuilder[T, C]) WhereNotExistsQuery(q *SelectBuilder) *T {
+	wb.builder.WhereNotExistsQuery(q.builder)
+	return wb.parent
+}
+
+// OrWhereNotExists is a function that allows you to add a or where not exists condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereNotExists(fn func(q *query.Builder) *query.Builder) *T {
+	wb.builder.OrWhereNotExists(fn)
+	return wb.parent
+}
+
+// OrWhereNotExistsQuery is a function that allows you to add a or where not exists condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereNotExistsQuery(q *SelectBuilder) *T {
+	wb.builder.OrWhereNotExistsQuery(q.builder)
+	return wb.parent
+}
+
+// WhereFullText is a function that allows you to add a where full text condition
+func (wb *WhereQueryBuilder[T, C]) WhereFullText(columns []string, value string, options map[string]interface{}) *T {
+	wb.builder.WhereFullText(columns, value, options)
+	return wb.parent
+}
+
+// OrWhereFullText is a function that allows you to add a or where full text condition
+func (wb *WhereQueryBuilder[T, C]) OrWhereFullText(columns []string, value string, options map[string]interface{}) *T {
+	wb.builder.OrWhereFullText(columns, value, options)
+	return wb.parent
+}
+
 // GetBuilder is a function that allows you to get the where builder
 func (wb *WhereQueryBuilder[T, C]) GetBuilder() *query.WhereBuilder[C] {
 	return wb.builder

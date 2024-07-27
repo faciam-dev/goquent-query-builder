@@ -5,7 +5,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 )
 
 func TestBaseDeleteQueryBuilder(t *testing.T) {
@@ -115,7 +115,7 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 		},
 	}
 
-	builder := db.BaseQueryBuilder{}
+	builder := base.BaseQueryBuilder{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

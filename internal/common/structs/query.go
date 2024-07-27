@@ -19,6 +19,7 @@ type Where struct {
 	Query       *Query
 	Between     *WhereBetween
 	Exists      *Exists
+	FullText    *FullText
 	Raw         string
 }
 
@@ -32,6 +33,18 @@ type WhereBetween struct {
 type Exists struct {
 	IsNot bool
 	Query *Query
+}
+
+type FullText struct {
+	IsNot   bool
+	Columns []string
+	Search  string
+	Options map[string]interface{}
+}
+
+type FullTextOptions struct {
+	Mode string
+	With string
 }
 
 type WhereGroup struct {

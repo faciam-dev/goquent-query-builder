@@ -807,6 +807,39 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"SELECT  FROM  WHERE city = ? OR NOT EXISTS (SELECT id FROM users WHERE name = ?)",
 			[]interface{}{"New York", "John"},
 		},
+		{
+			"WhereFullText_MySQL",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"mode": "boolean"})
+			},
+			"SELECT  FROM  WHERE MATCH (name, note) AGAINST (? IN BOOLEAN MODE)",
+			[]interface{}{"John Doe"},
+		},
+		{
+			"WhereFullText_PostgreSQL",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewPostgreSQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"language": "english"})
+			},
+			"SELECT  FROM  WHERE (to_tsvector(?, name) || to_tsvector(?, note)) @@ plainto_tsquery(?, ?)",
+			[]interface{}{"english", "english", "english", "John Doe"},
+		},
+		{
+			"OrWhereFullText_MySQL",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"mode": "boolean"})
+			},
+			"SELECT  FROM  WHERE city = ? OR MATCH (name, note) AGAINST (? IN BOOLEAN MODE)",
+			[]interface{}{"New York", "John Doe"},
+		},
+		{
+
+			"OrWhereFullText_PostgreSQL",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewPostgreSQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"language": "english"})
+			},
+			"SELECT  FROM  WHERE city = ? OR (to_tsvector(?, name) || to_tsvector(?, note)) @@ plainto_tsquery(?, ?)",
+			[]interface{}{"New York", "english", "english", "english", "John Doe"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

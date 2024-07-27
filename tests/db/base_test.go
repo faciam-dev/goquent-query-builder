@@ -6,7 +6,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 )
 
 type QueryBuilderExpected struct {
@@ -813,7 +813,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 		},
 	}
 
-	builder := db.BaseQueryBuilder{}
+	builder := base.BaseQueryBuilder{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -851,11 +851,17 @@ func TestBaseQueryBuilder(t *testing.T) {
 				got = sb.String()
 				gotValues = values
 			case "Limit":
-				got = builder.Limit(tt.input.Limit)
+				builder.Limit(sb, tt.input.Limit)
+				got = sb.String()
 			case "Offset":
-				got = builder.Offset(tt.input.Offset)
+				builder.Offset(sb, tt.input.Offset)
+				got = sb.String()
 			case "Limit_And_Offset":
-				gotLimit, gotOffset := builder.Limit(tt.input.Limit), builder.Offset(tt.input.Offset)
+				builder.Limit(sb, tt.input.Limit)
+				gotLimit := sb.String()
+				sb.Reset()
+				builder.Offset(sb, tt.input.Offset)
+				gotOffset := sb.String()
 				got = gotLimit + gotOffset
 			case "Lock":
 				got = builder.Lock(tt.input.Lock)

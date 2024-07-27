@@ -56,7 +56,6 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
 	whereBuilder := NewWhereBuilder[Builder](dbBuilder, cache)
 	whereBuilder.SetParent(b)
 	b.WhereBuilder = *whereBuilder
-	//log.Default().Println("whereBuilder:", whereBuilder)
 
 	return b
 }
