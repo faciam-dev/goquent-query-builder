@@ -26,7 +26,6 @@ type MySQLQueryBuilder struct {
 	insertBuilderStrategy  base.InsertBuilderStrategy
 	updateBuilderStrategy  base.UpdateBuilderStrategy
 	deleteBuilderStrategy  base.DeleteBuilderStrategy
-	// LimitBaseBuilder       base.LimitBaseBuilder
 }
 
 func NewMySQLQueryBuilder() *MySQLQueryBuilder {
@@ -42,7 +41,6 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	queryBuilder.insertBuilderStrategy = base.NewInsertBaseBuilder(&structs.InsertQuery{})
 	queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(&structs.UpdateQuery{})
 	queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(&structs.DeleteQuery{})
-	//queryBuilder.LimitBaseBuilder = base.NewLimitBaseBuilder()
 	return queryBuilder
 }
 
@@ -96,4 +94,8 @@ func (m MySQLQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []i
 	sb.Reset()
 
 	return query, values
+}
+
+func (m MySQLQueryBuilder) Where(sb *strings.Builder, c *[]structs.WhereGroup) []interface{} {
+	return m.whereBuilderStrategy.Where(sb, c)
 }

@@ -1,7 +1,6 @@
 package base
 
 import (
-	"log"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -193,7 +192,7 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *strings.Builder, c structs.W
 func (wb *WhereBaseBuilder) ProcessFullText(sb *strings.Builder, c structs.Where) []interface{} {
 	values := []interface{}{}
 
-	log.Println("Not implemented yet")
+	// Implement FullText
 
 	return values
 }

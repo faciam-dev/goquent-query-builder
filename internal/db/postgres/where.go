@@ -1,4 +1,4 @@
-package mysql
+package postgres
 
 import (
 	"strings"
@@ -7,18 +7,18 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 )
 
-type WhereMySQLBuilder struct {
+type WherePostgreSQLBuilder struct {
 	base.WhereBaseBuilder
 	whereBaseBuilder *base.WhereBaseBuilder
 }
 
-func NewWhereMySQLBuilder(wg *[]structs.WhereGroup) *WhereMySQLBuilder {
-	return &WhereMySQLBuilder{
+func NewWherePostgreSQLBuilder(wg *[]structs.WhereGroup) *WherePostgreSQLBuilder {
+	return &WherePostgreSQLBuilder{
 		whereBaseBuilder: base.NewWhereBaseBuilder(wg),
 	}
 }
 
-func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
+func (wb *WherePostgreSQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
 	if wg == nil || len(*wg) == 0 {
 		return []interface{}{}
 	}
@@ -66,32 +66,39 @@ func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup
 	return values
 }
 
-func (wb *WhereMySQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Where) []interface{} {
+func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Where) []interface{} {
+	values := make([]interface{}, 0)
+
 	// parse options
-	mode := "IN NATURAL LANGUAGE MODE"
-	expand := ""
+	language := "english"
+	if c.FullText.Options != nil {
+		if lang, ok := c.FullText.Options["language"]; ok {
+			language = lang.(string)
+		}
+	}
+
+	mode := "plainto_tsquery"
 	if c.FullText.Options != nil {
 		if mmode, ok := c.FullText.Options["mode"]; ok {
-			if mmode.(string) == "boolean" {
-				mode = "IN BOOLEAN MODE"
+			if mmode.(string) == "phrase" {
+				mode = "phraseto_tsquery"
 			}
-		}
-		if with, ok := c.FullText.Options["expanded"]; ok {
-			if with.(bool) {
-				expand = " WITH QUERY EXPANSION"
+			if mmode.(string) == "websearch" {
+				mode = "websearch_to_tsquery"
 			}
 		}
 	}
 
-	sb.WriteString("MATCH (")
+	sb.WriteString("(")
 	for i, column := range c.FullText.Columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb.WriteString(" || ")
 		}
-		sb.WriteString(column)
+		sb.WriteString("to_tsvector(?, " + column + ")")
+		values = append(values, language)
 	}
-	sb.WriteString(") AGAINST (? " + mode + expand + ")")
-	values := []interface{}{c.Value}
+	sb.WriteString(") @@ " + mode + "(?, ?)")
+	values = append(values, language, c.FullText.Search)
 
 	return values
 }
