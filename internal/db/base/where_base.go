@@ -1,6 +1,7 @@
-package db
+package base
 
 import (
+	"log"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -23,7 +24,7 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup)
 	}
 
 	// WHERE
-	if hasCondition(*wg) {
+	if wb.HasCondition(*wg) {
 		sb.WriteString(" WHERE ")
 	}
 
@@ -35,35 +36,37 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup)
 		}
 
 		if i > 0 {
-			sb.WriteString(getConditionGroupSeparator(cg, i))
+			sb.WriteString(wb.GetConditionGroupSeparator(cg, i))
 		}
 
-		sb.WriteString(getNotSeparator(cg))
-		sb.WriteString(getParenthesesOpen(cg))
+		sb.WriteString(wb.GetNotSeparator(cg))
+		sb.WriteString(wb.GetParenthesesOpen(cg))
 
 		for j, c := range cg.Conditions {
 			if j > 0 || (i > 0 && j == 0 && cg.IsDummyGroup) {
-				sb.WriteString(getConditionOperator(c))
+				sb.WriteString(wb.GetConditionOperator(c))
 			}
 
 			switch {
 			case c.Query != nil:
-				values = append(values, processSubQuery(sb, c)...)
+				values = append(values, wb.ProcessSubQuery(sb, c)...)
 			case c.Exists != nil:
-				values = append(values, processExistsQuery(sb, c)...)
+				values = append(values, wb.ProcessExistsQuery(sb, c)...)
 			case c.Between != nil:
-				values = append(values, processBetweenCondition(sb, c)...)
+				values = append(values, wb.ProcessBetweenCondition(sb, c)...)
+			case c.FullText != nil:
+				values = append(values, wb.ProcessFullText(sb, c)...)
 			default:
-				values = append(values, processRawCondition(sb, c)...)
+				values = append(values, wb.ProcessRawCondition(sb, c)...)
 			}
 		}
-		sb.WriteString(getParenthesesClose(cg))
+		sb.WriteString(wb.GetParenthesesClose(cg))
 	}
 
 	return values
 }
 
-func hasCondition(wg []structs.WhereGroup) bool {
+func (wb *WhereBaseBuilder) HasCondition(wg []structs.WhereGroup) bool {
 	for _, cg := range wg {
 		if len(cg.Conditions) > 0 {
 			return true
@@ -72,7 +75,7 @@ func hasCondition(wg []structs.WhereGroup) bool {
 	return false
 }
 
-func getConditionGroupSeparator(cg structs.WhereGroup, index int) string {
+func (wb *WhereBaseBuilder) GetConditionGroupSeparator(cg structs.WhereGroup, index int) string {
 	if cg.IsDummyGroup {
 		return ""
 	}
@@ -88,28 +91,28 @@ func getConditionGroupSeparator(cg structs.WhereGroup, index int) string {
 	return ""
 }
 
-func getNotSeparator(cg structs.WhereGroup) string {
+func (wb *WhereBaseBuilder) GetNotSeparator(cg structs.WhereGroup) string {
 	if cg.IsNot {
 		return "NOT "
 	}
 	return ""
 }
 
-func getParenthesesOpen(cg structs.WhereGroup) string {
+func (wb *WhereBaseBuilder) GetParenthesesOpen(cg structs.WhereGroup) string {
 	if cg.IsDummyGroup {
 		return ""
 	}
 	return "("
 }
 
-func getParenthesesClose(cg structs.WhereGroup) string {
+func (wb *WhereBaseBuilder) GetParenthesesClose(cg structs.WhereGroup) string {
 	if cg.IsDummyGroup {
 		return ""
 	}
 	return ")"
 }
 
-func getConditionOperator(c structs.Where) string {
+func (wb *WhereBaseBuilder) GetConditionOperator(c structs.Where) string {
 	switch c.Operator {
 	case consts.LogicalOperator_AND:
 		return " AND "
@@ -119,7 +122,7 @@ func getConditionOperator(c structs.Where) string {
 	return ""
 }
 
-func processSubQuery(sb *strings.Builder, c structs.Where) []interface{} {
+func (wb *WhereBaseBuilder) ProcessSubQuery(sb *strings.Builder, c structs.Where) []interface{} {
 	condQuery := c.Column + " " + c.Condition
 	b := &BaseQueryBuilder{}
 	sqQuery, sqValues := b.Build("", c.Query)
@@ -128,7 +131,7 @@ func processSubQuery(sb *strings.Builder, c structs.Where) []interface{} {
 	return sqValues
 }
 
-func processExistsQuery(sb *strings.Builder, c structs.Where) []interface{} {
+func (wb *WhereBaseBuilder) ProcessExistsQuery(sb *strings.Builder, c structs.Where) []interface{} {
 	condQuery := c.Condition
 	b := &BaseQueryBuilder{}
 	sqQuery, sqValues := b.Build("", c.Exists.Query)
@@ -137,7 +140,7 @@ func processExistsQuery(sb *strings.Builder, c structs.Where) []interface{} {
 	return sqValues
 }
 
-func processBetweenCondition(sb *strings.Builder, c structs.Where) []interface{} {
+func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *strings.Builder, c structs.Where) []interface{} {
 	wsb := strings.Builder{}
 	wsb.Grow(consts.StringBuffer_Where_Grow)
 	values := make([]interface{}, 0, 2)
@@ -154,7 +157,7 @@ func processBetweenCondition(sb *strings.Builder, c structs.Where) []interface{}
 	return values
 }
 
-func processRawCondition(sb *strings.Builder, c structs.Where) []interface{} {
+func (wb *WhereBaseBuilder) ProcessRawCondition(sb *strings.Builder, c structs.Where) []interface{} {
 	wsb := strings.Builder{}
 	wsb.Grow(consts.StringBuffer_Where_Grow)
 
@@ -184,5 +187,13 @@ func processRawCondition(sb *strings.Builder, c structs.Where) []interface{} {
 	values := c.Value
 
 	sb.WriteString(condQuery)
+	return values
+}
+
+func (wb *WhereBaseBuilder) ProcessFullText(sb *strings.Builder, c structs.Where) []interface{} {
+	values := []interface{}{}
+
+	log.Println("Not implemented yet")
+
 	return values
 }

@@ -568,6 +568,25 @@ func (b *WhereBuilder[T]) addWhereExistsQuery(q *Builder, condition string, oper
 	return b.parent
 }
 
+// WhereFullText adds a where full text clause with AND operator
+func (b *WhereBuilder[T]) WhereFullText(columns []string, search string, options map[string]interface{}) *T {
+	return b.addWhereFullText(columns, search, options, consts.LogicalOperator_AND, false)
+}
+
+// OrWhereFullText adds a where full text clause with OR operator
+func (b *WhereBuilder[T]) OrWhereFullText(columns []string, search string, options map[string]interface{}) *T {
+	return b.addWhereFullText(columns, search, options, consts.LogicalOperator_OR, false)
+}
+
+func (b *WhereBuilder[T]) addWhereFullText(columns []string, search string, options map[string]interface{}, operator int, isNot bool) *T {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		FullText: &structs.FullText{Columns: columns, Search: search, Options: options, IsNot: isNot},
+		Operator: operator,
+	})
+
+	return b.parent
+}
+
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {

@@ -1,0 +1,82 @@
+package mysql
+
+import (
+	"log"
+	"strings"
+
+	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+)
+
+type WhereMySQLBuilder struct {
+	base.WhereBaseBuilder
+	whereBaseBuilder *base.WhereBaseBuilder
+}
+
+func NewWhereMySQLBuilder(wg *[]structs.WhereGroup) *WhereMySQLBuilder {
+	return &WhereMySQLBuilder{
+		whereBaseBuilder: base.NewWhereBaseBuilder(wg),
+	}
+}
+
+func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
+	if wg == nil || len(*wg) == 0 {
+		return []interface{}{}
+	}
+
+	// WHERE
+	if wb.whereBaseBuilder.HasCondition(*wg) {
+		sb.WriteString(" WHERE ")
+	}
+
+	values := make([]interface{}, 0)
+
+	for i, cg := range *wg {
+		if len(cg.Conditions) == 0 {
+			continue
+		}
+
+		if i > 0 {
+			sb.WriteString(wb.WhereBaseBuilder.GetConditionGroupSeparator(cg, i))
+		}
+
+		sb.WriteString(wb.whereBaseBuilder.GetNotSeparator(cg))
+		sb.WriteString(wb.whereBaseBuilder.GetParenthesesOpen(cg))
+
+		for j, c := range cg.Conditions {
+			if j > 0 || (i > 0 && j == 0 && cg.IsDummyGroup) {
+				sb.WriteString(wb.whereBaseBuilder.GetConditionOperator(c))
+			}
+
+			switch {
+			case c.Query != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessSubQuery(sb, c)...)
+			case c.Exists != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessExistsQuery(sb, c)...)
+			case c.Between != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, c)...)
+			case c.FullText != nil:
+				values = append(values, wb.ProcessFullText(sb, c)...)
+			default:
+				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, c)...)
+			}
+		}
+		sb.WriteString(wb.whereBaseBuilder.GetParenthesesClose(cg))
+	}
+
+	return values
+}
+
+func (wb *WhereMySQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Where) []interface{} {
+	c.FullText.Columns = []string{c.Column}
+
+	log.Println("implemented")
+
+	sb.WriteString("MATCH (" + c.Column + ") AGAINST (? IN BOOLEAN MODE)")
+	values := []interface{}{c.Value}
+
+	condQuery := sb.String()
+
+	sb.WriteString(condQuery)
+	return values
+}

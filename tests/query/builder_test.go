@@ -807,6 +807,14 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"SELECT  FROM  WHERE city = ? OR NOT EXISTS (SELECT id FROM users WHERE name = ?)",
 			[]interface{}{"New York", "John"},
 		},
+		{
+			"WhereFullText_MySQL",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereFullText([]string{"name"}, "John Doe", map[string]interface{}{"mode": "BOOLEAN"})
+			},
+			"SELECT  FROM  WHERE MATCH(name) AGAINST(? IN BOOLEAN MODE)",
+			[]interface{}{"John Doe"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
