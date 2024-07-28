@@ -123,6 +123,16 @@ func (qb *SelectBuilder) RightJoinSub(q *SelectBuilder, alias, my, condition, ta
 	return qb
 }
 
+func (qb *SelectBuilder) JoinLateral(q *SelectBuilder, alias string) *SelectBuilder {
+	qb.joinQueryBuilder.JoinLateral(q, alias)
+	return qb
+}
+
+func (qb *SelectBuilder) LeftJoinLateral(q *SelectBuilder, alias string) *SelectBuilder {
+	qb.joinQueryBuilder.LeftJoinLateral(q, alias)
+	return qb
+}
+
 func (qb *SelectBuilder) OrderBy(column, ascDesc string) *SelectBuilder {
 	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
 	return qb

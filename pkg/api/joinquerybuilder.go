@@ -47,3 +47,13 @@ func (jb *JoinQueryBuilder) RightJoinSub(qb *SelectBuilder, alias, my, condition
 	jb.builder.RightJoinSub(qb.builder, alias, my, condition, target)
 	return jb
 }
+
+func (jb *JoinQueryBuilder) JoinLateral(qb *SelectBuilder, alias string) *JoinQueryBuilder {
+	jb.builder.JoinLateral(qb.builder, alias)
+	return jb
+}
+
+func (jb *JoinQueryBuilder) LeftJoinLateral(qb *SelectBuilder, alias string) *JoinQueryBuilder {
+	jb.builder.LeftJoinLateral(qb.builder, alias)
+	return jb
+}

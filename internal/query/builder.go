@@ -238,6 +238,18 @@ func (b *Builder) RightJoinSub(q *Builder, alias, my, condition, target string) 
 	return b
 }
 
+func (b *Builder) JoinLateral(q *Builder, alias string) *Builder {
+	b.joinBuilder.JoinLateral(q, alias)
+
+	return b
+}
+
+func (b *Builder) LeftJoinLateral(q *Builder, alias string) *Builder {
+	b.joinBuilder.LeftJoinLateral(q, alias)
+
+	return b
+}
+
 // OrderBy adds an ORDER BY clause.
 func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
 	b.orderByBuilder.OrderBy(column, ascDesc)

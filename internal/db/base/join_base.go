@@ -102,8 +102,26 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 	}
 
 	values := make([]interface{}, 0) //  length is unknown
+
+	// sort by lateral joins first
+	//	sortedJoins := make([]*structs.Join, 0, len(*joins.Joins))
+	lateralJoins := make([]*structs.Join, 0, len(*joins.Joins))
+	otherJoins := make([]*structs.Join, 0, len(*joins.Joins))
+
 	for _, join := range *joins.Joins {
-		joinType, targetName := jb.processJoin(&join)
+		if _, ok := join.TargetNameMap[consts.Join_LATERAL]; ok {
+			lateralJoins = append(lateralJoins, &join)
+		} else if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
+			lateralJoins = append(lateralJoins, &join)
+		} else {
+			otherJoins = append(otherJoins, &join)
+		}
+	}
+
+	//sortedJoins = append(lateralJoins, otherJoins...)
+
+	for _, join := range append(lateralJoins, otherJoins...) {
+		joinType, targetName := jb.processJoin(join)
 		if targetName == "" {
 			continue
 		}
@@ -119,7 +137,15 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			values = append(values, sqValues...)
 		}
 
-		if _, ok := join.TargetNameMap[consts.Join_CROSS]; ok {
+		if _, ok := join.TargetNameMap[consts.Join_LATERAL]; ok {
+			sb.WriteString(" ,")
+			sb.WriteString(joinType)
+			sb.WriteString(targetName)
+		} else if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
+			sb.WriteString(" ,")
+			sb.WriteString(joinType)
+			sb.WriteString(targetName)
+		} else if _, ok := join.TargetNameMap[consts.Join_CROSS]; ok {
 			sb.WriteString(" ")
 			sb.WriteString(joinType)
 			sb.WriteString(" JOIN ")
@@ -160,6 +186,14 @@ func (j *JoinBaseBuilder) processJoin(join *structs.Join) (string, string) {
 	if _, ok := join.TargetNameMap[consts.Join_INNER]; ok {
 		targetName = join.TargetNameMap[consts.Join_INNER]
 		joinType = consts.Join_Type_INNER
+	}
+	if _, ok := join.TargetNameMap[consts.Join_LATERAL]; ok {
+		targetName = join.TargetNameMap[consts.Join_LATERAL]
+		joinType = consts.Join_Type_LATERAL
+	}
+	if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
+		targetName = join.TargetNameMap[consts.Join_LEFT_LATERAL]
+		joinType = consts.Join_Type_LEFT_LATERAL
 	}
 
 	if targetName == "" {

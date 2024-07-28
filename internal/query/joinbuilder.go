@@ -164,3 +164,45 @@ func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, cond
 	b.joinValues = append(b.joinValues, value...)
 	return b
 }
+
+func (b *JoinBuilder) JoinLateral(q *Builder, alias string) *JoinBuilder {
+	b.joinLateralCommon(consts.Join_LATERAL, q, alias)
+	return b
+}
+
+func (b *JoinBuilder) LeftJoinLateral(q *Builder, alias string) *JoinBuilder {
+	b.joinLateralCommon(consts.Join_LEFT_LATERAL, q, alias)
+	return b
+}
+
+func (b *JoinBuilder) joinLateralCommon(joinType string, q *Builder, alias string) *JoinBuilder {
+
+	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.WhereBuilder.query.Conditions,
+		IsDummyGroup: true,
+	})
+
+	sq := &structs.Query{
+		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
+		Table:           structs.Table{Name: q.selectQuery.Table},
+		Columns:         q.selectQuery.Columns,
+		Joins:           q.joinBuilder.Joins,
+		Order:           q.orderByBuilder.Order,
+	}
+
+	myTable := b.Table.Name
+	args := &structs.Join{
+		Name: myTable,
+		TargetNameMap: map[string]string{
+			joinType: alias,
+		},
+		Query: sq,
+	}
+
+	// todo: use cache
+	_, value := b.WhereBuilder.BuildSq(sq)
+
+	*b.Joins.Joins = append(*b.Joins.Joins, *args)
+	b.joinValues = append(b.joinValues, value...)
+	return b
+}
