@@ -20,7 +20,7 @@ func NewSelectBaseBuilder(columnNames *[]string) *SelectBaseBuilder {
 
 func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
 	if columns == nil {
-		sb.WriteString("SELECT * ")
+		sb.WriteString(" * ")
 		return []interface{}{}
 	}
 	//colNames := make([]string, 0, len(*columns))
@@ -43,8 +43,33 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 	}
 
 	colValues := make([]interface{}, 0, len(*columns))
+	firstDistinct := false
+
 	// if there are columns to select
 	for i, column := range *columns {
+		if column.Distinct && !column.Count && !firstDistinct {
+			sb.WriteString("DISTINCT ")
+			firstDistinct = true
+		}
+
+		if column.Count {
+			sb.WriteString("COUNT(")
+			if column.Distinct {
+				sb.WriteString("DISTINCT ")
+			}
+			if column.Name != "" {
+				sb.WriteString(column.Name)
+			} else {
+				sb.WriteString("*")
+			}
+			sb.WriteString(")")
+			if i < len(*columns)-1 {
+				sb.WriteString(", ")
+			}
+
+			continue
+		}
+
 		if column.Raw != "" {
 			if column.Values != nil && len(column.Values) > 0 {
 				colValues = append(colValues, column.Values...)
