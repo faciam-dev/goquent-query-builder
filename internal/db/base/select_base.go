@@ -107,6 +107,12 @@ func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join,
 	if _, ok := join.TargetNameMap[consts.Join_INNER]; ok {
 		targetName = join.TargetNameMap[consts.Join_INNER]
 	}
+	if _, ok := join.TargetNameMap[consts.Join_LATERAL]; ok {
+		targetName = join.TargetNameMap[consts.Join_LATERAL]
+	}
+	if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
+		targetName = join.TargetNameMap[consts.Join_LEFT_LATERAL]
+	}
 
 	if targetName == "" {
 		return

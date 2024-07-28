@@ -105,7 +105,7 @@ func (b *WhereBuilder[T]) whereOrOrWhereQuery(column string, condition string, q
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
-		Joins:           q.joinBuilder.Joins,
+		Joins:           q.JoinBuilder.Joins,
 		Order:           q.orderByBuilder.Order,
 	}
 
@@ -295,7 +295,7 @@ func (b *WhereBuilder[T]) addWhereInSubQuery(column string, operator int, condit
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
-		Joins:           q.joinBuilder.Joins,
+		Joins:           q.JoinBuilder.Joins,
 		Order:           q.orderByBuilder.Order,
 	}
 
@@ -500,7 +500,7 @@ func (b *WhereBuilder[T]) addWhereExists(fn func(aq *Builder) *Builder, conditio
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
-		Joins:           q.joinBuilder.Joins,
+		Joins:           q.JoinBuilder.Joins,
 		Order:           q.orderByBuilder.Order,
 	}
 
@@ -549,7 +549,7 @@ func (b *WhereBuilder[T]) addWhereExistsQuery(q *Builder, condition string, oper
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
-		Joins:           q.joinBuilder.Joins,
+		Joins:           q.JoinBuilder.Joins,
 		Order:           q.orderByBuilder.Order,
 	}
 

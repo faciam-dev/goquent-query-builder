@@ -22,17 +22,21 @@ const (
 )
 
 const (
-	Join_INNER = "inner"
-	Join_LEFT  = "left"
-	Join_RIGHT = "right"
-	Join_CROSS = "cross"
+	Join_INNER        = "inner"
+	Join_LEFT         = "left"
+	Join_RIGHT        = "right"
+	Join_CROSS        = "cross"
+	Join_LATERAL      = "lateral"
+	Join_LEFT_LATERAL = "left_lateral"
 )
 
 const (
-	Join_Type_INNER = "INNER"
-	Join_Type_LEFT  = "LEFT"
-	Join_Type_RIGHT = "RIGHT"
-	Join_Type_CROSS = "CROSS"
+	Join_Type_INNER        = "INNER"
+	Join_Type_LEFT         = "LEFT"
+	Join_Type_RIGHT        = "RIGHT"
+	Join_Type_CROSS        = "CROSS"
+	Join_Type_LATERAL      = "LATERAL"
+	Join_Type_LEFT_LATERAL = "LEFT LATERAL"
 )
 
 const (

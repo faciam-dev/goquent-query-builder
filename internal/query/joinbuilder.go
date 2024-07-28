@@ -7,40 +7,47 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/db"
 )
 
-type JoinBuilder struct {
+type JoinBuilder[T any] struct {
 	Table *structs.Table
 	Joins *structs.Joins
-	WhereBuilder[JoinBuilder]
+	WhereBuilder[JoinBuilder[T]]
 	joinValues []interface{}
+	parent     *T
 }
 
-func NewJoinBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *JoinBuilder {
-	return &JoinBuilder{
+func NewJoinBuilder[T any](dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *JoinBuilder[T] {
+	return &JoinBuilder[T]{
 		Table: &structs.Table{},
 		Joins: &structs.Joins{
 			Joins: &[]structs.Join{},
 		},
-		WhereBuilder: *NewWhereBuilder[JoinBuilder](dbBuilder, cache),
+		WhereBuilder: *NewWhereBuilder[JoinBuilder[T]](dbBuilder, cache),
 	}
 }
 
+func (b *JoinBuilder[T]) SetParent(parent *T) *T {
+	b.parent = parent
+
+	return b.parent
+}
+
 // Join adds a JOIN clause.
-func (b *JoinBuilder) Join(table string, my string, condition string, target string) *JoinBuilder {
+func (b *JoinBuilder[T]) Join(table string, my string, condition string, target string) *T {
 	return b.joinCommon(consts.Join_INNER, table, my, condition, target)
 }
 
 // LeftJoin adds a LEFT JOIN clause.
-func (b *JoinBuilder) LeftJoin(table string, my string, condition string, target string) *JoinBuilder {
+func (b *JoinBuilder[T]) LeftJoin(table string, my string, condition string, target string) *T {
 	return b.joinCommon(consts.Join_LEFT, table, my, condition, target)
 }
 
 // RightJoin adds a RIGHT JOIN clause.
-func (b *JoinBuilder) RightJoin(table string, my string, condition string, target string) *JoinBuilder {
+func (b *JoinBuilder[T]) RightJoin(table string, my string, condition string, target string) *T {
 	return b.joinCommon(consts.Join_RIGHT, table, my, condition, target)
 }
 
 // joinCommon is a helper function for JOIN, LEFT JOIN, and RIGHT JOIN.
-func (b *JoinBuilder) joinCommon(joinType string, table string, my string, condition string, target string) *JoinBuilder {
+func (b *JoinBuilder[T]) joinCommon(joinType string, table string, my string, condition string, target string) *T {
 	myTable := b.Table.Name
 	// If a previous JOIN exists, retrieve the table name of that JOIN.
 	if b.Joins.Joins != nil && len(*b.Joins.Joins) > 0 {
@@ -55,11 +62,11 @@ func (b *JoinBuilder) joinCommon(joinType string, table string, my string, condi
 		SearchCondition:    condition,
 		SearchTargetColumn: target,
 	})
-	return b
+	return b.parent
 }
 
 // CrossJoin adds a CROSS JOIN clause.
-func (b *JoinBuilder) CrossJoin(table string) *JoinBuilder {
+func (b *JoinBuilder[T]) CrossJoin(table string) *T {
 	myTable := b.Table.Name
 	// If a previous JOIN exists, retrieve the table name of that JOIN.
 	if b.Joins != nil && len(*b.Joins.Joins) > 0 {
@@ -71,10 +78,10 @@ func (b *JoinBuilder) CrossJoin(table string) *JoinBuilder {
 			consts.Join_CROSS: table,
 		},
 	})
-	return b
+	return b.parent
 }
 
-func (b *JoinBuilder) JoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *JoinBuilder {
+func (b *JoinBuilder[T]) JoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *T {
 	jq := fn(NewJoinClauseBuilder())
 
 	jq.JoinClause.Name = table
@@ -84,10 +91,10 @@ func (b *JoinBuilder) JoinQuery(table string, fn func(j *JoinClauseBuilder) *Joi
 
 	b.Joins.JoinClause = jq.JoinClause
 
-	return b
+	return b.parent
 }
 
-func (b *JoinBuilder) LeftJoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *JoinBuilder {
+func (b *JoinBuilder[T]) LeftJoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *T {
 
 	jq := fn(NewJoinClauseBuilder())
 
@@ -98,10 +105,10 @@ func (b *JoinBuilder) LeftJoinQuery(table string, fn func(j *JoinClauseBuilder) 
 
 	b.Joins.JoinClause = jq.JoinClause
 
-	return b
+	return b.parent
 }
 
-func (b *JoinBuilder) RightJoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *JoinBuilder {
+func (b *JoinBuilder[T]) RightJoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *T {
 
 	jq := fn(NewJoinClauseBuilder())
 
@@ -112,25 +119,25 @@ func (b *JoinBuilder) RightJoinQuery(table string, fn func(j *JoinClauseBuilder)
 
 	b.Joins.JoinClause = jq.JoinClause
 
-	return b
+	return b.parent
 }
 
-func (b *JoinBuilder) JoinSub(q *Builder, alias, my, condition, target string) *JoinBuilder {
+func (b *JoinBuilder[T]) JoinSub(q *Builder, alias, my, condition, target string) *T {
 	b.joinSubCommon(consts.Join_INNER, q, alias, my, condition, target)
-	return b
+	return b.parent
 }
 
-func (b *JoinBuilder) LeftJoinSub(q *Builder, alias, my, condition, target string) *JoinBuilder {
+func (b *JoinBuilder[T]) LeftJoinSub(q *Builder, alias, my, condition, target string) *T {
 	b.joinSubCommon(consts.Join_LEFT, q, alias, my, condition, target)
-	return b
+	return b.parent
 }
 
-func (b *JoinBuilder) RightJoinSub(q *Builder, alias, my, condition, target string) *JoinBuilder {
+func (b *JoinBuilder[T]) RightJoinSub(q *Builder, alias, my, condition, target string) *T {
 	b.joinSubCommon(consts.Join_RIGHT, q, alias, my, condition, target)
-	return b
+	return b.parent
 }
 
-func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, condition, target string) *JoinBuilder {
+func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *Builder, alias, my, condition, target string) *T {
 
 	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.WhereBuilder.query.Conditions,
@@ -141,7 +148,7 @@ func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, cond
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
-		Joins:           q.joinBuilder.Joins,
+		Joins:           q.JoinBuilder.Joins,
 		Order:           q.orderByBuilder.Order,
 	}
 
@@ -162,5 +169,45 @@ func (b *JoinBuilder) joinSubCommon(joinType string, q *Builder, alias, my, cond
 
 	*b.Joins.Joins = append(*b.Joins.Joins, *args)
 	b.joinValues = append(b.joinValues, value...)
-	return b
+	return b.parent
+}
+
+func (b *JoinBuilder[T]) JoinLateral(q *Builder, alias string) *T {
+	return b.joinLateralCommon(consts.Join_LATERAL, q, alias)
+}
+
+func (b *JoinBuilder[T]) LeftJoinLateral(q *Builder, alias string) *T {
+	return b.joinLateralCommon(consts.Join_LEFT_LATERAL, q, alias)
+}
+
+func (b *JoinBuilder[T]) joinLateralCommon(joinType string, q *Builder, alias string) *T {
+
+	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		Conditions:   *q.WhereBuilder.query.Conditions,
+		IsDummyGroup: true,
+	})
+
+	sq := &structs.Query{
+		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
+		Table:           structs.Table{Name: q.selectQuery.Table},
+		Columns:         q.selectQuery.Columns,
+		Joins:           q.JoinBuilder.Joins,
+		Order:           q.orderByBuilder.Order,
+	}
+
+	myTable := b.Table.Name
+	args := &structs.Join{
+		Name: myTable,
+		TargetNameMap: map[string]string{
+			joinType: alias,
+		},
+		Query: sq,
+	}
+
+	// todo: use cache
+	_, value := b.WhereBuilder.BuildSq(sq)
+
+	*b.Joins.Joins = append(*b.Joins.Joins, *args)
+	b.joinValues = append(b.joinValues, value...)
+	return b.parent
 }

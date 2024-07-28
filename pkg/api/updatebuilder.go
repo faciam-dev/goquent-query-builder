@@ -9,17 +9,14 @@ import (
 
 type UpdateBuilder struct {
 	WhereQueryBuilder[UpdateBuilder, query.UpdateBuilder]
+	JoinQueryBuilder[UpdateBuilder, query.UpdateBuilder]
 	builder             *query.UpdateBuilder
-	joinQueryBuilder    *JoinQueryBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
 func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
 	ub := &UpdateBuilder{
 		builder: query.NewUpdateBuilder(strategy, cache),
-		joinQueryBuilder: &JoinQueryBuilder{
-			builder: query.NewJoinBuilder(strategy, cache),
-		},
 		orderByQueryBuilder: &OrderByQueryBuilder{
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
@@ -28,6 +25,10 @@ func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Upda
 	whereQueryBuilder := NewWhereQueryBuilder[UpdateBuilder, query.UpdateBuilder](strategy, cache)
 	whereQueryBuilder.SetParent(ub)
 	ub.WhereQueryBuilder = *whereQueryBuilder
+
+	joinQueryBuilder := NewJoinQueryBuilder[UpdateBuilder, query.UpdateBuilder](strategy, cache)
+	joinQueryBuilder.SetParent(ub)
+	ub.JoinQueryBuilder = *joinQueryBuilder
 
 	return ub
 }
@@ -43,27 +44,6 @@ func (ub *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 func (ub *UpdateBuilder) Table(table string) *UpdateBuilder {
 	ub.builder.Table(table)
 	return ub
-}
-
-// Join
-func (qb *UpdateBuilder) Join(table, my, condition, target string) *UpdateBuilder {
-	qb.joinQueryBuilder.Join(table, my, condition, target)
-	return qb
-}
-
-func (qb *UpdateBuilder) LeftJoin(table, my, condition, target string) *UpdateBuilder {
-	qb.joinQueryBuilder.LeftJoin(table, my, condition, target)
-	return qb
-}
-
-func (qb *UpdateBuilder) RightJoin(table, my, condition, target string) *UpdateBuilder {
-	qb.joinQueryBuilder.RightJoin(table, my, condition, target)
-	return qb
-}
-
-func (qb *UpdateBuilder) CrossJoin(table, my, condition, target string) *UpdateBuilder {
-	qb.joinQueryBuilder.CrossJoin(table)
-	return qb
 }
 
 // OrderBy
@@ -86,8 +66,7 @@ func (qb *UpdateBuilder) ReOrder() *UpdateBuilder {
 // Build
 func (ub *UpdateBuilder) Build() (string, []interface{}) {
 	ub.builder.SetWhereBuilder(*ub.WhereQueryBuilder.builder)
-	//	ub.builder.SetWhereBuilder(ub.WhereQueryBuilder.builder)
-	ub.builder.SetJoinBuilder(ub.joinQueryBuilder.builder)
+	ub.builder.SetJoinBuilder(*ub.JoinQueryBuilder.builder)
 	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
 
 	return ub.builder.Build()

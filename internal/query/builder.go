@@ -18,7 +18,7 @@ type Builder struct {
 	selectValues  []interface{}
 	groupByValues []interface{}
 	WhereBuilder[Builder]
-	joinBuilder    *JoinBuilder
+	JoinBuilder[Builder]
 	orderByBuilder *OrderByBuilder
 }
 
@@ -47,15 +47,19 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
 			Offset:   &structs.Offset{},
 			Lock:     &structs.Lock{},
 		},
-		selectValues:   []interface{}{},
-		groupByValues:  []interface{}{},
-		joinBuilder:    NewJoinBuilder(dbBuilder, cache),
+		selectValues:  []interface{}{},
+		groupByValues: []interface{}{},
+		//joinBuilder:    NewJoinBuilder(dbBuilder, cache),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 
 	whereBuilder := NewWhereBuilder[Builder](dbBuilder, cache)
 	whereBuilder.SetParent(b)
 	b.WhereBuilder = *whereBuilder
+
+	joinBuilder := NewJoinBuilder[Builder](dbBuilder, cache)
+	joinBuilder.SetParent(b)
+	b.JoinBuilder = *joinBuilder
 
 	return b
 }
@@ -64,8 +68,8 @@ func (b *Builder) SetWhereBuilder(whereBuilder *WhereBuilder[Builder]) {
 	b.WhereBuilder = *whereBuilder
 }
 
-func (b *Builder) SetJoinBuilder(joinBuilder *JoinBuilder) {
-	b.joinBuilder = joinBuilder
+func (b *Builder) SetJoinBuilder(joinBuilder *JoinBuilder[Builder]) {
+	b.JoinBuilder = *joinBuilder
 }
 
 func (b *Builder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
@@ -174,70 +178,6 @@ out:
 	return b
 }
 
-// Join adds a JOIN clause.
-func (b *Builder) Join(table string, my string, condition string, target string) *Builder {
-	b.joinBuilder.Join(table, my, condition, target)
-
-	return b
-}
-
-// LeftJoin adds a LEFT JOIN clause.
-func (b *Builder) LeftJoin(table string, my string, condition string, target string) *Builder {
-	b.joinBuilder.LeftJoin(table, my, condition, target)
-
-	return b
-}
-
-// RightJoin adds a RIGHT JOIN clause.
-func (b *Builder) RightJoin(table string, my string, condition string, target string) *Builder {
-	b.joinBuilder.RightJoin(table, my, condition, target)
-
-	return b
-}
-
-// CrossJoin adds a CROSS JOIN clause.
-func (b *Builder) CrossJoin(table string) *Builder {
-	b.joinBuilder.CrossJoin(table)
-
-	return b
-}
-
-func (b *Builder) JoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
-	b.joinBuilder.JoinQuery(table, fn)
-
-	return b
-}
-
-func (b *Builder) LeftJoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
-	b.joinBuilder.LeftJoinQuery(table, fn)
-
-	return b
-}
-
-func (b *Builder) RightJoinQuery(table string, fn func(b *JoinClauseBuilder) *JoinClauseBuilder) *Builder {
-	b.joinBuilder.RightJoinQuery(table, fn)
-
-	return b
-}
-
-func (b *Builder) JoinSub(q *Builder, alias, my, condition, target string) *Builder {
-	b.joinBuilder.JoinSub(q, alias, my, condition, target)
-
-	return b
-}
-
-func (b *Builder) LeftJoinSub(q *Builder, alias, my, condition, target string) *Builder {
-	b.joinBuilder.LeftJoinSub(q, alias, my, condition, target)
-
-	return b
-}
-
-func (b *Builder) RightJoinSub(q *Builder, alias, my, condition, target string) *Builder {
-	b.joinBuilder.RightJoinSub(q, alias, my, condition, target)
-
-	return b
-}
-
 // OrderBy adds an ORDER BY clause.
 func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
 	b.orderByBuilder.OrderBy(column, ascDesc)
@@ -338,9 +278,9 @@ func (b *Builder) Build() (string, []interface{}) {
 	cacheKey := generateCacheKey(b.query)
 
 	if cachedQuery, found := b.cache.Get(cacheKey); found {
-		values := make([]interface{}, 0, len(b.selectValues)+len(b.joinBuilder.joinValues)+len(b.WhereBuilder.whereValues)+len(b.groupByValues))
+		values := make([]interface{}, 0, len(b.selectValues)+len(b.JoinBuilder.joinValues)+len(b.WhereBuilder.whereValues)+len(b.groupByValues))
 		values = append(values, b.selectValues...)
-		values = append(values, b.joinBuilder.joinValues...)
+		values = append(values, b.JoinBuilder.joinValues...)
 		values = append(values, b.WhereBuilder.whereValues...)
 		values = append(values, b.groupByValues...)
 		return cachedQuery, values
@@ -373,7 +313,7 @@ func (b *Builder) buildQuery() {
 	}
 	b.query.Columns = b.selectQuery.Columns
 	b.query.ConditionGroups = wg
-	b.query.Joins = b.joinBuilder.Joins
+	b.query.Joins = b.JoinBuilder.Joins
 	b.query.Order = o
 	b.query.Group = b.selectQuery.Group
 	b.query.Limit = b.selectQuery.Limit

@@ -95,6 +95,7 @@ func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []in
 	sb.WriteString("SELECT ")
 	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
 
+	// FROM
 	sb.WriteString(" ")
 	m.From(sb, q.Table.Name)
 	values := colValues

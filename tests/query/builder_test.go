@@ -199,6 +199,22 @@ func TestBuilder(t *testing.T) {
 			[]interface{}{18},
 		},
 		{
+			"Lateral_Join",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).JoinLateral(query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("profiles").Where("age", ">", 18), "profiles")
+			},
+			"SELECT profiles.*, .* FROM  ,LATERAL(SELECT id FROM profiles WHERE age > ?) AS profiles",
+			[]interface{}{18},
+		},
+		{
+			"LeftLateral_Join",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).LeftJoinLateral(query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("profiles").Where("age", ">", 18), "profiles")
+			},
+			"SELECT profiles.*, .* FROM  ,LEFT LATERAL(SELECT id FROM profiles WHERE age > ?) AS profiles",
+			[]interface{}{18},
+		},
+		{
 			"OrderBy",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).OrderBy("name", "asc")
