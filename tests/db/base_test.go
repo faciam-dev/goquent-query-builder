@@ -650,6 +650,82 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"Lateral Join",
+			"Join",
+			structs.Query{
+				Table: structs.Table{Name: "users"},
+				Joins: &structs.Joins{
+					Joins: &[]structs.Join{
+						{
+							Name:          "orders",
+							TargetNameMap: map[string]string{"lateral": "orders"},
+							Query: &structs.Query{
+								Columns: &[]structs.Column{
+									{Name: "id"},
+								},
+								Table:           structs.Table{Name: "users"},
+								ConditionGroups: &[]structs.WhereGroup{},
+								Conditions:      &[]structs.Where{},
+								Joins: &structs.Joins{
+									Joins: &[]structs.Join{},
+								},
+								Order: &[]structs.Order{},
+								Group: &structs.GroupBy{},
+							},
+						},
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " ,LATERAL(SELECT id FROM users) AS orders",
+				Values:   nil,
+			},
+		},
+		{
+			"LeftLateral Join",
+			"Join",
+			structs.Query{
+				Table: structs.Table{Name: "users"},
+				Joins: &structs.Joins{
+					Joins: &[]structs.Join{
+						{
+							Name:          "orders",
+							TargetNameMap: map[string]string{"left_lateral": "orders"},
+							Query: &structs.Query{
+								Columns: &[]structs.Column{
+									{Name: "id"},
+								},
+								Table: structs.Table{Name: "users"},
+								ConditionGroups: &[]structs.WhereGroup{
+									{
+										Conditions: []structs.Where{
+											{
+												Column:    "age",
+												Condition: ">",
+												Value:     []interface{}{18},
+												Operator:  consts.LogicalOperator_AND,
+											},
+										},
+										IsDummyGroup: true,
+									},
+								},
+								Conditions: &[]structs.Where{},
+								Joins: &structs.Joins{
+									Joins: &[]structs.Join{},
+								},
+								Order: &[]structs.Order{},
+								Group: &structs.GroupBy{},
+							},
+						},
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " ,LEFT LATERAL(SELECT id FROM users WHERE age > ?) AS orders",
+				Values:   []interface{}{18},
+			},
+		},
+		{
 			"OrderByRaw",
 			"OrderBy",
 			structs.Query{
