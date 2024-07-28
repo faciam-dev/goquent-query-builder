@@ -1,9 +1,11 @@
 package structs
 
 type Column struct {
-	Name   string
-	Raw    string
-	Values []interface{}
+	Name     string
+	Raw      string
+	Values   []interface{}
+	Distinct bool
+	Count    bool
 }
 
 type Table struct {

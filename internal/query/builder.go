@@ -96,12 +96,28 @@ func (b *Builder) Count(columns ...string) *Builder {
 		columns = append(columns, "*")
 	}
 
+	for i, c := range *b.selectQuery.Columns {
+		for _, col := range columns {
+			if c.Name == col {
+				(*b.selectQuery.Columns)[i].Count = true
+			}
+		}
+	}
+
+out:
 	for _, column := range columns {
+		for _, c := range *b.selectQuery.Columns {
+			if c.Count {
+				continue out
+			}
+		}
+
 		*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{
-			Name: column,
-			Raw:  fmt.Sprintf("COUNT(%s)", column),
+			Name:  column,
+			Count: true,
 		})
 	}
+
 	return b
 }
 
@@ -131,6 +147,31 @@ func (b *Builder) Sum(column string) *Builder {
 // Avg adds an AVG aggregate function to the query.
 func (b *Builder) Avg(column string) *Builder {
 	return b.aggregate(column, "AVG")
+}
+
+func (b *Builder) Distinct(column ...string) *Builder {
+	for i, c := range *b.selectQuery.Columns {
+		for _, col := range column {
+			if c.Name == col {
+				(*b.selectQuery.Columns)[i].Distinct = true
+			}
+		}
+	}
+
+out:
+	for _, c := range column {
+		for _, c := range *b.selectQuery.Columns {
+			if c.Count {
+				continue out
+			}
+		}
+		*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{
+			Name:     c,
+			Distinct: true,
+		})
+	}
+
+	return b
 }
 
 // Join adds a JOIN clause.

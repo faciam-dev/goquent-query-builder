@@ -41,6 +41,38 @@ func TestBuilder(t *testing.T) {
 			nil,
 		},
 		{
+			"Count_Columns",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Count("id")
+			},
+			"SELECT COUNT(id) FROM ",
+			nil,
+		},
+		{
+			"Count_Distinct",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Count("id").Distinct("id")
+			},
+			"SELECT COUNT(DISTINCT id) FROM ",
+			nil,
+		},
+		{
+			"Count_Distinct_Columns",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Distinct("id", "name").Count("id", "name")
+			},
+			"SELECT COUNT(DISTINCT id), COUNT(DISTINCT name) FROM ",
+			nil,
+		},
+		{
+			"Distincts",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Distinct("id", "name")
+			},
+			"SELECT DISTINCT id, name FROM ",
+			nil,
+		},
+		{
 			"Max",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Max("price")

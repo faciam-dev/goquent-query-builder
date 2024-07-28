@@ -72,6 +72,11 @@ func (qb *SelectBuilder) Avg(column string) *SelectBuilder {
 	return qb
 }
 
+func (qb *SelectBuilder) Distinct(column ...string) *SelectBuilder {
+	qb.builder.Distinct(column...)
+	return qb
+}
+
 // Join
 func (qb *SelectBuilder) Join(table, my, condition, target string) *SelectBuilder {
 	qb.joinQueryBuilder.Join(table, my, condition, target)
