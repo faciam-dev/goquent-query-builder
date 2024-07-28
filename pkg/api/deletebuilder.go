@@ -9,17 +9,14 @@ import (
 
 type DeleteBuilder struct {
 	WhereQueryBuilder[DeleteBuilder, query.DeleteBuilder]
+	JoinQueryBuilder[DeleteBuilder, query.DeleteBuilder]
 	builder             *query.DeleteBuilder
-	joinQueryBuilder    *JoinQueryBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
 func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *DeleteBuilder {
 	db := &DeleteBuilder{
 		builder: query.NewDeleteBuilder(strategy, cache),
-		joinQueryBuilder: &JoinQueryBuilder{
-			builder: query.NewJoinBuilder(strategy, cache),
-		},
 		orderByQueryBuilder: &OrderByQueryBuilder{
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
@@ -28,6 +25,10 @@ func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Dele
 	whereBuilder := NewWhereQueryBuilder[DeleteBuilder, query.DeleteBuilder](strategy, cache)
 	whereBuilder.SetParent(db)
 	db.WhereQueryBuilder = *whereBuilder
+
+	joinBuilder := NewJoinQueryBuilder[DeleteBuilder, query.DeleteBuilder](strategy, cache)
+	joinBuilder.SetParent(db)
+	db.JoinQueryBuilder = *joinBuilder
 
 	return db
 }
@@ -52,29 +53,7 @@ func (qb *DeleteBuilder) Table(table string) *DeleteBuilder {
 	return qb
 }
 
-// Join
-func (qb *DeleteBuilder) Join(table, my, condition, target string) *DeleteBuilder {
-	qb.joinQueryBuilder.Join(table, my, condition, target)
-	return qb
-}
-
-func (qb *DeleteBuilder) LeftJoin(table, my, condition, target string) *DeleteBuilder {
-	qb.joinQueryBuilder.LeftJoin(table, my, condition, target)
-	return qb
-}
-
-func (qb *DeleteBuilder) RightJoin(table, my, condition, target string) *DeleteBuilder {
-	qb.joinQueryBuilder.RightJoin(table, my, condition, target)
-	return qb
-}
-
-func (qb *DeleteBuilder) CrossJoin(table, my, condition, target string) *DeleteBuilder {
-	qb.joinQueryBuilder.CrossJoin(table)
-	return qb
-}
-
 // OrderBy
-
 func (qb *DeleteBuilder) OrderBy(column, ascDesc string) *DeleteBuilder {
 	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
 	return qb
@@ -92,8 +71,7 @@ func (qb *DeleteBuilder) ReOrder() *DeleteBuilder {
 
 func (qb *DeleteBuilder) Build() (string, []interface{}) {
 	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
-	//qb.builder.SetWhereBuilder(qb.WhereBuilder.builder)
-	qb.builder.SetJoinBuilder(qb.joinQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
 	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 
 	return qb.builder.Build()

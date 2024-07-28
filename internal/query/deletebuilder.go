@@ -12,7 +12,7 @@ type DeleteBuilder struct {
 	cache     cache.Cache
 	query     *structs.DeleteQuery
 	WhereBuilder[DeleteBuilder]
-	joinBuilder    *JoinBuilder
+	JoinBuilder[DeleteBuilder]
 	orderByBuilder *OrderByBuilder
 }
 
@@ -23,14 +23,16 @@ func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Dele
 		query: &structs.DeleteQuery{
 			Query: &structs.Query{},
 		},
-		WhereBuilder:   *NewWhereBuilder[DeleteBuilder](strategy, cache),
-		joinBuilder:    NewJoinBuilder(strategy, cache),
 		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 
 	whereBuilder := NewWhereBuilder[DeleteBuilder](strategy, cache)
 	whereBuilder.SetParent(db)
 	db.WhereBuilder = *whereBuilder
+
+	joinBuilder := NewJoinBuilder[DeleteBuilder](strategy, cache)
+	joinBuilder.SetParent(db)
+	db.JoinBuilder = *joinBuilder
 	return db
 }
 
@@ -38,8 +40,8 @@ func (b *DeleteBuilder) SetWhereBuilder(whereBuilder *WhereBuilder[DeleteBuilder
 	b.WhereBuilder = *whereBuilder
 }
 
-func (b *DeleteBuilder) SetJoinBuilder(joinBuilder *JoinBuilder) {
-	b.joinBuilder = joinBuilder
+func (b *DeleteBuilder) SetJoinBuilder(joinBuilder *JoinBuilder[DeleteBuilder]) {
+	b.JoinBuilder = *joinBuilder
 }
 
 func (b *DeleteBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
@@ -48,7 +50,7 @@ func (b *DeleteBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
 
 func (b *DeleteBuilder) Table(table string) *DeleteBuilder {
 	b.query.Table = table
-	b.joinBuilder.Table.Name = table
+	b.JoinBuilder.Table.Name = table
 	return b
 }
 
@@ -70,31 +72,11 @@ func (u *DeleteBuilder) Build() (string, []interface{}) {
 
 	u.query.Query.Conditions = u.WhereBuilder.query.Conditions
 	u.query.Query.ConditionGroups = u.WhereBuilder.query.ConditionGroups
-	u.query.Query.Joins = u.joinBuilder.Joins
+	u.query.Query.Joins = u.JoinBuilder.Joins
 	u.query.Query.Order = u.orderByBuilder.Order
 
 	query, values := u.dbBuilder.BuildDelete(u.query)
 	return query, values
-}
-
-func (b *DeleteBuilder) Join(table, my, condition, target string) *DeleteBuilder {
-	b.joinBuilder.Join(table, my, condition, target)
-	return b
-}
-
-func (b *DeleteBuilder) LeftJoin(table, my, condition, target string) *DeleteBuilder {
-	b.joinBuilder.LeftJoin(table, my, condition, target)
-	return b
-}
-
-func (b *DeleteBuilder) RightJoin(table, my, condition, target string) *DeleteBuilder {
-	b.joinBuilder.RightJoin(table, my, condition, target)
-	return b
-}
-
-func (b *DeleteBuilder) CrossJoin(table string) *DeleteBuilder {
-	b.joinBuilder.CrossJoin(table)
-	return b
 }
 
 func (b *DeleteBuilder) OrderBy(column string, direction string) *DeleteBuilder {

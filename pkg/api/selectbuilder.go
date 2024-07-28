@@ -9,8 +9,8 @@ import (
 
 type SelectBuilder struct {
 	WhereQueryBuilder[SelectBuilder, query.Builder]
+	JoinQueryBuilder[SelectBuilder, query.Builder]
 	builder             *query.Builder
-	joinQueryBuilder    *JoinQueryBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
@@ -18,9 +18,6 @@ func NewSelectBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Sele
 	sb := &SelectBuilder{
 		WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
 		builder:           query.NewBuilder(strategy, cache),
-		joinQueryBuilder: &JoinQueryBuilder{
-			builder: query.NewJoinBuilder(strategy, cache),
-		},
 		orderByQueryBuilder: &OrderByQueryBuilder{
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
@@ -28,6 +25,10 @@ func NewSelectBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Sele
 	whereBuilder := NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache)
 	whereBuilder.SetParent(sb)
 	sb.WhereQueryBuilder = *whereBuilder
+
+	joinBuilder := NewJoinQueryBuilder[SelectBuilder, query.Builder](strategy, cache)
+	joinBuilder.SetParent(sb)
+	sb.JoinQueryBuilder = *joinBuilder
 
 	return sb
 }
@@ -74,62 +75,6 @@ func (qb *SelectBuilder) Avg(column string) *SelectBuilder {
 
 func (qb *SelectBuilder) Distinct(column ...string) *SelectBuilder {
 	qb.builder.Distinct(column...)
-	return qb
-}
-
-// Join
-func (qb *SelectBuilder) Join(table, my, condition, target string) *SelectBuilder {
-	qb.joinQueryBuilder.Join(table, my, condition, target)
-
-	return qb
-}
-
-func (qb *SelectBuilder) LeftJoin(table, my, condition, target string) *SelectBuilder {
-	qb.joinQueryBuilder.LeftJoin(table, my, condition, target)
-
-	return qb
-}
-
-func (qb *SelectBuilder) RightJoin(table, my, condition, target string) *SelectBuilder {
-	qb.joinQueryBuilder.RightJoin(table, my, condition, target)
-
-	return qb
-}
-
-func (qb *SelectBuilder) CrossJoin(table, my, condition, target string) *SelectBuilder {
-	qb.joinQueryBuilder.CrossJoin(table)
-
-	return qb
-}
-
-func (qb *SelectBuilder) JoinQuery(table string, fn func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder) *SelectBuilder {
-	qb.joinQueryBuilder.JoinQuery(table, fn)
-
-	return qb
-}
-
-func (qb *SelectBuilder) JoinSub(q *SelectBuilder, alias, my, condition, target string) *SelectBuilder {
-	qb.joinQueryBuilder.JoinSub(q, alias, my, condition, target)
-	return qb
-}
-
-func (qb *SelectBuilder) LeftJoinSub(q *SelectBuilder, alias, my, condition, target string) *SelectBuilder {
-	qb.joinQueryBuilder.LeftJoinSub(q, alias, my, condition, target)
-	return qb
-}
-
-func (qb *SelectBuilder) RightJoinSub(q *SelectBuilder, alias, my, condition, target string) *SelectBuilder {
-	qb.joinQueryBuilder.RightJoinSub(q, alias, my, condition, target)
-	return qb
-}
-
-func (qb *SelectBuilder) JoinLateral(q *SelectBuilder, alias string) *SelectBuilder {
-	qb.joinQueryBuilder.JoinLateral(q, alias)
-	return qb
-}
-
-func (qb *SelectBuilder) LeftJoinLateral(q *SelectBuilder, alias string) *SelectBuilder {
-	qb.joinQueryBuilder.LeftJoinLateral(q, alias)
 	return qb
 }
 
@@ -204,9 +149,8 @@ func (qb *SelectBuilder) LockForUpdate() *SelectBuilder {
 }
 
 func (qb *SelectBuilder) Build() (string, []interface{}) {
-	//	qb.builder.SetWhereBuilder(qb.whereQueryBuilder.builder)
 	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
-	qb.builder.SetJoinBuilder(qb.joinQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
 	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	return qb.builder.Build()
 }
