@@ -32,6 +32,10 @@ type JoinBuilderStrategy interface {
 	Join(sb *strings.Builder, joins *structs.Joins) []interface{}
 }
 
+type UnionBuilderStrategy interface {
+	Union(sb *strings.Builder, union *structs.Union, number int) []interface{}
+}
+
 type LimitBuilderStrategy interface {
 	Limit(sb *strings.Builder, limit *structs.Limit)
 }
@@ -56,6 +60,7 @@ type DeleteBuilderStrategy interface {
 }
 
 type BaseQueryBuilder struct {
+	UnionBaseBuilder
 	SelectBaseBuilder
 	FromBaseBuilder
 	WhereBaseBuilder
@@ -79,7 +84,7 @@ func (BaseQueryBuilder) Lock(lock *structs.Lock) string {
 }
 
 // Build builds the query.
-func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []interface{}) {
+func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
 	sb := &strings.Builder{}
 
 	// grow the string builder based on the length of the cache key
@@ -91,6 +96,8 @@ func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []in
 		sb.Grow(consts.StringBuffer_Long_Query_Grow)
 	}
 
+	values := make([]interface{}, 0)
+
 	// SELECT
 	sb.WriteString("SELECT ")
 	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
@@ -98,7 +105,7 @@ func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []in
 	// FROM
 	sb.WriteString(" ")
 	m.From(sb, q.Table.Name)
-	values := colValues
+	values = append(values, colValues...)
 
 	// JOIN
 	joinValues := m.Join(sb, q.Joins)
@@ -124,6 +131,9 @@ func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []in
 	// LOCK
 	lock := m.Lock(q.Lock)
 	sb.WriteString(lock)
+
+	// UNION
+	m.Union(sb, unions, number)
 
 	query := sb.String()
 	sb.Reset()

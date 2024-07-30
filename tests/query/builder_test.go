@@ -319,6 +319,22 @@ func TestBuilder(t *testing.T) {
 			nil,
 		},
 		{
+			"Union",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Union(query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")).Where("age", ">", 18)
+			},
+			"SELECT id FROM users WHERE name = ? UNION SELECT  FROM  WHERE age > ?",
+			[]interface{}{"John", 18},
+		},
+		{
+			"Union_All",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).UnionAll(query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")).Where("age", ">", 18)
+			},
+			"SELECT id FROM users WHERE name = ? UNION ALL SELECT  FROM  WHERE age > ?",
+			[]interface{}{"John", 18},
+		},
+		{
 			"Complex_Query",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).

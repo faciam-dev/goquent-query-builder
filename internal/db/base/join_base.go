@@ -47,7 +47,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 
 		if joins.JoinClause.Query != nil {
 			b := &BaseQueryBuilder{}
-			sqQuery, sqValues := b.Build("", joins.JoinClause.Query)
+			sqQuery, sqValues := b.Build("", joins.JoinClause.Query, 0, nil)
 			targetName = "(" + sqQuery + ")" + " AS " + targetName
 			values = append(values, sqValues...)
 		}
@@ -132,7 +132,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 
 		if join.Query != nil {
 			b := &BaseQueryBuilder{}
-			sqQuery, sqValues := b.Build("", join.Query)
+			sqQuery, sqValues := b.Build("", join.Query, 0, nil)
 			targetName = "(" + sqQuery + ")" + " AS " + targetName
 			values = append(values, sqValues...)
 		}
