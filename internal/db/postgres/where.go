@@ -56,6 +56,8 @@ func (wb *WherePostgreSQLBuilder) Where(sb *strings.Builder, wg *[]structs.Where
 				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, c)...)
 			case c.FullText != nil:
 				values = append(values, wb.ProcessFullText(sb, c)...)
+			case c.Function != "":
+				values = append(values, wb.ProcessFunction(sb, c)...)
 			default:
 				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, c)...)
 			}

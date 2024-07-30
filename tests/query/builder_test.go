@@ -904,6 +904,46 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"SELECT  FROM  WHERE city = ? OR (to_tsvector(?, name) || to_tsvector(?, note)) @@ plainto_tsquery(?, ?)",
 			[]interface{}{"New York", "english", "english", "english", "John Doe"},
 		},
+		{
+			"WhereDate",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereDate("created_at", "=", "2021-01-01")
+			},
+			"SELECT  FROM  WHERE DATE(created_at) = ?",
+			[]interface{}{"2021-01-01"},
+		},
+		{
+			"WhereTime",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereTime("created_at", "=", "12:00:00")
+			},
+			"SELECT  FROM  WHERE TIME(created_at) = ?",
+			[]interface{}{"12:00:00"},
+		},
+		{
+			"WhereDay",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereDay("created_at", "=", "1")
+			},
+			"SELECT  FROM  WHERE DAY(created_at) = ?",
+			[]interface{}{1},
+		},
+		{
+			"WhereMonth",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereMonth("created_at", "=", "1")
+			},
+			"SELECT  FROM  WHERE MONTH(created_at) = ?",
+			[]interface{}{1},
+		},
+		{
+			"WhereYear",
+			func() *query.Builder {
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereYear("created_at", "=", "2021")
+			},
+			"SELECT  FROM  WHERE YEAR(created_at) = ?",
+			[]interface{}{2021},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
