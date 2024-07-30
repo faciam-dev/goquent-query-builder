@@ -45,7 +45,7 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 }
 
 // Build builds the query.
-func (m MySQLQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []interface{}) {
+func (m MySQLQueryBuilder) Build(cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
 	sb := &strings.Builder{}
 
 	// grow the string builder based on the length of the cache key
@@ -89,6 +89,9 @@ func (m MySQLQueryBuilder) Build(cacheKey string, q *structs.Query) (string, []i
 	// LOCK
 	lock := m.Lock(q.Lock)
 	sb.WriteString(lock)
+
+	// UNION
+	m.Union(sb, unions, number)
 
 	query := sb.String()
 	sb.Reset()

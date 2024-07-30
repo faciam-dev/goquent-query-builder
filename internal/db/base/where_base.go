@@ -124,7 +124,7 @@ func (wb *WhereBaseBuilder) GetConditionOperator(c structs.Where) string {
 func (wb *WhereBaseBuilder) ProcessSubQuery(sb *strings.Builder, c structs.Where) []interface{} {
 	condQuery := c.Column + " " + c.Condition
 	b := &BaseQueryBuilder{}
-	sqQuery, sqValues := b.Build("", c.Query)
+	sqQuery, sqValues := b.Build("", c.Query, 0, nil)
 
 	sb.WriteString(condQuery + " (" + sqQuery + ")")
 	return sqValues
@@ -133,7 +133,7 @@ func (wb *WhereBaseBuilder) ProcessSubQuery(sb *strings.Builder, c structs.Where
 func (wb *WhereBaseBuilder) ProcessExistsQuery(sb *strings.Builder, c structs.Where) []interface{} {
 	condQuery := c.Condition
 	b := &BaseQueryBuilder{}
-	sqQuery, sqValues := b.Build("", c.Exists.Query)
+	sqQuery, sqValues := b.Build("", c.Exists.Query, 0, nil)
 
 	sb.WriteString(condQuery + " (" + sqQuery + ")")
 	return sqValues

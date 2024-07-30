@@ -71,12 +71,18 @@ type Query struct {
 	Lock            *Lock
 }
 
+type Union struct {
+	Query *Query
+	IsAll bool
+}
+
 type SelectQuery struct {
 	Table    string
 	Columns  *[]Column
 	Limit    *Limit
 	Offset   *Offset
 	SubQuery *[]Query
+	Union    *[]Union
 	Group    *GroupBy
 	Lock     *Lock
 }

@@ -1,8 +1,6 @@
 package query
 
 import (
-	"log"
-	"reflect"
 	"time"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
@@ -256,8 +254,8 @@ func (b *WhereBuilder[T]) addWhereIn(column string, operator int, condition stri
 	case *Builder:
 		return b.addWhereInSubQuery(column, operator, condition, casted)
 	default:
-		log.Default().Printf("type: %T\n", reflect.TypeOf(values))
-		log.Default().Println("values: ", values)
+		//log.Default().Printf("type: %T\n", reflect.TypeOf(values))
+		//log.Default().Println("values: ", values)
 		//panic("Invalid type for values")
 	}
 
@@ -590,7 +588,7 @@ func (b *WhereBuilder[T]) addWhereFullText(columns []string, search string, opti
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {
-	cacheKey := generateCacheKey(sq)
+	cacheKey := generateCacheKey(&structs.Union{Query: sq})
 
 	if cachedQuery, found := b.cache.Get(cacheKey); found {
 		values := []interface{}{}
@@ -598,7 +596,7 @@ func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {
 		return cachedQuery, values
 	}
 
-	query, values := b.dbBuilder.Build(cacheKey, sq)
+	query, values := b.dbBuilder.Build(cacheKey, sq, 0, nil)
 
 	b.cache.Set(cacheKey, query)
 

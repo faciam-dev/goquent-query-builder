@@ -12,12 +12,13 @@ type SelectBuilder struct {
 	JoinQueryBuilder[SelectBuilder, query.Builder]
 	builder             *query.Builder
 	orderByQueryBuilder *OrderByQueryBuilder
+	Queries             []*structs.Query
 }
 
 func NewSelectBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *SelectBuilder {
 	sb := &SelectBuilder{
-		WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
-		builder:           query.NewBuilder(strategy, cache),
+		//WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
+		builder: query.NewBuilder(strategy, cache),
 		orderByQueryBuilder: &OrderByQueryBuilder{
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
@@ -75,6 +76,18 @@ func (qb *SelectBuilder) Avg(column string) *SelectBuilder {
 
 func (qb *SelectBuilder) Distinct(column ...string) *SelectBuilder {
 	qb.builder.Distinct(column...)
+	return qb
+}
+
+func (qb *SelectBuilder) Union(sb *SelectBuilder) *SelectBuilder {
+	qb.Queries = append(qb.Queries, sb.GetQuery())
+	qb.builder.Union(sb.builder)
+	return qb
+}
+
+func (qb *SelectBuilder) UnionAll(sb *SelectBuilder) *SelectBuilder {
+	qb.Queries = append(qb.Queries, sb.GetQuery())
+	qb.builder.UnionAll(sb.builder)
 	return qb
 }
 

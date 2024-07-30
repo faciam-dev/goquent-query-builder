@@ -46,6 +46,7 @@ func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
 			Group:    &structs.GroupBy{},
 			Offset:   &structs.Offset{},
 			Lock:     &structs.Lock{},
+			Union:    &[]structs.Union{},
 		},
 		selectValues:  []interface{}{},
 		groupByValues: []interface{}{},
@@ -178,6 +179,24 @@ out:
 	return b
 }
 
+func (b *Builder) Union(sb *Builder) *Builder {
+	*b.selectQuery.Union = append(*b.selectQuery.Union, structs.Union{
+		Query: sb.GetQuery(),
+		IsAll: false,
+	})
+
+	return b
+}
+
+func (b *Builder) UnionAll(sb *Builder) *Builder {
+	*b.selectQuery.Union = append(*b.selectQuery.Union, structs.Union{
+		Query: sb.GetQuery(),
+		IsAll: true,
+	})
+
+	return b
+}
+
 // OrderBy adds an ORDER BY clause.
 func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
 	b.orderByBuilder.OrderBy(column, ascDesc)
@@ -273,22 +292,43 @@ func (b *Builder) LockForUpdate() *Builder {
 // Build generates the SQL query string and parameter values based on the query builder's current state.
 // It returns the generated query string and a slice of parameter values.
 func (b *Builder) Build() (string, []interface{}) {
+	// last query to be built and aad to the union
 	b.buildQuery()
 
-	cacheKey := generateCacheKey(b.query)
+	*b.selectQuery.Union = append(*b.selectQuery.Union, structs.Union{
+		Query: b.query,
+		IsAll: false,
+	})
 
-	if cachedQuery, found := b.cache.Get(cacheKey); found {
-		values := make([]interface{}, 0, len(b.selectValues)+len(b.JoinBuilder.joinValues)+len(b.WhereBuilder.whereValues)+len(b.groupByValues))
-		values = append(values, b.selectValues...)
-		values = append(values, b.JoinBuilder.joinValues...)
-		values = append(values, b.WhereBuilder.whereValues...)
-		values = append(values, b.groupByValues...)
-		return cachedQuery, values
+	sb := &strings.Builder{}
+	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo check if this is correct
+
+	query := ""
+	values := make([]interface{}, 0)
+	for i, u := range *b.selectQuery.Union {
+		cacheKey := generateCacheKey(&u)
+		if cachedQuery, found := b.cache.Get(cacheKey); found {
+			vals := make([]interface{}, 0, len(b.selectValues)+len(b.JoinBuilder.joinValues)+len(b.WhereBuilder.whereValues)+len(b.groupByValues))
+			vals = append(vals, b.selectValues...)
+			vals = append(vals, b.JoinBuilder.joinValues...)
+			vals = append(vals, b.WhereBuilder.whereValues...)
+			vals = append(vals, b.groupByValues...)
+			sb.WriteString(cachedQuery)
+			values = append(values, vals...)
+			continue
+		} else {
+			q, v := b.dbBuilder.Build(cacheKey, u.Query, i, b.selectQuery.Union)
+
+			b.cache.Set(cacheKey, q)
+
+			sb.WriteString(q)
+			values = append(values, v...)
+		}
 	}
 
-	query, values := b.dbBuilder.Build(cacheKey, b.query)
+	*b.selectQuery.Union = []structs.Union{}
 
-	b.cache.Set(cacheKey, query)
+	query = sb.String()
 
 	return query, values
 }
@@ -323,9 +363,15 @@ func (b *Builder) buildQuery() {
 
 }
 
-func generateCacheKey(q *structs.Query) string {
+func generateCacheKey(u *structs.Union) string {
 	var sb strings.Builder
 	sb.Grow(consts.StringBuffer_CacheKey_Grow)
+
+	q := u.Query
+	// Union key
+	//sb.WriteString(fmt.Sprintf("%d", i))
+	sb.WriteString(fmt.Sprintf("%t", u.IsAll))
+	sb.WriteString("|")
 
 	// Table key
 	sb.WriteString(q.Table.Name)
@@ -399,7 +445,7 @@ func generateCacheKey(q *structs.Query) string {
 			sb.WriteString(w.Condition)
 			sb.WriteString(",")
 			if w.Query != nil {
-				sb.WriteString(generateCacheKey(w.Query))
+				sb.WriteString(generateCacheKey(&structs.Union{Query: w.Query}))
 				sb.WriteString(",")
 			}
 		}
@@ -411,5 +457,6 @@ func generateCacheKey(q *structs.Query) string {
 }
 
 func (b *Builder) GetQuery() *structs.Query {
+	b.buildQuery()
 	return b.query
 }
