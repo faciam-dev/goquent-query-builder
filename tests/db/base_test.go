@@ -561,6 +561,31 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"WhereDate",
+			"Where",
+			structs.Query{
+				ConditionGroups: &[]structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Function:  "DATE",
+								Column:    "created_at",
+								Condition: "=",
+								Value:     []interface{}{"2021-01-01"},
+								Operator:  consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE DATE(created_at) = ?",
+				Values:   []interface{}{"2021-01-01"},
+			},
+		},
+		{
 			"Join",
 			"Join",
 			structs.Query{

@@ -55,6 +55,8 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup)
 				values = append(values, wb.ProcessBetweenCondition(sb, c)...)
 			case c.FullText != nil:
 				values = append(values, wb.ProcessFullText(sb, c)...)
+			case c.Function != "":
+				values = append(values, wb.ProcessFunction(sb, c)...)
 			default:
 				values = append(values, wb.ProcessRawCondition(sb, c)...)
 			}
@@ -194,5 +196,34 @@ func (wb *WhereBaseBuilder) ProcessFullText(sb *strings.Builder, c structs.Where
 
 	// Implement FullText
 
+	return values
+}
+
+func (wb *WhereBaseBuilder) ProcessFunction(sb *strings.Builder, c structs.Where) []interface{} {
+	wsb := strings.Builder{}
+	wsb.Grow(consts.StringBuffer_Where_Grow)
+
+	wsb.WriteString(c.Function + "(" + c.Column + ") " + c.Condition)
+	if c.ValueColumn != "" {
+		wsb.WriteString(" " + c.ValueColumn)
+	} else if c.Value != nil {
+		if len(c.Value) > 1 {
+			wsb.WriteString(" (")
+			for k := 0; k < len(c.Value); k++ {
+				if k > 0 {
+					wsb.WriteString(", ")
+				}
+				wsb.WriteString("?")
+			}
+			wsb.WriteString(")")
+		} else {
+			wsb.WriteString(" ?")
+		}
+	}
+
+	condQuery := wsb.String()
+	values := c.Value
+
+	sb.WriteString(condQuery)
 	return values
 }

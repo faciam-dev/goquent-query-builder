@@ -174,6 +174,20 @@ func TestUpdateBuilder(t *testing.T) {
 			[]interface{}{31, "Joe"},
 		},
 		{
+			"Update_where_Date",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					Table("users").
+					WhereDate("created_at", "=", "2021-01-01").
+					Update(map[string]interface{}{
+						"name": "Joe",
+						"age":  31,
+					})
+			},
+			"UPDATE users SET age = ?, name = ? WHERE DATE(created_at) = ?",
+			[]interface{}{31, "Joe", "2021-01-01"},
+		},
+		{
 			"Update_JOINS",
 			func() *query.UpdateBuilder {
 				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).

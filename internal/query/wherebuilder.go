@@ -585,6 +585,126 @@ func (b *WhereBuilder[T]) addWhereFullText(columns []string, search string, opti
 	return b.parent
 }
 
+// WhereDate adds a where date clause with AND operator
+func (b *WhereBuilder[T]) WhereDate(column string, condition string, value string) *T {
+	return b.addWhereDate(column, condition, value, consts.LogicalOperator_AND)
+}
+
+// OrWhereDate adds a where date clause with OR operator
+func (b *WhereBuilder[T]) OrWhereDate(column string, condition string, value string) *T {
+	return b.addWhereDate(column, condition, value, consts.LogicalOperator_OR)
+}
+
+func (b *WhereBuilder[T]) addWhereDate(column string, condition string, value string, operator int) *T {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Function:  "DATE",
+		Condition: condition,
+		Value:     []interface{}{value},
+		Operator:  operator,
+	})
+
+	b.whereValues = append(b.whereValues, value)
+
+	return b.parent
+}
+
+// WhereMonth adds a where month clause with AND operator
+func (b *WhereBuilder[T]) WhereMonth(column string, condition string, value string) *T {
+	return b.addWhereMonth(column, condition, value, consts.LogicalOperator_AND)
+}
+
+// OrWhereMonth adds a where month clause with OR operator
+func (b *WhereBuilder[T]) OrWhereMonth(column string, condition string, value string) *T {
+	return b.addWhereMonth(column, condition, value, consts.LogicalOperator_OR)
+}
+
+func (b *WhereBuilder[T]) addWhereMonth(column string, condition string, value string, operator int) *T {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Function:  "MONTH",
+		Condition: condition,
+		Value:     []interface{}{value},
+		Operator:  operator,
+	})
+
+	b.whereValues = append(b.whereValues, value)
+
+	return b.parent
+}
+
+// WhereDay adds a where day clause with AND operator
+func (b *WhereBuilder[T]) WhereDay(column string, condition string, value string) *T {
+	return b.addWhereDay(column, condition, value, consts.LogicalOperator_AND)
+}
+
+// OrWhereDay adds a where day clause with OR operator
+func (b *WhereBuilder[T]) OrWhereDay(column string, condition string, value string) *T {
+	return b.addWhereDay(column, condition, value, consts.LogicalOperator_OR)
+}
+
+func (b *WhereBuilder[T]) addWhereDay(column string, condition string, value string, operator int) *T {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Function:  "DAY",
+		Condition: condition,
+		Value:     []interface{}{value},
+		Operator:  operator,
+	})
+
+	b.whereValues = append(b.whereValues, value)
+
+	return b.parent
+}
+
+// WhereYear adds a where year clause with AND operator
+func (b *WhereBuilder[T]) WhereYear(column string, condition string, value string) *T {
+	return b.addWhereYear(column, condition, value, consts.LogicalOperator_AND)
+}
+
+// OrWhereYear adds a where year clause with OR operator
+func (b *WhereBuilder[T]) OrWhereYear(column string, condition string, value string) *T {
+	return b.addWhereYear(column, condition, value, consts.LogicalOperator_OR)
+}
+
+func (b *WhereBuilder[T]) addWhereYear(column string, condition string, value string, operator int) *T {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Function:  "YEAR",
+		Condition: condition,
+		Value:     []interface{}{value},
+		Operator:  operator,
+	})
+
+	b.whereValues = append(b.whereValues, value)
+
+	return b.parent
+}
+
+// WhereTime adds a where time clause with AND operator
+func (b *WhereBuilder[T]) WhereTime(column string, condition string, value string) *T {
+	return b.addWhereTime(column, condition, value, consts.LogicalOperator_AND)
+}
+
+// OrWhereTime adds a where time clause with OR operator
+func (b *WhereBuilder[T]) OrWhereTime(column string, condition string, value string) *T {
+	return b.addWhereTime(column, condition, value, consts.LogicalOperator_OR)
+}
+
+func (b *WhereBuilder[T]) addWhereTime(column string, condition string, value string, operator int) *T {
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:    column,
+		Function:  "TIME",
+		Condition: condition,
+		Value:     []interface{}{value},
+		Operator:  operator,
+	})
+
+	b.whereValues = append(b.whereValues, value)
+
+	return b.parent
+}
+
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {

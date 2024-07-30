@@ -23,6 +23,7 @@ type Where struct {
 	Exists      *Exists
 	FullText    *FullText
 	Raw         string
+	Function    string
 }
 
 type WhereBetween struct {
