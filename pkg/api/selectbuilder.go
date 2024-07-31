@@ -80,12 +80,18 @@ func (qb *SelectBuilder) Distinct(column ...string) *SelectBuilder {
 }
 
 func (qb *SelectBuilder) Union(sb *SelectBuilder) *SelectBuilder {
+	sb.builder.SetWhereBuilder(sb.WhereQueryBuilder.builder)
+	sb.builder.SetJoinBuilder(sb.JoinQueryBuilder.builder)
+	sb.builder.SetOrderByBuilder(sb.orderByQueryBuilder.builder)
 	qb.Queries = append(qb.Queries, sb.GetQuery())
 	qb.builder.Union(sb.builder)
 	return qb
 }
 
 func (qb *SelectBuilder) UnionAll(sb *SelectBuilder) *SelectBuilder {
+	sb.builder.SetWhereBuilder(sb.WhereQueryBuilder.builder)
+	sb.builder.SetJoinBuilder(sb.JoinQueryBuilder.builder)
+	sb.builder.SetOrderByBuilder(sb.orderByQueryBuilder.builder)
 	qb.Queries = append(qb.Queries, sb.GetQuery())
 	qb.builder.UnionAll(sb.builder)
 	return qb
@@ -161,7 +167,7 @@ func (qb *SelectBuilder) LockForUpdate() *SelectBuilder {
 	return qb
 }
 
-func (qb *SelectBuilder) Build() (string, []interface{}) {
+func (qb *SelectBuilder) Build() (string, []interface{}, error) {
 	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
 	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
 	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
@@ -170,4 +176,22 @@ func (qb *SelectBuilder) Build() (string, []interface{}) {
 
 func (qb *SelectBuilder) GetQuery() *structs.Query {
 	return qb.builder.GetQuery()
+}
+
+func (qb *SelectBuilder) Dump() (string, []interface{}, error) {
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
+	b := query.NewDebugBuilder[*query.Builder, SelectBuilder](qb.builder)
+
+	return b.Dump()
+}
+
+func (qb *SelectBuilder) RawSql() (string, error) {
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
+	b := query.NewDebugBuilder[*query.Builder, SelectBuilder](qb.builder)
+
+	return b.RawSql()
 }

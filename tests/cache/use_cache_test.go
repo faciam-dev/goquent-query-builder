@@ -52,7 +52,7 @@ func TestUseCacheTest(t *testing.T) {
 			t.Parallel()
 
 			builder := tt.setup()
-			query, values := builder.Build()
+			query, values, _ := builder.Build()
 
 			if query != tt.expectedQuery {
 				t.Errorf("expected '%s' but got '%s'", tt.expectedQuery, query)
@@ -69,7 +69,7 @@ func TestUseCacheTest(t *testing.T) {
 			}
 			time.Sleep(500 * time.Millisecond)
 
-			query, values = builder.Build()
+			query, values, _ = builder.Build()
 			if query != tt.expectedQuery {
 				t.Errorf("(cache error) expected '%s' but got '%s'", tt.expectedQuery, query)
 			}

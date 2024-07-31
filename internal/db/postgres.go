@@ -73,12 +73,12 @@ func (m PostgreSQLQueryBuilder) Build(cacheKey string, q *structs.Query, number 
 	whereValues := m.whereBuilderStrategy.Where(sb, q.ConditionGroups)
 	values = append(values, whereValues...)
 
-	// ORDER BY
-	m.orderByBuilderStrategy.OrderBy(sb, q.Order)
-
 	// GROUP BY / HAVING
 	groupByValues := m.groupByBuilderStrategy.GroupBy(sb, q.Group)
 	values = append(values, groupByValues...)
+
+	// ORDER BY
+	m.orderByBuilderStrategy.OrderBy(sb, q.Order)
 
 	// LIMIT
 	m.limitBuilderStrategy.Limit(sb, q.Limit)

@@ -99,6 +99,8 @@ func (b *WhereBuilder[T]) whereOrOrWhereQuery(column string, condition string, q
 		IsDummyGroup: true,
 	})
 
+	*q.WhereBuilder.query.Conditions = []structs.Where{}
+
 	sq := &structs.Query{
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
@@ -255,6 +257,7 @@ func (b *WhereBuilder[T]) addWhereIn(column string, operator int, condition stri
 		return b.addWhereInSubQuery(column, operator, condition, casted)
 	default:
 		//log.Default().Printf("type: %T\n", reflect.TypeOf(values))
+		//log.Default().Println("values type: ", reflect.TypeOf(values).String())
 		//log.Default().Println("values: ", values)
 		//panic("Invalid type for values")
 	}
@@ -288,6 +291,7 @@ func (b *WhereBuilder[T]) addWhereInSubQuery(column string, operator int, condit
 		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
+	*q.WhereBuilder.query.Conditions = []structs.Where{}
 
 	sq := &structs.Query{
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
@@ -494,6 +498,8 @@ func (b *WhereBuilder[T]) addWhereExists(fn func(aq *Builder) *Builder, conditio
 		IsDummyGroup: true,
 	})
 
+	*q.WhereBuilder.query.Conditions = []structs.Where{}
+
 	sq := &structs.Query{
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
@@ -542,6 +548,8 @@ func (b *WhereBuilder[T]) addWhereExistsQuery(q *Builder, condition string, oper
 		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
+
+	*q.WhereBuilder.query.Conditions = []structs.Where{}
 
 	sq := &structs.Query{
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
@@ -708,6 +716,7 @@ func (b *WhereBuilder[T]) addWhereTime(column string, condition string, value st
 // WhereRawGroup adds a raw where group with AND operator
 // BuildSq builds the query and returns the query string and values
 func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {
+
 	cacheKey := generateCacheKey(&structs.Union{Query: sq})
 
 	if cachedQuery, found := b.cache.Get(cacheKey); found {

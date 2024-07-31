@@ -115,12 +115,12 @@ func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query, number int, u
 	whereValues := m.Where(sb, q.ConditionGroups)
 	values = append(values, whereValues...)
 
-	// ORDER BY
-	m.OrderBy(sb, q.Order)
-
 	// GROUP BY / HAVING
 	groupByValues := m.GroupBy(sb, q.Group)
 	values = append(values, groupByValues...)
+
+	// ORDER BY
+	m.OrderBy(sb, q.Order)
 
 	// LIMIT
 	m.Limit(sb, q.Limit)
