@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	// データベースごとのクエリビルダーストラテジーを選択
+	// Initialize database strategy
 	dbStrategy := db.NewMySQLQueryBuilder()
 
 	asyncCache := cache.NewAsyncQueryCache(100)
@@ -24,7 +24,12 @@ func main() {
 		Where("profiles.age", ">", 18).
 		OrderBy("users.name", "ASC")
 
-	query, values := qb.Build()
+	query, values, err := qb.Build()
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
@@ -32,7 +37,13 @@ func main() {
 	})
 
 	// use cache
-	query, values = qb.Build()
+	query, values, err = qb.Build()
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
 		time.Sleep(2 * time.Second) // Simulate query execution

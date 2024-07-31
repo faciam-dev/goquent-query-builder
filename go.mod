@@ -1,3 +1,3 @@
 module github.com/faciam-dev/goquent-query-builder
 
-go 1.22.3
+go 1.22.5
