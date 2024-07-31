@@ -121,25 +121,57 @@ func (wb *WhereQueryBuilder[T, C]) WhereAll(columns []string, condition string, 
 
 // OrWhereAny is a function that allows you to add a or where any condition
 func (wb *WhereQueryBuilder[T, C]) WhereIn(column string, values interface{}) *T {
-	wb.builder.WhereIn(column, values)
+	switch casted := values.(type) {
+	case *SelectBuilder:
+		casted.builder.SetWhereBuilder(casted.WhereQueryBuilder.builder)
+		casted.builder.SetJoinBuilder(casted.JoinQueryBuilder.builder)
+		casted.builder.SetOrderByBuilder(casted.orderByQueryBuilder.builder)
+		wb.builder.WhereInSubQuery(column, casted.builder)
+	default:
+		wb.builder.WhereIn(column, values)
+	}
 	return wb.parent
 }
 
 // OrWhereAll is a function that allows you to add a or where all condition
 func (wb *WhereQueryBuilder[T, C]) WhereNotIn(column string, values interface{}) *T {
-	wb.builder.WhereNotIn(column, values)
+	switch casted := values.(type) {
+	case *SelectBuilder:
+		casted.builder.SetWhereBuilder(casted.WhereQueryBuilder.builder)
+		casted.builder.SetJoinBuilder(casted.JoinQueryBuilder.builder)
+		casted.builder.SetOrderByBuilder(casted.orderByQueryBuilder.builder)
+		wb.builder.WhereNotInSubQuery(column, casted.builder)
+	default:
+		wb.builder.WhereNotIn(column, values)
+	}
 	return wb.parent
 }
 
 // OrWhereIn is a function that allows you to add a or where in condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereIn(column string, values interface{}) *T {
-	wb.builder.OrWhereIn(column, values)
+	switch casted := values.(type) {
+	case *SelectBuilder:
+		casted.builder.SetWhereBuilder(casted.WhereQueryBuilder.builder)
+		casted.builder.SetJoinBuilder(casted.JoinQueryBuilder.builder)
+		casted.builder.SetOrderByBuilder(casted.orderByQueryBuilder.builder)
+		wb.builder.OrWhereInSubQuery(column, casted.builder)
+	default:
+		wb.builder.OrWhereIn(column, values)
+	}
 	return wb.parent
 }
 
 // OrWhereNotIn is a function that allows you to add a or where not in condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereNotIn(column string, values interface{}) *T {
-	wb.builder.OrWhereNotIn(column, values)
+	switch casted := values.(type) {
+	case *SelectBuilder:
+		casted.builder.SetWhereBuilder(casted.WhereQueryBuilder.builder)
+		casted.builder.SetJoinBuilder(casted.JoinQueryBuilder.builder)
+		casted.builder.SetOrderByBuilder(casted.orderByQueryBuilder.builder)
+		wb.builder.OrWhereNotInSubQuery(column, casted.builder)
+	default:
+		wb.builder.OrWhereNotIn(column, values)
+	}
 	return wb.parent
 }
 

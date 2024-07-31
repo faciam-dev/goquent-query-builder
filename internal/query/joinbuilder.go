@@ -144,6 +144,8 @@ func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *Builder, alias, my, c
 		IsDummyGroup: true,
 	})
 
+	*q.WhereBuilder.query.Conditions = []structs.Where{}
+
 	sq := &structs.Query{
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,
 		Table:           structs.Table{Name: q.selectQuery.Table},
@@ -186,6 +188,8 @@ func (b *JoinBuilder[T]) joinLateralCommon(joinType string, q *Builder, alias st
 		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
+
+	*q.WhereBuilder.query.Conditions = []structs.Where{}
 
 	sq := &structs.Query{
 		ConditionGroups: q.WhereBuilder.query.ConditionGroups,

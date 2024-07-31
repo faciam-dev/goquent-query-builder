@@ -20,6 +20,7 @@ type Builder struct {
 	WhereBuilder[Builder]
 	JoinBuilder[Builder]
 	orderByBuilder *OrderByBuilder
+	BaseBuilder
 }
 
 func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
@@ -291,8 +292,8 @@ func (b *Builder) LockForUpdate() *Builder {
 
 // Build generates the SQL query string and parameter values based on the query builder's current state.
 // It returns the generated query string and a slice of parameter values.
-func (b *Builder) Build() (string, []interface{}) {
-	// last query to be built and aad to the union
+func (b *Builder) Build() (string, []interface{}, error) {
+	// last query to be built and add to the union
 	b.buildQuery()
 
 	*b.selectQuery.Union = append(*b.selectQuery.Union, structs.Union{
@@ -326,11 +327,12 @@ func (b *Builder) Build() (string, []interface{}) {
 		}
 	}
 
-	*b.selectQuery.Union = []structs.Union{}
+	// remove the last UNION
+	*b.selectQuery.Union = (*b.selectQuery.Union)[:len(*b.selectQuery.Union)-1]
 
 	query = sb.String()
 
-	return query, values
+	return query, values, nil
 }
 
 func (b *Builder) buildQuery() {
