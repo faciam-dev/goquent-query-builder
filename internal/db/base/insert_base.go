@@ -19,7 +19,7 @@ func NewInsertBaseBuilder(iq *structs.InsertQuery) *InsertBaseBuilder {
 }
 
 // Insert builds the INSERT query.
-func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}) {
+func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}, error) {
 	sb := &strings.Builder{}
 	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
 
@@ -60,11 +60,11 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 	query := sb.String()
 	sb.Reset()
 
-	return query, values
+	return query, values, nil
 }
 
 // InsertBatch builds the INSERT query for batch insert.
-func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interface{}) {
+func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interface{}, error) {
 	sb := &strings.Builder{}
 	sb.Grow(consts.StringBuffer_Long_Query_Grow) // todo: check if this is necessary
 
@@ -129,10 +129,10 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	query := sb.String()
 	sb.Reset()
 
-	return query, allValues
+	return query, allValues, nil
 }
 
-func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}) {
+func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}, error) {
 	sb := &strings.Builder{}
 	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
 
@@ -160,11 +160,11 @@ func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interf
 	query := sb.String()
 	sb.Reset()
 
-	return query, selectValues
+	return query, selectValues, nil
 }
 
 // BuildInsert builds the INSERT query.
-func (m InsertBaseBuilder) BuildInsert(q *structs.InsertQuery) (string, []interface{}) {
+func (m InsertBaseBuilder) BuildInsert(q *structs.InsertQuery) (string, []interface{}, error) {
 	if q.Query != nil {
 		return m.InsertUsing(q)
 	}

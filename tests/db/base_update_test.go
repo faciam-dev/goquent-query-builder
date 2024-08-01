@@ -216,7 +216,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 			var gotValues []interface{} = nil
 			switch tt.method {
 			case "Update":
-				got, gotValues = builder.BuildUpdate(tt.input)
+				got, gotValues, _ = builder.BuildUpdate(tt.input)
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, got)

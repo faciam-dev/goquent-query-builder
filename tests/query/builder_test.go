@@ -356,7 +356,7 @@ func TestBuilder(t *testing.T) {
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("status", "=", "active").
-					WhereQuery("user_id", "IN", sq).
+					WhereSubQuery("user_id", "IN", sq).
 					Where("age", ">", 18).
 					OrderBy("name", "ASC")
 			},
@@ -432,7 +432,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereQuery",
 			func() *query.Builder {
 				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereQuery("user_id", "IN", sq).Where("city", "=", "New York")
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).WhereSubQuery("user_id", "IN", sq).Where("city", "=", "New York")
 			},
 			"SELECT  FROM  WHERE user_id IN (SELECT id FROM users WHERE name = ?) AND city = ?",
 			[]interface{}{"John", "New York"},
@@ -441,7 +441,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"OrWhereQuery",
 			func() *query.Builder {
 				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereQuery("user_id", "IN", sq)
+				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Where("city", "=", "New York").OrWhereSubQuery("user_id", "IN", sq)
 			},
 			"SELECT  FROM  WHERE city = ? OR user_id IN (SELECT id FROM users WHERE name = ?)",
 			[]interface{}{"New York", "John"},
@@ -450,8 +450,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereGroup",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					WhereGroup(func(b *query.WhereBuilder[query.Builder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					})
 			},
 			"SELECT  FROM  WHERE (age > ? AND name = ?)",
@@ -461,8 +461,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereGroup_And",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					WhereGroup(func(b *query.WhereBuilder[query.Builder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					}).Where("city", "=", "New York")
 			},
 			"SELECT  FROM  WHERE (age > ? AND name = ?) AND city = ?",
@@ -473,8 +473,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Where("city", "=", "New York").
-					WhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					WhereGroup(func(b *query.WhereBuilder[query.Builder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					})
 			},
 			"SELECT  FROM  WHERE city = ? AND (age > ? AND name = ?)",
@@ -484,8 +484,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereGroup_Or",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					WhereGroup(func(b *query.WhereBuilder[query.Builder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					}).OrWhere("city", "=", "New York")
 			},
 			"SELECT  FROM  WHERE (age > ? AND name = ?) OR city = ?",
@@ -496,8 +496,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Where("city", "=", "New York").
-					OrWhereGroup(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					OrWhereGroup(func(b *query.WhereBuilder[query.Builder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					})
 			},
 			"SELECT  FROM  WHERE city = ? OR (age > ? AND name = ?)",
@@ -507,8 +507,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			"WhereNot",
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					WhereNot(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					WhereNot(func(b *query.WhereBuilder[query.Builder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					})
 			},
 			"SELECT  FROM  WHERE NOT (age > ? AND name = ?)",
@@ -519,8 +519,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 			func() *query.Builder {
 				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Where("city", "=", "New York").
-					OrWhereNot(func(b *query.WhereBuilder[query.Builder]) *query.WhereBuilder[query.Builder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					OrWhereNot(func(b *query.WhereBuilder[query.Builder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					})
 			},
 			"SELECT  FROM  WHERE city = ? OR NOT (age > ? AND name = ?)",

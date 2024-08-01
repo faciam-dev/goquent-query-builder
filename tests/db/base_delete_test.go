@@ -125,7 +125,7 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 			var gotValues []interface{} = nil
 			switch tt.method {
 			case "Delete":
-				got, gotValues = builder.BuildDelete(tt.input)
+				got, gotValues, _ = builder.BuildDelete(tt.input)
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, got)

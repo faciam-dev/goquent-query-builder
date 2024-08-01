@@ -50,8 +50,8 @@ func TestUpdateBuilder(t *testing.T) {
 					//					SetParent(query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100))).
 					Table("users").
 					Where("id", "!=", 1).
-					OrWhereNot(func(b *query.WhereBuilder[query.UpdateBuilder]) *query.WhereBuilder[query.UpdateBuilder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					OrWhereNot(func(b *query.WhereBuilder[query.UpdateBuilder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					}).
 					Update(map[string]interface{}{
 						"name": "Joe",
@@ -223,7 +223,7 @@ func TestUpdateBuilder(t *testing.T) {
 			t.Parallel()
 
 			builder := tt.setup()
-			query, values := builder.Build()
+			query, values, _ := builder.Build()
 
 			if query != tt.expectedQuery {
 				t.Errorf("expected '%s' but got '%s'", tt.expectedQuery, query)
