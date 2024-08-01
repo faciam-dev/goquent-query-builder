@@ -82,13 +82,13 @@ func (b *WhereBuilder[T]) OrWhereRaw(column string, value ...interface{}) *T {
 	return b.parent
 }
 
-// WhereQuery adds a where clause with AND operator
-func (b *WhereBuilder[T]) WhereQuery(column string, condition string, q *Builder) *T {
+// WhereSubQuery adds a where clause with AND operator
+func (b *WhereBuilder[T]) WhereSubQuery(column string, condition string, q *Builder) *T {
 	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_AND)
 }
 
-// OrWhereQuery adds a where clause with OR operator
-func (b *WhereBuilder[T]) OrWhereQuery(column string, condition string, q *Builder) *T {
+// OrWhereSubQuery adds a where clause with OR operator
+func (b *WhereBuilder[T]) OrWhereSubQuery(column string, condition string, q *Builder) *T {
 	return b.whereOrOrWhereQuery(column, condition, q, consts.LogicalOperator_OR)
 }
 
@@ -124,27 +124,35 @@ func (b *WhereBuilder[T]) whereOrOrWhereQuery(column string, condition string, q
 }
 
 // WhereGroup adds a where group with AND operator
-func (b *WhereBuilder[T]) WhereGroup(fn func(b *WhereBuilder[T]) *WhereBuilder[T]) *T {
-	return b.addWhereGroup(fn, consts.LogicalOperator_AND, false)
+func (b *WhereBuilder[T]) WhereGroup(fn func(b *WhereBuilder[T])) *T {
+	b.addWhereGroup(fn, consts.LogicalOperator_AND, false)
+
+	return b.parent
 }
 
 // OrWhereGroup adds a where group with OR operator
-func (b *WhereBuilder[T]) OrWhereGroup(fn func(b *WhereBuilder[T]) *WhereBuilder[T]) *T {
-	return b.addWhereGroup(fn, consts.LogicalOperator_OR, false)
+func (b *WhereBuilder[T]) OrWhereGroup(fn func(b *WhereBuilder[T])) *T {
+	b.addWhereGroup(fn, consts.LogicalOperator_OR, false)
+
+	return b.parent
 }
 
 // WhereNot adds a not where group with AND operator
-func (b *WhereBuilder[T]) WhereNot(fn func(b *WhereBuilder[T]) *WhereBuilder[T]) *T {
-	return b.addWhereGroup(fn, consts.LogicalOperator_AND, true)
+func (b *WhereBuilder[T]) WhereNot(fn func(b *WhereBuilder[T])) *T {
+	b.addWhereGroup(fn, consts.LogicalOperator_AND, true)
+
+	return b.parent
 }
 
 // OrWhereNot adds a not where group with OR operator
-func (b *WhereBuilder[T]) OrWhereNot(fn func(b *WhereBuilder[T]) *WhereBuilder[T]) *T {
-	return b.addWhereGroup(fn, consts.LogicalOperator_OR, true)
+func (b *WhereBuilder[T]) OrWhereNot(fn func(b *WhereBuilder[T])) *T {
+	b.addWhereGroup(fn, consts.LogicalOperator_OR, true)
+
+	return b.parent
 }
 
 // addWhereGroup adds a where group with the specified operator
-func (b *WhereBuilder[T]) addWhereGroup(fn func(b *WhereBuilder[T]) *WhereBuilder[T], operator int, isNot bool) *T {
+func (b *WhereBuilder[T]) addWhereGroup(fn func(b *WhereBuilder[T]), operator int, isNot bool) *T {
 	if len(*b.query.Conditions) > 0 {
 		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *b.query.Conditions,
@@ -155,15 +163,16 @@ func (b *WhereBuilder[T]) addWhereGroup(fn func(b *WhereBuilder[T]) *WhereBuilde
 		*b.query.Conditions = []structs.Where{}
 	}
 
-	cQ := fn(b)
+	fn(b)
 
 	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
-		Conditions: *cQ.query.Conditions,
+		Conditions: *b.query.Conditions,
 		Subgroups:  []structs.WhereGroup{},
 		Operator:   operator,
 		IsNot:      isNot,
 	})
-	*cQ.query.Conditions = []structs.Where{}
+	*b.query.Conditions = []structs.Where{}
+	//*cQ.query.Conditions = []structs.Where{}
 
 	return b.parent
 }

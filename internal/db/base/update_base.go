@@ -20,7 +20,7 @@ func (m *UpdateBaseBuilder) Update(q *structs.UpdateQuery) *UpdateBaseBuilder {
 }
 
 // UpdateBatch builds the Update query for Update.
-func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []interface{}) {
+func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []interface{}, error) {
 	sb := &strings.Builder{}
 	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
 
@@ -66,5 +66,5 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	query := sb.String()
 	sb.Reset()
 
-	return query, values
+	return query, values, nil
 }

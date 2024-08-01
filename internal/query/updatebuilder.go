@@ -61,7 +61,7 @@ func (b *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 	return b
 }
 
-func (u *UpdateBuilder) Build() (string, []interface{}) {
+func (u *UpdateBuilder) Build() (string, []interface{}, error) {
 	// If there are conditions, add them to the query
 	if len(*u.WhereBuilder.query.Conditions) > 0 {
 		*u.WhereBuilder.query.ConditionGroups = append(*u.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
@@ -77,8 +77,8 @@ func (u *UpdateBuilder) Build() (string, []interface{}) {
 	u.query.Query.Joins = u.JoinBuilder.Joins
 	u.query.Query.Order = u.orderByBuilder.Order
 
-	query, values := u.dbBuilder.BuildUpdate(u.query)
-	return query, values
+	query, values, err := u.dbBuilder.BuildUpdate(u.query)
+	return query, values, err
 }
 
 func (b *UpdateBuilder) OrderBy(column string, direction string) *UpdateBuilder {

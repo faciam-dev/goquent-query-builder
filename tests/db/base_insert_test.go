@@ -99,11 +99,11 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 			var gotValues []interface{} = nil
 			switch tt.method {
 			case "Insert":
-				got, gotValues = builder.Insert(tt.input)
+				got, gotValues, _ = builder.Insert(tt.input)
 			case "InsertBatch":
-				got, gotValues = builder.InsertBatch(tt.input)
+				got, gotValues, _ = builder.InsertBatch(tt.input)
 			case "InsertUsing":
-				got, gotValues = builder.InsertUsing(tt.input)
+				got, gotValues, _ = builder.InsertUsing(tt.input)
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, got)

@@ -45,18 +45,18 @@ type OffsetBuilderStrategy interface {
 }
 
 type InsertBuilderStrategy interface {
-	Insert(q *structs.InsertQuery) (string, []interface{})
-	BuildInsert(q *structs.InsertQuery) (string, []interface{})
+	Insert(q *structs.InsertQuery) (string, []interface{}, error)
+	BuildInsert(q *structs.InsertQuery) (string, []interface{}, error)
 }
 
 type UpdateBuilderStrategy interface {
 	Update(q *structs.UpdateQuery) *UpdateBaseBuilder
-	BuildUpdate(q *structs.UpdateQuery) (string, []interface{})
+	BuildUpdate(q *structs.UpdateQuery) (string, []interface{}, error)
 }
 
 type DeleteBuilderStrategy interface {
 	Delete(q *structs.DeleteQuery) *DeleteBaseBuilder
-	BuildDelete(q *structs.DeleteQuery) (string, []interface{})
+	BuildDelete(q *structs.DeleteQuery) (string, []interface{}, error)
 }
 
 type BaseQueryBuilder struct {

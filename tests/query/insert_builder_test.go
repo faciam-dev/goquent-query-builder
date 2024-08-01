@@ -67,7 +67,7 @@ func TestInsertBuilder(t *testing.T) {
 			t.Parallel()
 
 			builder := tt.setup()
-			query, values := builder.Build()
+			query, values, _ := builder.Build()
 
 			if query != tt.expectedQuery {
 				t.Errorf("expected '%s' but got '%s'", tt.expectedQuery, query)

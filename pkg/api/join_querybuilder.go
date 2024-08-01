@@ -50,27 +50,27 @@ func (jb *JoinQueryBuilder[T, C]) JoinQuery(table string, fn func(b *query.JoinC
 	return jb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) JoinSub(qb *SelectBuilder, alias, my, condition, target string) *T {
+func (jb *JoinQueryBuilder[T, C]) JoinSub(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
 	jb.builder.JoinSub(qb.builder, alias, my, condition, target)
 	return jb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) LeftJoinSub(qb *SelectBuilder, alias, my, condition, target string) *T {
+func (jb *JoinQueryBuilder[T, C]) LeftJoinSub(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
 	jb.builder.LeftJoinSub(qb.builder, alias, my, condition, target)
 	return jb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) RightJoinSub(qb *SelectBuilder, alias, my, condition, target string) *T {
+func (jb *JoinQueryBuilder[T, C]) RightJoinSub(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
 	jb.builder.RightJoinSub(qb.builder, alias, my, condition, target)
 	return jb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) JoinLateral(qb *SelectBuilder, alias string) *T {
+func (jb *JoinQueryBuilder[T, C]) JoinLateral(qb *SelectQueryBuilder, alias string) *T {
 	jb.builder.JoinLateral(qb.builder, alias)
 	return jb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) LeftJoinLateral(qb *SelectBuilder, alias string) *T {
+func (jb *JoinQueryBuilder[T, C]) LeftJoinLateral(qb *SelectQueryBuilder, alias string) *T {
 	jb.builder.LeftJoinLateral(qb.builder, alias)
 	return jb.parent
 }

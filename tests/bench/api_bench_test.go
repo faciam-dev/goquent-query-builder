@@ -98,7 +98,7 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 		OrderBy("profiles.age", "DESC").
 		GroupBy("users.id").
 		Having("COUNT(profiles.id)", ">", 1).
-		WhereIn("users.id", func(qb *api.SelectBuilder) {
+		WhereIn("users.id", func(qb *api.SelectQueryBuilder) {
 			qb.Table("users").
 				Select("id").
 				Join("profiles", "users.id", "=", "profiles.user_id").
