@@ -19,13 +19,13 @@ func NewWhereQueryBuilder[T any, C any](strategy db.QueryBuilderStrategy, cache 
 }
 
 // WhereSelectBuilder is a type that represents a where select builder
-type WhereSelectBuilder = WhereQueryBuilder[SelectBuilder, query.Builder]
+type WhereSelectBuilder = WhereQueryBuilder[SelectQueryBuilder, query.Builder]
 
 // WhereInsertBuilder is a type that represents a where insert builder
-type WhereUpdateBuilder = WhereQueryBuilder[UpdateBuilder, query.UpdateBuilder]
+type WhereUpdateBuilder = WhereQueryBuilder[UpdateQueryBuilder, query.UpdateBuilder]
 
 // WhereDeleteBuilder is a type that represents a where delete builder
-type WhereDeleteBuilder = WhereQueryBuilder[DeleteBuilder, query.DeleteBuilder]
+type WhereDeleteBuilder = WhereQueryBuilder[DeleteQueryBuilder, query.DeleteBuilder]
 
 func (b *WhereQueryBuilder[T, C]) SetParent(parent *T) *T {
 	b.parent = parent
@@ -36,7 +36,7 @@ func (b *WhereQueryBuilder[T, C]) SetParent(parent *T) *T {
 // Where is a function that allows you to add a where condition
 func (wb *WhereQueryBuilder[T, C]) Where(column string, condition string, value interface{}) *T {
 	switch v := value.(type) {
-	case *SelectBuilder:
+	case *SelectQueryBuilder:
 		wb.builder.WhereSubQuery(column, condition, v.builder)
 	case []interface{}:
 		wb.builder.Where(column, condition, v...)
@@ -49,7 +49,7 @@ func (wb *WhereQueryBuilder[T, C]) Where(column string, condition string, value 
 // OrWhere is a function that allows you to add a or where condition
 func (wb *WhereQueryBuilder[T, C]) OrWhere(column string, condition string, value interface{}) *T {
 	switch v := value.(type) {
-	case *SelectBuilder:
+	case *SelectQueryBuilder:
 		wb.builder.OrWhereSubQuery(column, condition, v.builder)
 	case []interface{}:
 		wb.builder.OrWhere(column, condition, v...)
@@ -61,13 +61,13 @@ func (wb *WhereQueryBuilder[T, C]) OrWhere(column string, condition string, valu
 }
 
 // WhereSubQuery is a function that allows you to add a where query condition
-func (wb *WhereQueryBuilder[T, C]) WhereSubQuery(column string, condition string, q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) WhereSubQuery(column string, condition string, q *SelectQueryBuilder) *T {
 	wb.builder.WhereSubQuery(column, condition, q.builder)
 	return wb.parent
 }
 
 // OrWhereSubQuery is a function that allows you to add a or where query condition
-func (wb *WhereQueryBuilder[T, C]) OrWhereSubQuery(column string, condition string, q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) OrWhereSubQuery(column string, condition string, q *SelectQueryBuilder) *T {
 	wb.builder.OrWhereSubQuery(column, condition, q.builder)
 	return wb.parent
 }
@@ -131,7 +131,7 @@ func (wb *WhereQueryBuilder[T, C]) WhereAll(columns []string, condition string, 
 // OrWhereAny is a function that allows you to add a or where any condition
 func (wb *WhereQueryBuilder[T, C]) WhereIn(column string, values interface{}) *T {
 	switch casted := values.(type) {
-	case *SelectBuilder:
+	case *SelectQueryBuilder:
 		casted.builder.SetWhereBuilder(casted.WhereQueryBuilder.builder)
 		casted.builder.SetJoinBuilder(casted.JoinQueryBuilder.builder)
 		casted.builder.SetOrderByBuilder(casted.orderByQueryBuilder.builder)
@@ -145,7 +145,7 @@ func (wb *WhereQueryBuilder[T, C]) WhereIn(column string, values interface{}) *T
 // OrWhereAll is a function that allows you to add a or where all condition
 func (wb *WhereQueryBuilder[T, C]) WhereNotIn(column string, values interface{}) *T {
 	switch casted := values.(type) {
-	case *SelectBuilder:
+	case *SelectQueryBuilder:
 		casted.builder.SetWhereBuilder(casted.WhereQueryBuilder.builder)
 		casted.builder.SetJoinBuilder(casted.JoinQueryBuilder.builder)
 		casted.builder.SetOrderByBuilder(casted.orderByQueryBuilder.builder)
@@ -159,7 +159,7 @@ func (wb *WhereQueryBuilder[T, C]) WhereNotIn(column string, values interface{})
 // OrWhereIn is a function that allows you to add a or where in condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereIn(column string, values interface{}) *T {
 	switch casted := values.(type) {
-	case *SelectBuilder:
+	case *SelectQueryBuilder:
 		casted.builder.SetWhereBuilder(casted.WhereQueryBuilder.builder)
 		casted.builder.SetJoinBuilder(casted.JoinQueryBuilder.builder)
 		casted.builder.SetOrderByBuilder(casted.orderByQueryBuilder.builder)
@@ -173,7 +173,7 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereIn(column string, values interface{}) 
 // OrWhereNotIn is a function that allows you to add a or where not in condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereNotIn(column string, values interface{}) *T {
 	switch casted := values.(type) {
-	case *SelectBuilder:
+	case *SelectQueryBuilder:
 		casted.builder.SetWhereBuilder(casted.WhereQueryBuilder.builder)
 		casted.builder.SetJoinBuilder(casted.JoinQueryBuilder.builder)
 		casted.builder.SetOrderByBuilder(casted.orderByQueryBuilder.builder)
@@ -185,25 +185,25 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereNotIn(column string, values interface{
 }
 
 // WhereInSubQuery is a function that allows you to add a where in sub query condition
-func (wb *WhereQueryBuilder[T, C]) WhereInSubQuery(column string, q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) WhereInSubQuery(column string, q *SelectQueryBuilder) *T {
 	wb.builder.WhereInSubQuery(column, q.builder)
 	return wb.parent
 }
 
 // WhereNotInSubQuery is a function that allows you to add a where not in sub query condition
-func (wb *WhereQueryBuilder[T, C]) WhereNotInSubQuery(column string, q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) WhereNotInSubQuery(column string, q *SelectQueryBuilder) *T {
 	wb.builder.WhereNotInSubQuery(column, q.builder)
 	return wb.parent
 }
 
 // OrWhereInSubQuery is a function that allows you to add a or where in sub query condition
-func (wb *WhereQueryBuilder[T, C]) OrWhereInSubQuery(column string, q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) OrWhereInSubQuery(column string, q *SelectQueryBuilder) *T {
 	wb.builder.OrWhereInSubQuery(column, q.builder)
 	return wb.parent
 }
 
 // OrWhereNotInSubQuery is a function that allows you to add a or where not in sub query condition
-func (wb *WhereQueryBuilder[T, C]) OrWhereNotInSubQuery(column string, q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) OrWhereNotInSubQuery(column string, q *SelectQueryBuilder) *T {
 	wb.builder.OrWhereNotInSubQuery(column, q.builder)
 	return wb.parent
 }
@@ -330,7 +330,7 @@ func (wb *WhereQueryBuilder[T, C]) WhereExists(fn func(q *query.Builder) *query.
 }
 
 // WhereDateQuery is a function that allows you to add a where date condition
-func (wb *WhereQueryBuilder[T, C]) WhereExistsQuery(q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) WhereExistsQuery(q *SelectQueryBuilder) *T {
 	wb.builder.WhereExistsQuery(q.builder)
 	return wb.parent
 }
@@ -342,7 +342,7 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereExists(fn func(q *query.Builder) *quer
 }
 
 // OrWhereExistsQuery is a function that allows you to add a or where exists condition
-func (wb *WhereQueryBuilder[T, C]) OrWhereExistsQuery(q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) OrWhereExistsQuery(q *SelectQueryBuilder) *T {
 	wb.builder.OrWhereExistsQuery(q.builder)
 	return wb.parent
 }
@@ -354,7 +354,7 @@ func (wb *WhereQueryBuilder[T, C]) WhereNotExists(fn func(q *query.Builder) *que
 }
 
 // WhereNotExistsQuery is a function that allows you to add a where not exists condition
-func (wb *WhereQueryBuilder[T, C]) WhereNotExistsQuery(q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) WhereNotExistsQuery(q *SelectQueryBuilder) *T {
 	wb.builder.WhereNotExistsQuery(q.builder)
 	return wb.parent
 }
@@ -366,7 +366,7 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereNotExists(fn func(q *query.Builder) *q
 }
 
 // OrWhereNotExistsQuery is a function that allows you to add a or where not exists condition
-func (wb *WhereQueryBuilder[T, C]) OrWhereNotExistsQuery(q *SelectBuilder) *T {
+func (wb *WhereQueryBuilder[T, C]) OrWhereNotExistsQuery(q *SelectQueryBuilder) *T {
 	wb.builder.OrWhereNotExistsQuery(q.builder)
 	return wb.parent
 }

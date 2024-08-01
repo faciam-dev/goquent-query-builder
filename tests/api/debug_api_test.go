@@ -13,12 +13,12 @@ import (
 func TestSelectDebugApiRawSqlTest(t *testing.T) {
 	tests := []struct {
 		name          string
-		setup         func() *api.SelectBuilder
+		setup         func() *api.SelectQueryBuilder
 		expectedQuery string
 	}{
 		{
 			"Complex_Query_With_Union",
-			func() *api.SelectBuilder {
+			func() *api.SelectQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -59,7 +59,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Complex_Query",
-			func() *api.SelectBuilder {
+			func() *api.SelectQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -87,7 +87,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Normal_Query",
-			func() *api.SelectBuilder {
+			func() *api.SelectQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -104,7 +104,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Normal_Query_With_WhereGroup",
-			func() *api.SelectBuilder {
+			func() *api.SelectQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -121,7 +121,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Simple_Query",
-			func() *api.SelectBuilder {
+			func() *api.SelectQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -153,12 +153,12 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 func TestInsertDebugApiRawSqlTest(t *testing.T) {
 	tests := []struct {
 		name          string
-		setup         func() *api.InsertBuilder
+		setup         func() *api.InsertQueryBuilder
 		expectedQuery string
 	}{
 		{
 			"Complex_Query",
-			func() *api.InsertBuilder {
+			func() *api.InsertQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -174,7 +174,7 @@ func TestInsertDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"InsertUsing",
-			func() *api.InsertBuilder {
+			func() *api.InsertQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -212,12 +212,12 @@ func TestInsertDebugApiRawSqlTest(t *testing.T) {
 func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 	tests := []struct {
 		name          string
-		setup         func() *api.UpdateBuilder
+		setup         func() *api.UpdateQueryBuilder
 		expectedQuery string
 	}{
 		{
 			"Complex_Query",
-			func() *api.UpdateBuilder {
+			func() *api.UpdateQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -235,7 +235,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Update_ORDER_BY",
-			func() *api.UpdateBuilder {
+			func() *api.UpdateQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -252,7 +252,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Update_Where_Date",
-			func() *api.UpdateBuilder {
+			func() *api.UpdateQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -269,7 +269,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Update_Where_Between_Columns",
-			func() *api.UpdateBuilder {
+			func() *api.UpdateQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -304,12 +304,12 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 	tests := []struct {
 		name          string
-		setup         func() *api.DeleteBuilder
+		setup         func() *api.DeleteQueryBuilder
 		expectedQuery string
 	}{
 		{
 			"Complex_Query",
-			func() *api.DeleteBuilder {
+			func() *api.DeleteQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -324,7 +324,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Delete_Where_Between",
-			func() *api.DeleteBuilder {
+			func() *api.DeleteQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -338,7 +338,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Delete_Where_Between_Columns",
-			func() *api.DeleteBuilder {
+			func() *api.DeleteQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -352,7 +352,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Delete_Where_Columns",
-			func() *api.DeleteBuilder {
+			func() *api.DeleteQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -369,7 +369,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 		},
 		{
 			"Delete_Where_Columns_With_WhereGroup",
-			func() *api.DeleteBuilder {
+			func() *api.DeleteQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -403,13 +403,13 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 func TestDebugDumpTest(t *testing.T) {
 	tests := []struct {
 		name           string
-		setup          func() *api.SelectBuilder
+		setup          func() *api.SelectQueryBuilder
 		expectedQuery  string
 		expectedValues []interface{}
 	}{
 		{
 			"Complex_Query_With_Union",
-			func() *api.SelectBuilder {
+			func() *api.SelectQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -453,7 +453,7 @@ func TestDebugDumpTest(t *testing.T) {
 		},
 		{
 			"Complex_Query",
-			func() *api.SelectBuilder {
+			func() *api.SelectQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()
@@ -484,7 +484,7 @@ func TestDebugDumpTest(t *testing.T) {
 		},
 		{
 			"Simple_Query",
-			func() *api.SelectBuilder {
+			func() *api.SelectQueryBuilder {
 				dbStrategy := db.NewMySQLQueryBuilder()
 
 				blankCache := cache.NewBlankQueryCache()

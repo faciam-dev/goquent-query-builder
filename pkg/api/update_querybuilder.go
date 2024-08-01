@@ -7,26 +7,26 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
-type UpdateBuilder struct {
-	WhereQueryBuilder[UpdateBuilder, query.UpdateBuilder]
-	JoinQueryBuilder[UpdateBuilder, query.UpdateBuilder]
+type UpdateQueryBuilder struct {
+	WhereQueryBuilder[UpdateQueryBuilder, query.UpdateBuilder]
+	JoinQueryBuilder[UpdateQueryBuilder, query.UpdateBuilder]
 	builder             *query.UpdateBuilder
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
-func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
-	ub := &UpdateBuilder{
+func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateQueryBuilder {
+	ub := &UpdateQueryBuilder{
 		builder: query.NewUpdateBuilder(strategy, cache),
 		orderByQueryBuilder: &OrderByQueryBuilder{
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
 	}
 
-	whereQueryBuilder := NewWhereQueryBuilder[UpdateBuilder, query.UpdateBuilder](strategy, cache)
+	whereQueryBuilder := NewWhereQueryBuilder[UpdateQueryBuilder, query.UpdateBuilder](strategy, cache)
 	whereQueryBuilder.SetParent(ub)
 	ub.WhereQueryBuilder = *whereQueryBuilder
 
-	joinQueryBuilder := NewJoinQueryBuilder[UpdateBuilder, query.UpdateBuilder](strategy, cache)
+	joinQueryBuilder := NewJoinQueryBuilder[UpdateQueryBuilder, query.UpdateBuilder](strategy, cache)
 	joinQueryBuilder.SetParent(ub)
 	ub.JoinQueryBuilder = *joinQueryBuilder
 
@@ -34,37 +34,37 @@ func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *Upda
 }
 
 // Update
-func (ub *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
+func (ub *UpdateQueryBuilder) Update(data map[string]interface{}) *UpdateQueryBuilder {
 	ub.builder.Update(data)
 
 	return ub
 }
 
 // Table
-func (ub *UpdateBuilder) Table(table string) *UpdateBuilder {
+func (ub *UpdateQueryBuilder) Table(table string) *UpdateQueryBuilder {
 	ub.builder.Table(table)
 	return ub
 }
 
 // OrderBy
 
-func (qb *UpdateBuilder) OrderBy(column, ascDesc string) *UpdateBuilder {
+func (qb *UpdateQueryBuilder) OrderBy(column, ascDesc string) *UpdateQueryBuilder {
 	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
 	return qb
 }
 
-func (qb *UpdateBuilder) OrderByRaw(raw string) *UpdateBuilder {
+func (qb *UpdateQueryBuilder) OrderByRaw(raw string) *UpdateQueryBuilder {
 	qb.orderByQueryBuilder.OrderByRaw(raw)
 	return qb
 }
 
-func (qb *UpdateBuilder) ReOrder() *UpdateBuilder {
+func (qb *UpdateQueryBuilder) ReOrder() *UpdateQueryBuilder {
 	qb.orderByQueryBuilder.ReOrder()
 	return qb
 }
 
 // Build
-func (ub *UpdateBuilder) Build() (string, []interface{}, error) {
+func (ub *UpdateQueryBuilder) Build() (string, []interface{}, error) {
 	ub.builder.SetWhereBuilder(*ub.WhereQueryBuilder.builder)
 	ub.builder.SetJoinBuilder(*ub.JoinQueryBuilder.builder)
 	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
@@ -72,22 +72,22 @@ func (ub *UpdateBuilder) Build() (string, []interface{}, error) {
 	return ub.builder.Build()
 }
 
-func (ub *UpdateBuilder) Dump() (string, []interface{}, error) {
+func (ub *UpdateQueryBuilder) Dump() (string, []interface{}, error) {
 	ub.builder.SetWhereBuilder(*ub.WhereQueryBuilder.builder)
 	ub.builder.SetJoinBuilder(*ub.JoinQueryBuilder.builder)
 	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
 
-	b := query.NewDebugBuilder[*query.UpdateBuilder, UpdateBuilder](ub.builder)
+	b := query.NewDebugBuilder[*query.UpdateBuilder, UpdateQueryBuilder](ub.builder)
 
 	return b.Dump()
 }
 
-func (ub *UpdateBuilder) RawSql() (string, error) {
+func (ub *UpdateQueryBuilder) RawSql() (string, error) {
 	ub.builder.SetWhereBuilder(*ub.WhereQueryBuilder.builder)
 	ub.builder.SetJoinBuilder(*ub.JoinQueryBuilder.builder)
 	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
 
-	b := query.NewDebugBuilder[*query.UpdateBuilder, UpdateBuilder](ub.builder)
+	b := query.NewDebugBuilder[*query.UpdateBuilder, UpdateQueryBuilder](ub.builder)
 
 	return b.RawSql()
 }
