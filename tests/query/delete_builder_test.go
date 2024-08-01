@@ -42,8 +42,8 @@ func TestDeleteBuilder(t *testing.T) {
 				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "!=", 1).
-					OrWhereNot(func(b *query.WhereBuilder[query.DeleteBuilder]) *query.WhereBuilder[query.DeleteBuilder] {
-						return &b.Where("age", ">", 18).Where("name", "=", "John").WhereBuilder
+					OrWhereNot(func(b *query.WhereBuilder[query.DeleteBuilder]) {
+						b.Where("age", ">", 18).Where("name", "=", "John")
 					}).
 					Delete()
 			},
@@ -196,7 +196,7 @@ func TestDeleteBuilder(t *testing.T) {
 			t.Parallel()
 
 			builder := tt.setup()
-			query, values := builder.Build()
+			query, values, _ := builder.Build()
 
 			if query != tt.expectedQuery {
 				t.Errorf("expected '%s' but got '%s'", tt.expectedQuery, query)

@@ -64,10 +64,30 @@ func (qb *UpdateBuilder) ReOrder() *UpdateBuilder {
 }
 
 // Build
-func (ub *UpdateBuilder) Build() (string, []interface{}) {
+func (ub *UpdateBuilder) Build() (string, []interface{}, error) {
 	ub.builder.SetWhereBuilder(*ub.WhereQueryBuilder.builder)
 	ub.builder.SetJoinBuilder(*ub.JoinQueryBuilder.builder)
 	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
 
 	return ub.builder.Build()
+}
+
+func (ub *UpdateBuilder) Dump() (string, []interface{}, error) {
+	ub.builder.SetWhereBuilder(*ub.WhereQueryBuilder.builder)
+	ub.builder.SetJoinBuilder(*ub.JoinQueryBuilder.builder)
+	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
+
+	b := query.NewDebugBuilder[*query.UpdateBuilder, UpdateBuilder](ub.builder)
+
+	return b.Dump()
+}
+
+func (ub *UpdateBuilder) RawSql() (string, error) {
+	ub.builder.SetWhereBuilder(*ub.WhereQueryBuilder.builder)
+	ub.builder.SetJoinBuilder(*ub.JoinQueryBuilder.builder)
+	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
+
+	b := query.NewDebugBuilder[*query.UpdateBuilder, UpdateBuilder](ub.builder)
+
+	return b.RawSql()
 }

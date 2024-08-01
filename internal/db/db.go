@@ -15,11 +15,11 @@ type QueryBuilderStrategy interface {
 	OrderBy(sb *strings.Builder, order *[]structs.Order)
 	Build(cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{})
 
-	Insert(q *structs.InsertQuery) (string, []interface{})
-	InsertBatch(q *structs.InsertQuery) (string, []interface{})
-	BuildInsert(q *structs.InsertQuery) (string, []interface{})
+	Insert(q *structs.InsertQuery) (string, []interface{}, error)
+	InsertBatch(q *structs.InsertQuery) (string, []interface{}, error)
+	BuildInsert(q *structs.InsertQuery) (string, []interface{}, error)
 
-	BuildUpdate(q *structs.UpdateQuery) (string, []interface{})
+	BuildUpdate(q *structs.UpdateQuery) (string, []interface{}, error)
 
-	BuildDelete(q *structs.DeleteQuery) (string, []interface{})
+	BuildDelete(q *structs.DeleteQuery) (string, []interface{}, error)
 }

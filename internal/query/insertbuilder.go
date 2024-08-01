@@ -8,6 +8,7 @@ import (
 )
 
 type InsertBuilder struct {
+	BaseBuilder
 	dbBuilder db.QueryBuilderStrategy
 	cache     cache.Cache
 	query     *structs.InsertQuery
@@ -55,7 +56,7 @@ func (ib *InsertBuilder) InsertUsing(columns []string, b *Builder) *InsertBuilde
 	return ib
 }
 
-func (ib *InsertBuilder) Build() (string, []interface{}) {
-	query, values := ib.dbBuilder.BuildInsert(ib.query)
-	return query, values
+func (ib *InsertBuilder) Build() (string, []interface{}, error) {
+	query, values, err := ib.dbBuilder.BuildInsert(ib.query)
+	return query, values, err
 }

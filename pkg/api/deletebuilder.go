@@ -69,7 +69,27 @@ func (qb *DeleteBuilder) ReOrder() *DeleteBuilder {
 	return qb
 }
 
-func (qb *DeleteBuilder) Build() (string, []interface{}) {
+func (ub *DeleteBuilder) Dump() (string, []interface{}, error) {
+	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
+	ub.builder.SetWhereBuilder(ub.WhereQueryBuilder.builder)
+	ub.builder.SetJoinBuilder(ub.JoinQueryBuilder.builder)
+
+	b := query.NewDebugBuilder[*query.DeleteBuilder, DeleteBuilder](ub.builder)
+
+	return b.Dump()
+}
+
+func (ub *DeleteBuilder) RawSql() (string, error) {
+	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
+	ub.builder.SetWhereBuilder(ub.WhereQueryBuilder.builder)
+	ub.builder.SetJoinBuilder(ub.JoinQueryBuilder.builder)
+
+	b := query.NewDebugBuilder[*query.DeleteBuilder, DeleteBuilder](ub.builder)
+
+	return b.RawSql()
+}
+
+func (qb *DeleteBuilder) Build() (string, []interface{}, error) {
 	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
 	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
 	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)

@@ -38,7 +38,7 @@ func TestUseCacheTest(t *testing.T) {
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("status", "=", "active").
-					WhereQuery("user_id", "IN", sq).
+					WhereSubQuery("user_id", "IN", sq).
 					Where("age", ">", 18).
 					OrderBy("name", "ASC")
 			},

@@ -59,7 +59,7 @@ func (b *DeleteBuilder) Delete() *DeleteBuilder {
 	return b
 }
 
-func (u *DeleteBuilder) Build() (string, []interface{}) {
+func (u *DeleteBuilder) Build() (string, []interface{}, error) {
 	// If there are conditions, add them to the query
 	if len(*u.WhereBuilder.query.Conditions) > 0 {
 		*u.WhereBuilder.query.ConditionGroups = append(*u.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
@@ -75,8 +75,8 @@ func (u *DeleteBuilder) Build() (string, []interface{}) {
 	u.query.Query.Joins = u.JoinBuilder.Joins
 	u.query.Query.Order = u.orderByBuilder.Order
 
-	query, values := u.dbBuilder.BuildDelete(u.query)
-	return query, values
+	query, values, err := u.dbBuilder.BuildDelete(u.query)
+	return query, values, err
 }
 
 func (b *DeleteBuilder) OrderBy(column string, direction string) *DeleteBuilder {

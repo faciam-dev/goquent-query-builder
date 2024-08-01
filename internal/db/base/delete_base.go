@@ -19,7 +19,7 @@ func (m *DeleteBaseBuilder) Delete(q *structs.DeleteQuery) *DeleteBaseBuilder {
 }
 
 // DeleteBatch builds the Delete query for Delete.
-func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []interface{}) {
+func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []interface{}, error) {
 	values := make([]interface{}, 0)
 	sb := &strings.Builder{}
 	sb.Grow(consts.StringBuffer_Delete_Grow)
@@ -56,5 +56,5 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 	query := sb.String()
 	sb.Reset()
 
-	return query, values
+	return query, values, nil
 }
