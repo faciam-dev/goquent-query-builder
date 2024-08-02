@@ -27,7 +27,7 @@ func main() {
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
-		WhereGroup(func(qb *api.WhereSelectBuilder) {
+		WhereGroup(func(qb *api.WhereSelectQueryBuilder) {
 			qb.Where("profiles.age", ">", 18)
 		}).
 		OrderBy("users.name", "ASC")

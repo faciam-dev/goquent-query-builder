@@ -1,4 +1,4 @@
-module github.com/faciam-dev/goquent-query-builder/example/2_select_where
+module github.com/faciam-dev/goquent-query-builder/example/7_update
 
 go 1.22.5
 
