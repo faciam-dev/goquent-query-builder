@@ -191,6 +191,48 @@ func TestSelectApiBuilder(t *testing.T) {
 			[]interface{}{18},
 		},
 		{
+			"JoinQuery_With_Join",
+			func() *api.SelectQueryBuilder {
+				return api.NewSelectQueryBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					Table("users").
+					Select("id", "users.name AS name").
+					JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
+						b.On("users.id", "=", "profiles.user_id").
+							Where("profiles.age", ">", 18)
+					}).
+					Join("addresses", "users.id", "=", "addresses.user_id").
+					OrderBy("users.name", "ASC")
+			},
+			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id AND profiles.age > ? INNER JOIN addresses ON users.id = addresses.user_id ORDER BY users.name ASC",
+			[]interface{}{18},
+		},
+		{
+			"JoinSubQuery_with_Join",
+			func() *api.SelectQueryBuilder {
+				return api.NewSelectQueryBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					Table("users").
+					Select("id", "users.name AS name").
+					JoinSubQuery(api.NewSelectQueryBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("profiles").Where("age", ">", 18), "profiles", "users.id", "=", "profiles.user_id").
+					Join("addresses", "users.id", "=", "addresses.user_id").
+					OrderBy("users.name", "ASC")
+			},
+			"SELECT id, users.name AS name FROM users INNER JOIN (SELECT id FROM profiles WHERE age > ?) AS profiles ON users.id = profiles.user_id INNER JOIN addresses ON users.id = addresses.user_id ORDER BY users.name ASC",
+			[]interface{}{18},
+		},
+		{
+			"Multiple_JoinSubQuery_with_Join",
+			func() *api.SelectQueryBuilder {
+				return api.NewSelectQueryBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					Table("users").
+					Select("id", "users.name AS name").
+					JoinSubQuery(api.NewSelectQueryBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("profiles").Where("age", ">", 18), "profiles", "users.id", "=", "profiles.user_id").
+					JoinSubQuery(api.NewSelectQueryBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("addresses").Where("city", "=", "New York"), "addresses", "users.id", "=", "addresses.user_id").
+					OrderBy("users.name", "ASC")
+			},
+			"SELECT id, users.name AS name FROM users INNER JOIN (SELECT id FROM profiles WHERE age > ?) AS profiles ON users.id = profiles.user_id INNER JOIN (SELECT id FROM addresses WHERE city = ?) AS addresses ON users.id = addresses.user_id ORDER BY users.name ASC",
+			[]interface{}{18, "New York"},
+		},
+		{
 			"JoinSub",
 			func() *api.SelectQueryBuilder {
 				return api.NewSelectQueryBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).JoinSubQuery(api.NewSelectQueryBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("profiles").Where("age", ">", 18), "profiles", "users.id", "=", "profiles.user_id")

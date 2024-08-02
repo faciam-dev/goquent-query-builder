@@ -413,17 +413,21 @@ func generateCacheKey(u *structs.Union) string {
 		}
 	}
 	if q.Joins.JoinClause != nil {
-		for _, o := range *q.Joins.JoinClause.On {
-			sb.WriteString(o.Column)
-			sb.WriteString(",")
-			sb.WriteString(o.Condition)
-			sb.WriteString(",")
-			if o.Operator == consts.LogicalOperator_OR {
-				sb.WriteString("OR")
-			} else {
-				sb.WriteString("AND")
+		for _, jc := range *q.Joins.JoinClause {
+			for _, on := range *jc.On {
+				sb.WriteString(on.Column)
+				sb.WriteString(",")
+				sb.WriteString(on.Condition)
+				sb.WriteString(",")
+				sb.WriteString(on.Value.(string))
+				sb.WriteString(",")
+				if on.Operator == consts.LogicalOperator_OR {
+					sb.WriteString("OR")
+				} else {
+					sb.WriteString("AND")
+				}
+				sb.WriteString(",")
 			}
-			sb.WriteString(",")
 		}
 	}
 	sb.WriteString("|")

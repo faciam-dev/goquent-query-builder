@@ -32,76 +32,76 @@ func (jb *JoinBaseBuilder) Join(sb *strings.Builder, joins *structs.Joins) []int
 
 // buildJoinStatement builds the JOIN statement.
 func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *structs.Joins) []interface{} {
+	values := make([]interface{}, 0) //  length is unknown
 	if joins == nil {
 		return []interface{}{}
 	}
 	if joins.JoinClause != nil {
-		values := make([]interface{}, 0, len(*joins.JoinClause.Conditions))
+		for _, joinClause := range *joins.JoinClause {
+			vals := make([]interface{}, 0, len(*joinClause.Conditions))
 
-		j := &structs.Join{
-			TargetNameMap: joins.JoinClause.TargetNameMap,
-			Name:          joins.JoinClause.Name,
-		}
-
-		joinType, targetName := jb.processJoin(j)
-
-		if joins.JoinClause.Query != nil {
-			b := &BaseQueryBuilder{}
-			sqQuery, sqValues := b.Build("", joins.JoinClause.Query, 0, nil)
-			targetName = "(" + sqQuery + ")" + " AS " + targetName
-			values = append(values, sqValues...)
-		}
-		sb.WriteString(" ")
-		sb.WriteString(joinType)
-		sb.WriteString(" JOIN ")
-		sb.WriteString(targetName)
-		sb.WriteString(" ON ")
-
-		op := ""
-		for i, on := range *joins.JoinClause.On {
-			if i > 0 {
-				if on.Operator == consts.LogicalOperator_OR {
-					op = " OR "
-				} else {
-					op = " AND "
-				}
+			j := &structs.Join{
+				TargetNameMap: joinClause.TargetNameMap,
+				Name:          joinClause.Name,
 			}
 
-			sb.WriteString(op)
-			sb.WriteString(on.Column)
+			joinType, targetName := jb.processJoin(j)
+
+			if joinClause.Query != nil {
+				b := &BaseQueryBuilder{}
+				sqQuery, sqValues := b.Build("", joinClause.Query, 0, nil)
+				targetName = "(" + sqQuery + ")" + " AS " + targetName
+				values = append(values, sqValues...)
+			}
 			sb.WriteString(" ")
-			sb.WriteString(on.Condition)
-			if on.Value != "" {
+			sb.WriteString(joinType)
+			sb.WriteString(" JOIN ")
+			sb.WriteString(targetName)
+			sb.WriteString(" ON ")
+
+			op := ""
+			for i, on := range *joinClause.On {
+				if i > 0 {
+					if on.Operator == consts.LogicalOperator_OR {
+						op = " OR "
+					} else {
+						op = " AND "
+					}
+				}
+
+				sb.WriteString(op)
+				sb.WriteString(on.Column)
 				sb.WriteString(" ")
-				sb.WriteString(on.Value.(string)) // TODO: check if this is correct
-			}
-		}
-
-		op = ""
-		for i, condition := range *joins.JoinClause.Conditions {
-			if i > 0 || len(*joins.JoinClause.On) > 0 {
-				if condition.Operator == consts.LogicalOperator_OR {
-					op = " OR "
-				} else {
-					op = " AND "
+				sb.WriteString(on.Condition)
+				if on.Value != "" {
+					sb.WriteString(" ")
+					sb.WriteString(on.Value.(string)) // TODO: check if this is correct
 				}
 			}
-			sb.WriteString(op)
-			sb.WriteString(condition.Column)
-			sb.WriteString(" ")
-			sb.WriteString(condition.Condition)
-			sb.WriteString(" ?") // TODO: check if this is correct
-			values = append(values, condition.Value...)
-		}
 
-		return values
+			op = ""
+			for i, condition := range *joinClause.Conditions {
+				if i > 0 || len(*joinClause.On) > 0 {
+					if condition.Operator == consts.LogicalOperator_OR {
+						op = " OR "
+					} else {
+						op = " AND "
+					}
+				}
+				sb.WriteString(op)
+				sb.WriteString(condition.Column)
+				sb.WriteString(" ")
+				sb.WriteString(condition.Condition)
+				sb.WriteString(" ?") // TODO: check if this is correct
+				vals = append(vals, condition.Value...)
+			}
+			values = append(values, vals...)
+		}
 	}
 
 	if joins.Joins == nil {
-		return []interface{}{}
+		return values
 	}
-
-	values := make([]interface{}, 0) //  length is unknown
 
 	// sort by lateral joins first
 	//	sortedJoins := make([]*structs.Join, 0, len(*joins.Joins))
