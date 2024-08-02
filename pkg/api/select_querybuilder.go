@@ -15,7 +15,7 @@ type SelectQueryBuilder struct {
 	Queries             []*structs.Query
 }
 
-func NewSelectBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
+func NewSelectQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
 	sb := &SelectQueryBuilder{
 		//WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
 		builder: query.NewBuilder(strategy, cache),
@@ -45,7 +45,7 @@ func (qb *SelectQueryBuilder) Select(columns ...string) *SelectQueryBuilder {
 }
 
 func (qb *SelectQueryBuilder) SelectRaw(raw string, value ...interface{}) *SelectQueryBuilder {
-	qb.builder.SelectRaw(raw, value)
+	qb.builder.SelectRaw(raw, value...)
 	return qb
 }
 

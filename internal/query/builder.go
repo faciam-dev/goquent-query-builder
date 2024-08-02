@@ -462,3 +462,23 @@ func (b *Builder) GetQuery() *structs.Query {
 	b.buildQuery()
 	return b.query
 }
+
+func (b *Builder) GetStrategy() db.QueryBuilderStrategy {
+	return b.dbBuilder
+}
+
+func (b *Builder) GetWhereBuilder() *WhereBuilder[Builder] {
+	return &b.WhereBuilder
+}
+
+func (b *Builder) GetJoinBuilder() *JoinBuilder[Builder] {
+	return &b.JoinBuilder
+}
+
+func (b *Builder) GetOrderByBuilder() *OrderByBuilder {
+	return b.orderByBuilder
+}
+
+func (b *Builder) GetCache() cache.Cache {
+	return b.cache
+}

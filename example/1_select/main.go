@@ -15,7 +15,7 @@ func main() {
 	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
-	qb := api.NewSelectBuilder(dbStrategy, asyncCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").

@@ -14,7 +14,7 @@ type UpdateQueryBuilder struct {
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
-func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateQueryBuilder {
+func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateQueryBuilder {
 	ub := &UpdateQueryBuilder{
 		builder: query.NewUpdateBuilder(strategy, cache),
 		orderByQueryBuilder: &OrderByQueryBuilder{

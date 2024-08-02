@@ -14,7 +14,7 @@ type DeleteQueryBuilder struct {
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
-func NewDeleteBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *DeleteQueryBuilder {
+func NewDeleteQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *DeleteQueryBuilder {
 	db := &DeleteQueryBuilder{
 		builder: query.NewDeleteBuilder(strategy, cache),
 		orderByQueryBuilder: &OrderByQueryBuilder{
