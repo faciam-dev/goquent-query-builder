@@ -28,7 +28,7 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 	sb.WriteString("DELETE")
 	if q.Query.Joins != nil &&
 		q.Query.Joins.Joins != nil &&
-		(len(*q.Query.Joins.Joins) > 0 || q.Query.Joins.JoinClause != nil) {
+		(len(*q.Query.Joins.Joins) > 0 || (q.Query.Joins.JoinClause != nil && len(*q.Query.Joins.JoinClause) > 0)) {
 		sb.WriteString(" ")
 		sb.WriteString(q.Table)
 	}

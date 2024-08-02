@@ -19,7 +19,8 @@ func NewJoinBuilder[T any](dbBuilder db.QueryBuilderStrategy, cache cache.Cache)
 	return &JoinBuilder[T]{
 		Table: &structs.Table{},
 		Joins: &structs.Joins{
-			Joins: &[]structs.Join{},
+			Joins:      &[]structs.Join{},
+			JoinClause: &[]structs.JoinClause{},
 		},
 		WhereBuilder: *NewWhereBuilder[JoinBuilder[T]](dbBuilder, cache),
 	}
@@ -90,7 +91,7 @@ func (b *JoinBuilder[T]) JoinQuery(table string, fn func(j *JoinClauseBuilder)) 
 		consts.Join_INNER: table,
 	}
 
-	b.Joins.JoinClause = jq.JoinClause
+	*b.Joins.JoinClause = append(*b.Joins.JoinClause, *jq.JoinClause)
 
 	return b.parent
 }
@@ -104,7 +105,7 @@ func (b *JoinBuilder[T]) LeftJoinQuery(table string, fn func(j *JoinClauseBuilde
 		consts.Join_LEFT: table,
 	}
 
-	b.Joins.JoinClause = jq.JoinClause
+	*b.Joins.JoinClause = append(*b.Joins.JoinClause, *jq.JoinClause)
 
 	return b.parent
 }
@@ -118,7 +119,7 @@ func (b *JoinBuilder[T]) RightJoinQuery(table string, fn func(j *JoinClauseBuild
 		consts.Join_RIGHT: table,
 	}
 
-	b.Joins.JoinClause = jq.JoinClause
+	*b.Joins.JoinClause = append(*b.Joins.JoinClause, *jq.JoinClause)
 
 	return b.parent
 }

@@ -32,11 +32,13 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 		}
 
 		if joins.JoinClause != nil {
-			join := structs.Join{
-				TargetNameMap: joins.JoinClause.TargetNameMap,
-				Name:          joins.JoinClause.Name,
+			for _, joinClause := range *joins.JoinClause {
+				join := structs.Join{
+					TargetNameMap: joinClause.TargetNameMap,
+					Name:          joinClause.Name,
+				}
+				b.processJoin(sb, &join, tableName, 0)
 			}
-			b.processJoin(sb, &join, tableName, 0)
 		}
 
 		return []interface{}{}

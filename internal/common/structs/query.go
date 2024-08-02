@@ -136,7 +136,7 @@ type Joins struct {
 	Name          string
 	TargetNameMap map[string]string
 	Joins         *[]Join
-	JoinClause    *JoinClause
+	JoinClause    *[]JoinClause
 	Operator      int
 	IsDummyGroup  bool
 }
