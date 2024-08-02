@@ -166,7 +166,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 					Table("users").
 					Select("id", "users.name AS name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
-					WhereGroup(func(w *api.WhereSelectBuilder) {
+					WhereGroup(func(w *api.WhereSelectQueryBuilder) {
 						w.Where("profiles.age", ">", 18).Where("profiles.age", "<", 30)
 					}).OrderBy("users.name", "ASC")
 			},
@@ -429,7 +429,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 
 				return api.NewDeleteQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					WhereGroup(func(w *api.WhereDeleteBuilder) {
+					WhereGroup(func(w *api.WhereDeleteQueryBuilder) {
 						w.Where("name", "=", "Joe").Where("age", "=", 31)
 					}).
 					Delete()

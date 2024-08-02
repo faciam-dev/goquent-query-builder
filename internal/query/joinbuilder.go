@@ -81,8 +81,9 @@ func (b *JoinBuilder[T]) CrossJoin(table string) *T {
 	return b.parent
 }
 
-func (b *JoinBuilder[T]) JoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *T {
-	jq := fn(NewJoinClauseBuilder())
+func (b *JoinBuilder[T]) JoinQuery(table string, fn func(j *JoinClauseBuilder)) *T {
+	jq := NewJoinClauseBuilder()
+	fn(jq)
 
 	jq.JoinClause.Name = table
 	jq.JoinClause.TargetNameMap = map[string]string{
@@ -94,9 +95,9 @@ func (b *JoinBuilder[T]) JoinQuery(table string, fn func(j *JoinClauseBuilder) *
 	return b.parent
 }
 
-func (b *JoinBuilder[T]) LeftJoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *T {
-
-	jq := fn(NewJoinClauseBuilder())
+func (b *JoinBuilder[T]) LeftJoinQuery(table string, fn func(j *JoinClauseBuilder)) *T {
+	jq := NewJoinClauseBuilder()
+	fn(jq)
 
 	jq.JoinClause.Name = table
 	jq.JoinClause.TargetNameMap = map[string]string{
@@ -108,9 +109,9 @@ func (b *JoinBuilder[T]) LeftJoinQuery(table string, fn func(j *JoinClauseBuilde
 	return b.parent
 }
 
-func (b *JoinBuilder[T]) RightJoinQuery(table string, fn func(j *JoinClauseBuilder) *JoinClauseBuilder) *T {
-
-	jq := fn(NewJoinClauseBuilder())
+func (b *JoinBuilder[T]) RightJoinQuery(table string, fn func(j *JoinClauseBuilder)) *T {
+	jq := NewJoinClauseBuilder()
+	fn(jq)
 
 	jq.JoinClause.Name = table
 	jq.JoinClause.TargetNameMap = map[string]string{

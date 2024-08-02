@@ -45,7 +45,7 @@ func (qb *SelectQueryBuilder) Select(columns ...string) *SelectQueryBuilder {
 }
 
 func (qb *SelectQueryBuilder) SelectRaw(raw string, value ...interface{}) *SelectQueryBuilder {
-	qb.builder.SelectRaw(raw, value)
+	qb.builder.SelectRaw(raw, value...)
 	return qb
 }
 

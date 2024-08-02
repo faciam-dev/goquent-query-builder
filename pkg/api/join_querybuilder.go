@@ -43,34 +43,63 @@ func (qb *JoinQueryBuilder[T, C]) CrossJoin(table string) *T {
 	return qb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) JoinQuery(table string, fn func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder) *T {
-	jb.builder.JoinQuery(table, func(b *query.JoinClauseBuilder) *query.JoinClauseBuilder {
-		return fn(b)
+func (jb *JoinQueryBuilder[T, C]) JoinQuery(table string, fn func(b *JoinClauseQueryBuilder)) *T {
+	jb.builder.JoinQuery(table, func(b *query.JoinClauseBuilder) {
+		fn(&JoinClauseQueryBuilder{builder: b})
 	})
 	return jb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) JoinSub(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
+func (jb *JoinQueryBuilder[T, C]) LeftJoinQuery(table string, fn func(b *JoinClauseQueryBuilder)) *T {
+	jb.builder.LeftJoinQuery(table, func(b *query.JoinClauseBuilder) {
+		fn(&JoinClauseQueryBuilder{builder: b})
+	})
+	return jb.parent
+}
+
+func (jb *JoinQueryBuilder[T, C]) RightJoinQuery(table string, fn func(b *JoinClauseQueryBuilder)) *T {
+	jb.builder.RightJoinQuery(table, func(b *query.JoinClauseBuilder) {
+		fn(&JoinClauseQueryBuilder{builder: b})
+	})
+	return jb.parent
+}
+
+func (jb *JoinQueryBuilder[T, C]) JoinSubQuery(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	jb.builder.JoinSub(qb.builder, alias, my, condition, target)
 	return jb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) LeftJoinSub(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
+func (jb *JoinQueryBuilder[T, C]) LeftJoinSubQuery(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	jb.builder.LeftJoinSub(qb.builder, alias, my, condition, target)
 	return jb.parent
 }
 
-func (jb *JoinQueryBuilder[T, C]) RightJoinSub(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
+func (jb *JoinQueryBuilder[T, C]) RightJoinSubQuery(qb *SelectQueryBuilder, alias, my, condition, target string) *T {
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	jb.builder.RightJoinSub(qb.builder, alias, my, condition, target)
 	return jb.parent
 }
 
 func (jb *JoinQueryBuilder[T, C]) JoinLateral(qb *SelectQueryBuilder, alias string) *T {
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	jb.builder.JoinLateral(qb.builder, alias)
 	return jb.parent
 }
 
 func (jb *JoinQueryBuilder[T, C]) LeftJoinLateral(qb *SelectQueryBuilder, alias string) *T {
+	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
+	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
+	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	jb.builder.LeftJoinLateral(qb.builder, alias)
 	return jb.parent
 }
