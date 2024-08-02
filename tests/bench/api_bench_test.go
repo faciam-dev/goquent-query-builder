@@ -14,7 +14,7 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewSelectBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Select("id", "users.name AS name")
 
@@ -36,7 +36,7 @@ func BenchmarkNormalSelectQuery(b *testing.B) {
 
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewSelectBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -62,7 +62,7 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewSelectBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -89,7 +89,7 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewSelectBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Select("id", "users.name AS name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -124,7 +124,7 @@ func BenchmarkSimpleInsert(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Insert(map[string]interface{}{
 			"name": "John",
@@ -147,7 +147,7 @@ func BenchmarkInsertBatch(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -176,7 +176,7 @@ func BenchmarkInsertUsing(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -188,7 +188,7 @@ func BenchmarkInsertUsing(b *testing.B) {
 				"age":  25,
 			},
 		}).
-		InsertUsing([]string{"name", "age"}, api.NewSelectBuilder(dbStrategy, blankCache).
+		InsertUsing([]string{"name", "age"}, api.NewSelectQueryBuilder(dbStrategy, blankCache).
 			Table("users").
 			Select("id").
 			Join("profiles", "users.id", "=", "profiles.user_id").
@@ -211,7 +211,7 @@ func BenchmarkSimpleUpdate(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewUpdateBuilder(dbStrategy, blankCache).
+	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Update(map[string]interface{}{
 			"name": "Joe",
@@ -234,7 +234,7 @@ func BenchmarkUpdateWhere(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewUpdateBuilder(dbStrategy, blankCache).
+	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Where("id", "=", 1).
 		Update(map[string]interface{}{
@@ -258,7 +258,7 @@ func BenchmarkJoinUpdate(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewUpdateBuilder(dbStrategy, blankCache).
+	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18).
@@ -283,7 +283,7 @@ func BenchmarkDelete(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewDeleteBuilder(dbStrategy, blankCache).
+	qb := api.NewDeleteQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Where("id", "=", 1)
 
@@ -303,7 +303,7 @@ func BenchmarkDeleteJoin(b *testing.B) {
 	dbStrategy := db.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewDeleteBuilder(dbStrategy, blankCache).
+	qb := api.NewDeleteQueryBuilder(dbStrategy, blankCache).
 		Table("users").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18)

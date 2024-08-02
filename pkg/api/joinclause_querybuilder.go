@@ -8,7 +8,7 @@ type JoinClauseQueryBuilder struct {
 	builder *query.JoinClauseBuilder
 }
 
-func NewJoinClauseBuilder() *JoinClauseQueryBuilder {
+func NewJoinClauseQueryBuilder() *JoinClauseQueryBuilder {
 	return &JoinClauseQueryBuilder{
 		builder: query.NewJoinClauseBuilder(),
 	}

@@ -10,7 +10,7 @@ type InsertQueryBuilder struct {
 	builder *query.InsertBuilder
 }
 
-func NewInsertBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *InsertQueryBuilder {
+func NewInsertQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *InsertQueryBuilder {
 	return &InsertQueryBuilder{
 		builder: query.NewInsertBuilder(strategy, cache),
 	}

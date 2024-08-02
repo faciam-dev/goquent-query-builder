@@ -15,7 +15,7 @@ type SelectQueryBuilder struct {
 	Queries             []*structs.Query
 }
 
-func NewSelectBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
+func NewSelectQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
 	sb := &SelectQueryBuilder{
 		//WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
 		builder: query.NewBuilder(strategy, cache),
