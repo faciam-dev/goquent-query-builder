@@ -95,7 +95,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 				sb.WriteString(condition.Column)
 				sb.WriteString(" ")
 				sb.WriteString(condition.Condition)
-				sb.WriteString(" ?") // TODO: check if this is correct
+				sb.WriteString(" " + jb.u.GetPlaceholder()) // TODO: check if this is correct
 				vals = append(vals, condition.Value...)
 			}
 			values = append(values, vals...)

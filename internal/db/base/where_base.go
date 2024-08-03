@@ -151,7 +151,7 @@ func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *strings.Builder, c struc
 	if c.Between.IsColumn {
 		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition + " " + c.Between.From.(string) + " AND " + c.Between.To.(string))
 	} else {
-		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition + " ? AND ?")
+		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition + " " + wb.u.GetPlaceholder() + " AND " + wb.u.GetPlaceholder())
 		values = []interface{}{c.Between.From, c.Between.To}
 	}
 
@@ -178,11 +178,11 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *strings.Builder, c structs.W
 					if k > 0 {
 						wsb.WriteString(", ")
 					}
-					wsb.WriteString("?")
+					wsb.WriteString(wb.u.GetPlaceholder())
 				}
 				wsb.WriteString(")")
 			} else {
-				wsb.WriteString(" ?")
+				wsb.WriteString(" " + wb.u.GetPlaceholder())
 			}
 		}
 	}
@@ -216,11 +216,11 @@ func (wb *WhereBaseBuilder) ProcessFunction(sb *strings.Builder, c structs.Where
 				if k > 0 {
 					wsb.WriteString(", ")
 				}
-				wsb.WriteString("?")
+				wsb.WriteString(wb.u.GetPlaceholder())
 			}
 			wsb.WriteString(")")
 		} else {
-			wsb.WriteString(" ?")
+			wsb.WriteString(" " + wb.u.GetPlaceholder())
 		}
 	}
 

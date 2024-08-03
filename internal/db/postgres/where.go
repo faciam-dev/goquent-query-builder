@@ -99,10 +99,10 @@ func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *strings.Builder, c structs
 		if i > 0 {
 			sb.WriteString(" || ")
 		}
-		sb.WriteString("to_tsvector(?, " + column + ")")
+		sb.WriteString("to_tsvector(" + wb.u.GetPlaceholder() + ", " + column + ")")
 		values = append(values, language)
 	}
-	sb.WriteString(") @@ " + mode + "(?, ?)")
+	sb.WriteString(") @@ " + mode + "(" + wb.u.GetPlaceholder() + ", " + wb.u.GetPlaceholder() + ")")
 	values = append(values, language, c.FullText.Search)
 
 	return values

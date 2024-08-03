@@ -48,7 +48,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	sort.Strings(columns)
 	for i, column := range columns {
 		sb.WriteString(column)
-		sb.WriteString(" = ?")
+		sb.WriteString(" = " + m.u.GetPlaceholder())
 		if i < len(columns)-1 {
 			sb.WriteString(", ")
 		}

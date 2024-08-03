@@ -77,7 +77,7 @@ func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupB
 			sb.WriteString(g.u.EscapeIdentifier(having.Column))
 			sb.WriteString(" ")
 			sb.WriteString(having.Condition)
-			sb.WriteString(" ?")
+			sb.WriteString(" " + g.u.GetPlaceholder())
 		}
 
 		//if len(havingValues) > 0 {

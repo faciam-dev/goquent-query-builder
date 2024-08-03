@@ -95,7 +95,7 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Wher
 		}
 		sb.WriteString(column)
 	}
-	sb.WriteString(") AGAINST (? " + mode + expand + ")")
+	sb.WriteString(") AGAINST (" + wb.u.GetPlaceholder() + " " + mode + expand + ")")
 	values := []interface{}{c.Value}
 
 	return values

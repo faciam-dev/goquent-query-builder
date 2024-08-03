@@ -56,7 +56,7 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString("?")
+		sb.WriteString(m.u.GetPlaceholder())
 	}
 	sb.WriteString(")")
 
@@ -118,7 +118,7 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString("?")
+			sb.WriteString(m.u.GetPlaceholder())
 		}
 		sb.WriteString(")")
 
