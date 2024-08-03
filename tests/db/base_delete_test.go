@@ -5,7 +5,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 )
 
 func TestBaseDeleteQueryBuilder(t *testing.T) {
@@ -41,7 +41,7 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "DELETE FROM users WHERE id = ?",
+				Expected: "DELETE FROM `users` WHERE `id` = ?",
 				Values:   []interface{}{1},
 			},
 		},
@@ -72,7 +72,7 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "DELETE FROM users WHERE NOT (id != ?)",
+				Expected: "DELETE FROM `users` WHERE NOT (`id` != ?)",
 				Values:   []interface{}{1},
 			},
 		},
@@ -109,13 +109,13 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "DELETE users FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE age > ?",
+				Expected: "DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `age` > ?",
 				Values:   []interface{}{18},
 			},
 		},
 	}
 
-	builder := base.NewBaseQueryBuilder()
+	builder := mysql.NewMySQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

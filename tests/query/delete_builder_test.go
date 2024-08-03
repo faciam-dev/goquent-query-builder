@@ -22,7 +22,7 @@ func TestDeleteBuilder(t *testing.T) {
 					Table("users").
 					Delete()
 			},
-			"DELETE FROM users",
+			"DELETE FROM `users`",
 			[]interface{}{},
 		},
 		{
@@ -33,7 +33,7 @@ func TestDeleteBuilder(t *testing.T) {
 					Where("id", "=", 1).
 					Delete()
 			},
-			"DELETE FROM users WHERE id = ?",
+			"DELETE FROM `users` WHERE `id` = ?",
 			[]interface{}{1},
 		},
 		{
@@ -47,7 +47,7 @@ func TestDeleteBuilder(t *testing.T) {
 					}).
 					Delete()
 			},
-			"DELETE FROM users WHERE id != ? OR NOT (age > ? AND name = ?)",
+			"DELETE FROM `users` WHERE `id` != ? OR NOT (`age` > ? AND `name` = ?)",
 			[]interface{}{1, 18, "John"},
 		},
 		{
@@ -58,7 +58,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereIn("id", []interface{}{1, 2, 3}).
 					Delete()
 			},
-			"DELETE FROM users WHERE id IN (?, ?, ?)",
+			"DELETE FROM `users` WHERE `id` IN (?, ?, ?)",
 			[]interface{}{1, 2, 3},
 		},
 		{
@@ -69,7 +69,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereNotIn("id", []interface{}{1, 2, 3}).
 					Delete()
 			},
-			"DELETE FROM users WHERE id NOT IN (?, ?, ?)",
+			"DELETE FROM `users` WHERE `id` NOT IN (?, ?, ?)",
 			[]interface{}{1, 2, 3},
 		},
 		{
@@ -80,7 +80,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereAny([]string{"name", "note"}, "LIKE", "%test%").
 					Delete()
 			},
-			"DELETE FROM users WHERE (name LIKE ? OR note LIKE ?)",
+			"DELETE FROM `users` WHERE (`name` LIKE ? OR `note` LIKE ?)",
 			[]interface{}{"%test%", "%test%"},
 		},
 		{
@@ -92,7 +92,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereAll([]string{"firstname", "lastname"}, "LIKE", "%test%").
 					Delete()
 			},
-			"DELETE FROM users WHERE id > ? AND (firstname LIKE ? AND lastname LIKE ?)",
+			"DELETE FROM `users` WHERE `id` > ? AND (`firstname` LIKE ? AND `lastname` LIKE ?)",
 			[]interface{}{10000, "%test%", "%test%"},
 		},
 		{
@@ -103,7 +103,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereNull("name").
 					Delete()
 			},
-			"DELETE FROM users WHERE name IS NULL",
+			"DELETE FROM `users` WHERE `name` IS NULL",
 			[]interface{}{},
 		},
 		{
@@ -114,7 +114,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereNotNull("name").
 					Delete()
 			},
-			"DELETE FROM users WHERE name IS NOT NULL",
+			"DELETE FROM `users` WHERE `name` IS NOT NULL",
 			[]interface{}{},
 		},
 		{
@@ -125,7 +125,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereColumn([]string{"name", "note"}, "name", "=", "note").
 					Delete()
 			},
-			"DELETE FROM users WHERE name = note",
+			"DELETE FROM `users` WHERE `name` = `note`",
 			[]interface{}{},
 		},
 		{
@@ -136,7 +136,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereBetween("age", 18, 30).
 					Delete()
 			},
-			"DELETE FROM users WHERE age BETWEEN ? AND ?",
+			"DELETE FROM `users` WHERE `age` BETWEEN ? AND ?",
 			[]interface{}{18, 30},
 		},
 		{
@@ -147,7 +147,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereNotBetween("age", 18, 30).
 					Delete()
 			},
-			"DELETE FROM users WHERE age NOT BETWEEN ? AND ?",
+			"DELETE FROM `users` WHERE `age` NOT BETWEEN ? AND ?",
 			[]interface{}{18, 30},
 		},
 		{
@@ -158,7 +158,7 @@ func TestDeleteBuilder(t *testing.T) {
 					WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at").
 					Delete()
 			},
-			"DELETE FROM users WHERE created_at BETWEEN updated_at AND deleted_at",
+			"DELETE FROM `users` WHERE `created_at` BETWEEN `updated_at` AND `deleted_at`",
 			[]interface{}{},
 		},
 		{
@@ -170,7 +170,7 @@ func TestDeleteBuilder(t *testing.T) {
 					Where("age", ">", 18).
 					Delete()
 			},
-			"DELETE users FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE age > ?",
+			"DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `age` > ?",
 			[]interface{}{18},
 		},
 		/*

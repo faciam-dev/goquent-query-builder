@@ -38,7 +38,7 @@ func TestPostgreSQLQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE (to_tsvector(?, name) || to_tsvector(?, description)) @@ websearch_to_tsquery(?, ?)",
+				Expected: ` WHERE (to_tsvector($1, "name") || to_tsvector($1, "description")) @@ websearch_to_tsquery($1, $1)`,
 				Values:   []interface{}{"english", "english", "english", "search"},
 			},
 		},

@@ -25,7 +25,7 @@ func TestInsertBuilder(t *testing.T) {
 						"age":  30,
 					})
 			},
-			"INSERT INTO users (age, name) VALUES (?, ?)",
+			"INSERT INTO `users` (`age`, `name`) VALUES (?, ?)",
 			[]interface{}{30, "John Doe"},
 		},
 		{
@@ -44,7 +44,7 @@ func TestInsertBuilder(t *testing.T) {
 						},
 					})
 			},
-			"INSERT INTO users (age, name) VALUES (?, ?), (?, ?)",
+			"INSERT INTO `users` (`age`, `name`) VALUES (?, ?), (?, ?)",
 			[]interface{}{30, "John Doe", 25, "Jane Doe"},
 		},
 		{
@@ -57,7 +57,7 @@ func TestInsertBuilder(t *testing.T) {
 						Select("name", "age").
 						Where("age", ">", 18))
 			},
-			"INSERT INTO users (name, age) SELECT name, age FROM profiles WHERE age > ?",
+			"INSERT INTO `users` (`name`, `age`) SELECT `name`, `age` FROM `profiles` WHERE `age` > ?",
 			[]interface{}{18},
 		},
 	}

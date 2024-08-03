@@ -31,31 +31,31 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name").
+					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("area", "=", "Jakarta").
 					WhereBetween("profiles.age", 18, 30).
 					OrderBy("users.name", "ASC").
 					OrderBy("profiles.age", "DESC").
 					GroupBy("users.id").
-					Having("COUNT(profiles.id)", ">", 1).
+					HavingRaw("COUNT(`profiles`.`id`) > 1").
 					WhereIn("users.id", usq).
 					Union(
 						api.NewSelectQueryBuilder(dbStrategy, blankCache).
 							Table("users").
-							Select("id", "users.name AS name").
+							Select("id", "users.name as name").
 							Join("profiles", "users.id", "=", "profiles.user_id").
 							Where("area", "=", "Jakarta").
 							WhereBetween("profiles.age", 18, 30).
 							OrderBy("users.name", "ASC").
 							OrderBy("profiles.age", "DESC").
 							GroupBy("users.id").
-							Having("COUNT(profiles.id)", ">", 1).
+							HavingRaw("COUNT(`profiles`.`id`) > 1").
 							WhereIn("users.id", usq),
 					)
 
 			},
-			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE area = 'Jakarta' AND profiles.age BETWEEN 18 AND 30 AND users.id IN (SELECT id FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC, profiles.age DESC UNION SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE area = 'Jakarta' AND profiles.age BETWEEN 18 AND 30 AND users.id IN (SELECT id FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC, profiles.age DESC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `area` = 'Jakarta' AND `profiles`.`age` BETWEEN 18 AND 30 AND `users`.`id` IN (SELECT `id` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > 18) GROUP BY `users`.`id` HAVING COUNT(`profiles`.`id`) > 1 ORDER BY `users`.`name` ASC, `profiles`.`age` DESC UNION SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `area` = 'Jakarta' AND `profiles`.`age` BETWEEN 18 AND 30 AND `users`.`id` IN (SELECT `id` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > 18) GROUP BY `users`.`id` HAVING COUNT(`profiles`.`id`) > 1 ORDER BY `users`.`name` ASC, `profiles`.`age` DESC",
 		},
 
 		{
@@ -67,7 +67,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name").
+					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("area", "=", "Jakarta").
 					WhereExists(func(q *api.SelectQueryBuilder) {
@@ -79,10 +79,10 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 					OrderBy("users.name", "ASC").
 					OrderBy("profiles.age", "DESC").
 					GroupBy("users.id").
-					Having("COUNT(profiles.id)", ">", 1)
+					HavingRaw("COUNT(`profiles`.`id`) > 1")
 
 			},
-			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE area = 'Jakarta' AND EXISTS (SELECT id FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC, profiles.age DESC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `area` = 'Jakarta' AND EXISTS (SELECT `id` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > 18) GROUP BY `users`.`id` HAVING COUNT(`profiles`.`id`) > 1 ORDER BY `users`.`name` ASC, `profiles`.`age` DESC",
 		},
 		{
 			"Complex_Query_With_OrWhereNotExists",
@@ -93,7 +93,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name").
+					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("area", "=", "Jakarta").
 					OrWhereNotExists(func(q *api.SelectQueryBuilder) {
@@ -105,10 +105,10 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 					OrderBy("users.name", "ASC").
 					OrderBy("profiles.age", "DESC").
 					GroupBy("users.id").
-					Having("COUNT(profiles.id)", ">", 1)
+					HavingRaw("COUNT(`profiles`.`id`) > 1")
 
 			},
-			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE area = 'Jakarta' OR NOT EXISTS (SELECT id FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC, profiles.age DESC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `area` = 'Jakarta' OR NOT EXISTS (SELECT `id` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > 18) GROUP BY `users`.`id` HAVING COUNT(`profiles`.`id`) > 1 ORDER BY `users`.`name` ASC, `profiles`.`age` DESC",
 		},
 		{
 			"Complex_Query",
@@ -125,18 +125,18 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name").
+					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("area", "=", "Jakarta").
 					WhereBetween("profiles.age", 18, 30).
 					OrderBy("users.name", "ASC").
 					OrderBy("profiles.age", "DESC").
 					GroupBy("users.id").
-					Having("COUNT(profiles.id)", ">", 1).
+					HavingRaw("COUNT(`profiles`.`id`) > 1").
 					WhereIn("users.id", usq)
 
 			},
-			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE area = 'Jakarta' AND profiles.age BETWEEN 18 AND 30 AND users.id IN (SELECT id FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC, profiles.age DESC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `area` = 'Jakarta' AND `profiles`.`age` BETWEEN 18 AND 30 AND `users`.`id` IN (SELECT `id` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > 18) GROUP BY `users`.`id` HAVING COUNT(`profiles`.`id`) > 1 ORDER BY `users`.`name` ASC, `profiles`.`age` DESC",
 		},
 		{
 			"Normal_Query",
@@ -147,13 +147,13 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name").
+					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("profiles.age", ">", 18).
 					OrderBy("users.name", "ASC")
 
 			},
-			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > 18 ORDER BY `users`.`name` ASC",
 		},
 		{
 			"Normal_Query_With_WhereGroup",
@@ -164,13 +164,13 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name").
+					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					WhereGroup(func(w *api.WhereSelectQueryBuilder) {
 						w.Where("profiles.age", ">", 18).Where("profiles.age", "<", 30)
 					}).OrderBy("users.name", "ASC")
 			},
-			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE (profiles.age > 18 AND profiles.age < 30) ORDER BY users.name ASC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE (`profiles`.`age` > 18 AND `profiles`.`age` < 30) ORDER BY `users`.`name` ASC",
 		},
 		{
 			"Simple_Query",
@@ -181,10 +181,10 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name")
+					Select("id", "users.name as name")
 
 			},
-			"SELECT id, users.name AS name FROM users",
+			"SELECT `id`, `users`.`name` as `name` FROM `users`",
 		},
 	}
 
@@ -223,7 +223,7 @@ func TestInsertDebugApiRawSqlTest(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"INSERT INTO users (age, name) VALUES (31, 'Joe')",
+			"INSERT INTO `users` (`age`, `name`) VALUES (31, 'Joe')",
 		},
 		{
 			"InsertUsing",
@@ -243,7 +243,7 @@ func TestInsertDebugApiRawSqlTest(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"INSERT INTO users (name, age) SELECT name, age FROM profiles WHERE age > 18",
+			"INSERT INTO `users` (`name`, `age`) SELECT `name`, `age` FROM `profiles` WHERE `age` > 18",
 		},
 	}
 
@@ -284,7 +284,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users INNER JOIN profiles ON users.id = profiles.user_id SET age = 31, name = 'Joe' WHERE age > 18",
+			"UPDATE `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` SET `age` = 31, `name` = 'Joe' WHERE `age` > 18",
 		},
 		{
 			"Update_ORDER_BY",
@@ -301,7 +301,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = 31, name = 'Joe' ORDER BY name ASC",
+			"UPDATE `users` SET `age` = 31, `name` = 'Joe' ORDER BY `name` ASC",
 		},
 		{
 			"Update_Where_Date",
@@ -318,7 +318,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = 31, name = 'Joe' WHERE DATE(created_at) = '2021-01-01'",
+			"UPDATE `users` SET `age` = 31, `name` = 'Joe' WHERE DATE(`created_at`) = '2021-01-01'",
 		},
 		{
 			"Update_Where_Between_Columns",
@@ -335,7 +335,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = 31, name = 'Joe' WHERE age BETWEEN min_age AND max_age",
+			"UPDATE `users` SET `age` = 31, `name` = 'Joe' WHERE `age` BETWEEN `min_age` AND `max_age`",
 		},
 	}
 
@@ -373,7 +373,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 					Where("age", ">", 18).
 					Delete()
 			},
-			"DELETE users FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE age > 18",
+			"DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `age` > 18",
 		},
 		{
 			"Delete_Where_Between",
@@ -387,7 +387,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 					WhereNotBetween("age", 18, 30).
 					Delete()
 			},
-			"DELETE FROM users WHERE age NOT BETWEEN 18 AND 30",
+			"DELETE FROM `users` WHERE `age` NOT BETWEEN 18 AND 30",
 		},
 		{
 			"Delete_Where_Between_Columns",
@@ -401,7 +401,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 					WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at").
 					Delete()
 			},
-			"DELETE FROM users WHERE created_at BETWEEN updated_at AND deleted_at",
+			"DELETE FROM `users` WHERE `created_at` BETWEEN `updated_at` AND `deleted_at`",
 		},
 		{
 			"Delete_Where_Columns",
@@ -418,7 +418,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 						}).
 					Delete()
 			},
-			"DELETE FROM users WHERE name = age",
+			"DELETE FROM `users` WHERE `name` = `age`",
 		},
 		{
 			"Delete_Where_Columns_With_WhereGroup",
@@ -434,7 +434,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 					}).
 					Delete()
 			},
-			"DELETE FROM users WHERE (name = 'Joe' AND age = 31)",
+			"DELETE FROM `users` WHERE (`name` = 'Joe' AND `age` = 31)",
 		},
 	}
 
@@ -475,33 +475,33 @@ func TestDebugDumpTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name").
+					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("area", "=", "Jakarta").
 					WhereBetween("profiles.age", 18, 30).
 					OrderBy("users.name", "ASC").
 					OrderBy("profiles.age", "DESC").
 					GroupBy("users.id").
-					Having("COUNT(profiles.id)", ">", 1).
+					HavingRaw("COUNT(`profiles`.`id`) > 1").
 					WhereIn("users.id", usq).
 					Union(
 						api.NewSelectQueryBuilder(dbStrategy, blankCache).
 							Table("users").
-							Select("id", "users.name AS name").
+							Select("id", "users.name as name").
 							Join("profiles", "users.id", "=", "profiles.user_id").
 							Where("area", "=", "Jakarta").
 							WhereBetween("profiles.age", 18, 30).
 							OrderBy("users.name", "ASC").
 							OrderBy("profiles.age", "DESC").
 							GroupBy("users.id").
-							Having("COUNT(profiles.id)", ">", 1).
+							HavingRaw("COUNT(`profiles`.`id`) > 1").
 							WhereIn("users.id", usq),
 					)
 
 			},
-			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE area = ? AND profiles.age BETWEEN ? AND ? AND users.id IN (SELECT id FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > ?) GROUP BY users.id HAVING COUNT(profiles.id) > ? ORDER BY users.name ASC, profiles.age DESC UNION SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE area = ? AND profiles.age BETWEEN ? AND ? AND users.id IN (SELECT id FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > ?) GROUP BY users.id HAVING COUNT(profiles.id) > ? ORDER BY users.name ASC, profiles.age DESC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `area` = ? AND `profiles`.`age` BETWEEN ? AND ? AND `users`.`id` IN (SELECT `id` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ?) GROUP BY `users`.`id` HAVING COUNT(`profiles`.`id`) > 1 ORDER BY `users`.`name` ASC, `profiles`.`age` DESC UNION SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `area` = ? AND `profiles`.`age` BETWEEN ? AND ? AND `users`.`id` IN (SELECT `id` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ?) GROUP BY `users`.`id` HAVING COUNT(`profiles`.`id`) > 1 ORDER BY `users`.`name` ASC, `profiles`.`age` DESC",
 			[]interface{}{
-				"Jakarta", 18, 30, 18, 1, "Jakarta", 18, 30, 18, 1,
+				"Jakarta", 18, 30, 18, "Jakarta", 18, 30, 18,
 			},
 		},
 		{
@@ -519,20 +519,20 @@ func TestDebugDumpTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name").
+					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("area", "=", "Jakarta").
 					WhereBetween("profiles.age", 18, 30).
 					OrderBy("users.name", "ASC").
 					OrderBy("profiles.age", "DESC").
 					GroupBy("users.id").
-					Having("COUNT(profiles.id)", ">", 1).
+					HavingRaw("COUNT(`profiles`.`id`) > 1").
 					WhereIn("users.id", usq)
 
 			},
-			"SELECT id, users.name AS name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE area = ? AND profiles.age BETWEEN ? AND ? AND users.id IN (SELECT id FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > ?) GROUP BY users.id HAVING COUNT(profiles.id) > ? ORDER BY users.name ASC, profiles.age DESC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `area` = ? AND `profiles`.`age` BETWEEN ? AND ? AND `users`.`id` IN (SELECT `id` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ?) GROUP BY `users`.`id` HAVING COUNT(`profiles`.`id`) > 1 ORDER BY `users`.`name` ASC, `profiles`.`age` DESC",
 			[]interface{}{
-				"Jakarta", 18, 30, 18, 1,
+				"Jakarta", 18, 30, 18,
 			},
 		},
 		{
@@ -544,10 +544,10 @@ func TestDebugDumpTest(t *testing.T) {
 
 				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
 					Table("users").
-					Select("id", "users.name AS name")
+					Select("id", "users.name as name")
 
 			},
-			"SELECT id, users.name AS name FROM users",
+			"SELECT `id`, `users`.`name` as `name` FROM `users`",
 			[]interface{}{},
 		},
 	}
@@ -577,11 +577,10 @@ func TestDebugDumpTest(t *testing.T) {
 			builder.Where("debug", "=", 1)
 
 			query, values, _ = builder.Build()
-			t.Log(query, values)
 
 			tt.expectedValues = append(tt.expectedValues, 1)
 
-			if !strings.Contains(query, "debug = ?") {
+			if !strings.Contains(query, "`debug` = ?") {
 				t.Errorf("expected '%s' but got '%s'", tt.expectedQuery, query)
 			}
 

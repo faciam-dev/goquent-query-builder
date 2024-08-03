@@ -25,7 +25,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ?",
+			"UPDATE `users` SET `age` = ?, `name` = ?",
 			[]interface{}{31, "Joe"},
 		},
 		{
@@ -39,7 +39,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE id = ?",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` = ?",
 			[]interface{}{31, "Joe", 1},
 		},
 		{
@@ -47,7 +47,6 @@ func TestUpdateBuilder(t *testing.T) {
 			func() *query.UpdateBuilder {
 
 				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					//					SetParent(query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100))).
 					Table("users").
 					Where("id", "!=", 1).
 					OrWhereNot(func(b *query.WhereBuilder[query.UpdateBuilder]) {
@@ -58,7 +57,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE id != ? OR NOT (age > ? AND name = ?)",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` != ? OR NOT (`age` > ? AND `name` = ?)",
 			[]interface{}{31, "Joe", 1, 18, "John"},
 		},
 		{
@@ -72,7 +71,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE (name LIKE ? OR note LIKE ?)",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE (`name` LIKE ? OR `note` LIKE ?)",
 			[]interface{}{31, "Joe", "%test%", "%test%"},
 		},
 		{
@@ -86,7 +85,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE id IN (?, ?, ?)",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` IN (?, ?, ?)",
 			[]interface{}{31, "Joe", 1, 2, 3},
 		},
 		{
@@ -100,7 +99,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE name IS NULL",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `name` IS NULL",
 			[]interface{}{31, "Joe"},
 		},
 		{
@@ -114,7 +113,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE name = note",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `name` = `note`",
 			[]interface{}{31, "Joe"},
 		},
 		{
@@ -128,7 +127,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE name = nick_name OR memo = note",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `name` = `nick_name` OR `memo` = `note`",
 			[]interface{}{31, "Joe"},
 		},
 		{
@@ -142,7 +141,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE age BETWEEN ? AND ?",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `age` BETWEEN ? AND ?",
 			[]interface{}{31, "Joe", 18, 30},
 		},
 		{
@@ -156,7 +155,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE age NOT BETWEEN ? AND ?",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `age` NOT BETWEEN ? AND ?",
 			[]interface{}{31, "Joe", 18, 30},
 		},
 		{
@@ -170,7 +169,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE age BETWEEN min_age AND max_age",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `age` BETWEEN `min_age` AND `max_age`",
 			[]interface{}{31, "Joe"},
 		},
 		{
@@ -184,7 +183,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE DATE(created_at) = ?",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE DATE(`created_at`) = ?",
 			[]interface{}{31, "Joe", "2021-01-01"},
 		},
 		{
@@ -199,7 +198,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users INNER JOIN profiles ON users.id = profiles.user_id SET age = ?, name = ? WHERE age > ?",
+			"UPDATE `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` SET `age` = ?, `name` = ? WHERE `age` > ?",
 			[]interface{}{31, "Joe", 18},
 		},
 		{
@@ -213,7 +212,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? ORDER BY name ASC",
+			"UPDATE `users` SET `age` = ?, `name` = ? ORDER BY `name` ASC",
 			[]interface{}{31, "Joe"},
 		},
 	}

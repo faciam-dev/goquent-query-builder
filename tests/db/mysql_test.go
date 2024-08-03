@@ -38,7 +38,7 @@ func TestMySQLQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE MATCH (name, description) AGAINST (? IN BOOLEAN MODE)",
+				Expected: " WHERE MATCH (`name`, `description`) AGAINST (? IN BOOLEAN MODE)",
 				Values:   []interface{}{"search"},
 			},
 		},
