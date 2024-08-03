@@ -149,7 +149,7 @@ func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *strings.Builder, c struc
 	wsb.Grow(consts.StringBuffer_Where_Grow)
 	values := make([]interface{}, 0, 2)
 	if c.Between.IsColumn {
-		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition + " " + c.Between.From.(string) + " AND " + c.Between.To.(string))
+		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition + " " + wb.u.EscapeIdentifier(c.Between.From.(string)) + " AND " + wb.u.EscapeIdentifier(c.Between.To.(string)))
 	} else {
 		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition + " " + wb.u.GetPlaceholder() + " AND " + wb.u.GetPlaceholder())
 		values = []interface{}{c.Between.From, c.Between.To}
@@ -206,7 +206,7 @@ func (wb *WhereBaseBuilder) ProcessFunction(sb *strings.Builder, c structs.Where
 	wsb := strings.Builder{}
 	wsb.Grow(consts.StringBuffer_Where_Grow)
 
-	wsb.WriteString(c.Function + "(" + c.Column + ") " + c.Condition)
+	wsb.WriteString(c.Function + "(" + wb.u.EscapeIdentifier(c.Column) + ") " + c.Condition)
 	if c.ValueColumn != "" {
 		wsb.WriteString(" " + wb.u.EscapeIdentifier(c.ValueColumn))
 	} else if c.Value != nil {
