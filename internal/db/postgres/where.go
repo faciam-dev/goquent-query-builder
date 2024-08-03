@@ -5,16 +5,19 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type WherePostgreSQLBuilder struct {
 	base.WhereBaseBuilder
 	whereBaseBuilder *base.WhereBaseBuilder
+	u                interfaces.SQLUtils
 }
 
-func NewWherePostgreSQLBuilder(wg *[]structs.WhereGroup) *WherePostgreSQLBuilder {
+func NewWherePostgreSQLBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WherePostgreSQLBuilder {
 	return &WherePostgreSQLBuilder{
-		whereBaseBuilder: base.NewWhereBaseBuilder(wg),
+		whereBaseBuilder: base.NewWhereBaseBuilder(util, wg),
+		u:                util,
 	}
 }
 

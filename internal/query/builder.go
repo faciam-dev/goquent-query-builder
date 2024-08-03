@@ -7,11 +7,11 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type Builder struct {
-	dbBuilder     db.QueryBuilderStrategy
+	dbBuilder     interfaces.QueryBuilderStrategy
 	cache         cache.Cache
 	query         *structs.Query
 	selectQuery   *structs.SelectQuery
@@ -23,7 +23,7 @@ type Builder struct {
 	BaseBuilder
 }
 
-func NewBuilder(dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *Builder {
+func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *Builder {
 	b := &Builder{
 		dbBuilder: dbBuilder,
 		cache:     cache,
@@ -467,7 +467,7 @@ func (b *Builder) GetQuery() *structs.Query {
 	return b.query
 }
 
-func (b *Builder) GetStrategy() db.QueryBuilderStrategy {
+func (b *Builder) GetStrategy() interfaces.QueryBuilderStrategy {
 	return b.dbBuilder
 }
 

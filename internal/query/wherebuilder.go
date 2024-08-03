@@ -7,18 +7,18 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type WhereBuilder[T any] struct {
-	dbBuilder   db.QueryBuilderStrategy
+	dbBuilder   interfaces.QueryBuilderStrategy
 	cache       cache.Cache
 	query       *structs.Query
 	whereValues []interface{}
 	parent      *T
 }
 
-func NewWhereBuilder[T any](strategy db.QueryBuilderStrategy, cache cache.Cache) *WhereBuilder[T] {
+func NewWhereBuilder[T any](strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *WhereBuilder[T] {
 	return &WhereBuilder[T]{
 		dbBuilder: strategy,
 		cache:     cache,

@@ -914,7 +914,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 		},
 	}
 
-	builder := base.BaseQueryBuilder{}
+	builder := base.NewBaseQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -5,16 +5,19 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type WhereMySQLBuilder struct {
 	base.WhereBaseBuilder
 	whereBaseBuilder *base.WhereBaseBuilder
+	u                interfaces.SQLUtils
 }
 
-func NewWhereMySQLBuilder(wg *[]structs.WhereGroup) *WhereMySQLBuilder {
+func NewWhereMySQLBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WhereMySQLBuilder {
 	return &WhereMySQLBuilder{
-		whereBaseBuilder: base.NewWhereBaseBuilder(wg),
+		whereBaseBuilder: base.NewWhereBaseBuilder(util, wg),
+		u:                util,
 	}
 }
 

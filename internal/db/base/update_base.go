@@ -6,13 +6,17 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type UpdateBaseBuilder struct {
+	u interfaces.SQLUtils
 }
 
-func NewUpdateBaseBuilder(iq *structs.UpdateQuery) *UpdateBaseBuilder {
-	return &UpdateBaseBuilder{}
+func NewUpdateBaseBuilder(util interfaces.SQLUtils, iq *structs.UpdateQuery) *UpdateBaseBuilder {
+	return &UpdateBaseBuilder{
+		u: util,
+	}
 }
 
 func (m *UpdateBaseBuilder) Update(q *structs.UpdateQuery) *UpdateBaseBuilder {
@@ -29,7 +33,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	sb.WriteString(q.Table)
 
 	// JOIN
-	b := &BaseQueryBuilder{}
+	b := m.u.GetQueryBuilderStrategy()
 	joinValues := b.Join(sb, q.Query.Joins)
 	values := make([]interface{}, 0, len(q.Values)+len(joinValues))
 
@@ -53,13 +57,13 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 
 	// WHERE
 	if len(*q.Query.ConditionGroups) > 0 {
-		wb := NewWhereBaseBuilder(q.Query.ConditionGroups)
+		wb := NewWhereBaseBuilder(m.u, q.Query.ConditionGroups)
 		whereValues := wb.Where(sb, q.Query.ConditionGroups)
 		values = append(values, whereValues...)
 	}
 
 	if len(*q.Query.Order) > 0 {
-		ob := NewOrderByBaseBuilder(q.Query.Order)
+		ob := NewOrderByBaseBuilder(m.u, q.Query.Order)
 		ob.OrderBy(sb, q.Query.Order)
 	}
 

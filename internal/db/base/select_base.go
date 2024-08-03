@@ -1,24 +1,34 @@
 package base
 
 import (
+	"log"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type SelectBaseBuilder struct {
 	columnNames *[]string
+	util        interfaces.SQLUtils
 }
 
-func NewSelectBaseBuilder(columnNames *[]string) *SelectBaseBuilder {
+func NewSelectBaseBuilder(u interfaces.SQLUtils, columnNames *[]string) *SelectBaseBuilder {
 	return &SelectBaseBuilder{
 		columnNames: columnNames,
+		util:        u,
 	}
 }
 
 func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
+	if b.util == nil {
+		log.Print(b)
+		log.Fatal("SQLUtils is not set")
+
+	}
+
 	if columns == nil {
 		sb.WriteString(" * ")
 		return []interface{}{}
@@ -60,7 +70,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 				sb.WriteString("DISTINCT ")
 			}
 			if column.Name != "" {
-				sb.WriteString(column.Name)
+				sb.WriteString(b.util.EscapeIdentifier(column.Name))
 			} else {
 				sb.WriteString("*")
 			}
@@ -85,7 +95,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(column.Name)
+			sb.WriteString(b.util.EscapeIdentifier(column.Name))
 			//colNames = append(colNames, column.Name)
 		}
 	}

@@ -4,7 +4,7 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type JoinBuilder[T any] struct {
@@ -15,7 +15,7 @@ type JoinBuilder[T any] struct {
 	parent     *T
 }
 
-func NewJoinBuilder[T any](dbBuilder db.QueryBuilderStrategy, cache cache.Cache) *JoinBuilder[T] {
+func NewJoinBuilder[T any](dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *JoinBuilder[T] {
 	return &JoinBuilder[T]{
 		Table: &structs.Table{},
 		Joins: &structs.Joins{

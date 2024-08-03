@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 	"github.com/faciam-dev/goquent-query-builder/pkg/api"
 )
 
 func BenchmarkSimpleSelectQuery(b *testing.B) {
 
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 
 	blankCache := cache.NewBlankQueryCache()
 
@@ -32,7 +32,7 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 }
 
 func BenchmarkNormalSelectQuery(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 
 	blankCache := cache.NewBlankQueryCache()
 
@@ -58,7 +58,7 @@ func BenchmarkNormalSelectQuery(b *testing.B) {
 
 func BenchmarkComplexSelectQuery(b *testing.B) {
 
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 
 	blankCache := cache.NewBlankQueryCache()
 
@@ -86,7 +86,7 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 }
 
 func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
@@ -121,7 +121,7 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 }
 
 func BenchmarkSimpleInsert(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
@@ -144,7 +144,7 @@ func BenchmarkSimpleInsert(b *testing.B) {
 }
 
 func BenchmarkInsertBatch(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
@@ -173,7 +173,7 @@ func BenchmarkInsertBatch(b *testing.B) {
 }
 
 func BenchmarkInsertUsing(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
@@ -208,7 +208,7 @@ func BenchmarkInsertUsing(b *testing.B) {
 }
 
 func BenchmarkSimpleUpdate(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
@@ -231,7 +231,7 @@ func BenchmarkSimpleUpdate(b *testing.B) {
 }
 
 func BenchmarkUpdateWhere(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
@@ -255,7 +255,7 @@ func BenchmarkUpdateWhere(b *testing.B) {
 }
 
 func BenchmarkJoinUpdate(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
@@ -280,7 +280,7 @@ func BenchmarkJoinUpdate(b *testing.B) {
 }
 
 func BenchmarkDelete(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewDeleteQueryBuilder(dbStrategy, blankCache).
@@ -300,7 +300,7 @@ func BenchmarkDelete(b *testing.B) {
 }
 
 func BenchmarkDeleteJoin(b *testing.B) {
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	blankCache := cache.NewBlankQueryCache()
 
 	qb := api.NewDeleteQueryBuilder(dbStrategy, blankCache).

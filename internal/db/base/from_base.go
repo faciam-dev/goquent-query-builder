@@ -1,15 +1,22 @@
 package base
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
+)
 
 type FromBaseBuilder struct {
+	u interfaces.SQLUtils
 }
 
-func NewFromBaseBuilder() *FromBaseBuilder {
-	return &FromBaseBuilder{}
+func NewFromBaseBuilder(util interfaces.SQLUtils) *FromBaseBuilder {
+	return &FromBaseBuilder{
+		u: util,
+	}
 }
 
-func (FromBaseBuilder) From(sb *strings.Builder, table string) {
+func (f FromBaseBuilder) From(sb *strings.Builder, table string) {
 	sb.WriteString("FROM ")
-	sb.WriteString(table)
+	sb.WriteString(f.u.EscapeIdentifier(table))
 }

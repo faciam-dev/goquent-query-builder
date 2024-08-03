@@ -6,7 +6,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 )
 
 func TestMySQLQueryBuilder(t *testing.T) {
@@ -44,7 +44,7 @@ func TestMySQLQueryBuilder(t *testing.T) {
 		},
 	}
 
-	builder := db.NewMySQLQueryBuilder()
+	builder := mysql.NewMySQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

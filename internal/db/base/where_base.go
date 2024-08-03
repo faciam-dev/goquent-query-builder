@@ -5,14 +5,17 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type WhereBaseBuilder struct {
+	u           interfaces.SQLUtils
 	whereGroups *[]structs.WhereGroup
 }
 
-func NewWhereBaseBuilder(wg *[]structs.WhereGroup) *WhereBaseBuilder {
+func NewWhereBaseBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WhereBaseBuilder {
 	return &WhereBaseBuilder{
+		u:           util,
 		whereGroups: wg,
 	}
 }
@@ -125,7 +128,7 @@ func (wb *WhereBaseBuilder) GetConditionOperator(c structs.Where) string {
 
 func (wb *WhereBaseBuilder) ProcessSubQuery(sb *strings.Builder, c structs.Where) []interface{} {
 	condQuery := c.Column + " " + c.Condition
-	b := &BaseQueryBuilder{}
+	b := wb.u.GetQueryBuilderStrategy()
 	sqQuery, sqValues := b.Build("", c.Query, 0, nil)
 
 	sb.WriteString(condQuery + " (" + sqQuery + ")")
@@ -134,7 +137,7 @@ func (wb *WhereBaseBuilder) ProcessSubQuery(sb *strings.Builder, c structs.Where
 
 func (wb *WhereBaseBuilder) ProcessExistsQuery(sb *strings.Builder, c structs.Where) []interface{} {
 	condQuery := c.Condition
-	b := &BaseQueryBuilder{}
+	b := wb.u.GetQueryBuilderStrategy()
 	sqQuery, sqValues := b.Build("", c.Exists.Query, 0, nil)
 
 	sb.WriteString(condQuery + " (" + sqQuery + ")")
@@ -146,9 +149,9 @@ func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *strings.Builder, c struc
 	wsb.Grow(consts.StringBuffer_Where_Grow)
 	values := make([]interface{}, 0, 2)
 	if c.Between.IsColumn {
-		wsb.WriteString(c.Column + " " + c.Condition + " " + c.Between.From.(string) + " AND " + c.Between.To.(string))
+		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition + " " + c.Between.From.(string) + " AND " + c.Between.To.(string))
 	} else {
-		wsb.WriteString(c.Column + " " + c.Condition + " ? AND ?")
+		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition + " ? AND ?")
 		values = []interface{}{c.Between.From, c.Between.To}
 	}
 
@@ -165,9 +168,9 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *strings.Builder, c structs.W
 	if c.Raw != "" {
 		wsb.WriteString(c.Raw)
 	} else {
-		wsb.WriteString(c.Column + " " + c.Condition)
+		wsb.WriteString(wb.u.EscapeIdentifier(c.Column) + " " + c.Condition)
 		if c.ValueColumn != "" {
-			wsb.WriteString(" " + c.ValueColumn)
+			wsb.WriteString(" " + wb.u.EscapeIdentifier(c.ValueColumn))
 		} else if c.Value != nil {
 			if len(c.Value) > 1 {
 				wsb.WriteString(" (")
@@ -205,7 +208,7 @@ func (wb *WhereBaseBuilder) ProcessFunction(sb *strings.Builder, c structs.Where
 
 	wsb.WriteString(c.Function + "(" + c.Column + ") " + c.Condition)
 	if c.ValueColumn != "" {
-		wsb.WriteString(" " + c.ValueColumn)
+		wsb.WriteString(" " + wb.u.EscapeIdentifier(c.ValueColumn))
 	} else if c.Value != nil {
 		if len(c.Value) > 1 {
 			wsb.WriteString(" (")

@@ -6,14 +6,17 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type InsertBaseBuilder struct {
+	u           interfaces.SQLUtils
 	insertQuery *structs.InsertQuery
 }
 
-func NewInsertBaseBuilder(iq *structs.InsertQuery) *InsertBaseBuilder {
+func NewInsertBaseBuilder(util interfaces.SQLUtils, iq *structs.InsertQuery) *InsertBaseBuilder {
 	return &InsertBaseBuilder{
+		u:           util,
 		insertQuery: iq,
 	}
 }
@@ -94,7 +97,7 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(column)
+		sb.WriteString(m.u.EscapeIdentifier(column))
 	}
 	sb.WriteString(") VALUES ")
 
@@ -132,7 +135,7 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	return query, allValues, nil
 }
 
-func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}, error) {
+func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}, error) {
 	sb := &strings.Builder{}
 	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
 
@@ -148,12 +151,12 @@ func (m InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interf
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(column)
+		sb.WriteString(m.u.EscapeIdentifier(column))
 	}
 	sb.WriteString(") ")
 
 	// SELECT
-	b := &BaseQueryBuilder{}
+	b := m.u.GetQueryBuilderStrategy()
 	selectQuery, selectValues := b.Build("", q.Query, 0, nil)
 	sb.WriteString(selectQuery)
 

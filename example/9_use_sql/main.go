@@ -12,7 +12,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
 	"github.com/faciam-dev/goquent-query-builder/pkg/api"
 )
 
@@ -44,7 +43,7 @@ func main() {
 	}
 
 	// Initialize database strategy
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// INSERT INTO users (age, name) VALUES (?, ?)

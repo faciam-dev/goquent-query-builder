@@ -5,13 +5,17 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type DeleteBaseBuilder struct {
+	u interfaces.SQLUtils
 }
 
-func NewDeleteBaseBuilder(iq *structs.DeleteQuery) *DeleteBaseBuilder {
-	return &DeleteBaseBuilder{}
+func NewDeleteBaseBuilder(util interfaces.SQLUtils, iq *structs.DeleteQuery) *DeleteBaseBuilder {
+	return &DeleteBaseBuilder{
+		u: util,
+	}
 }
 
 func (m *DeleteBaseBuilder) Delete(q *structs.DeleteQuery) *DeleteBaseBuilder {
@@ -37,19 +41,19 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 	sb.WriteString(" FROM " + q.Table)
 
 	// JOIN
-	b := &BaseQueryBuilder{}
+	b := m.u.GetQueryBuilderStrategy()
 	b.Join(sb, q.Query.Joins)
 
 	// WHERE
 	if len(*q.Query.ConditionGroups) > 0 {
-		wb := NewWhereBaseBuilder(q.Query.ConditionGroups)
+		wb := NewWhereBaseBuilder(m.u, q.Query.ConditionGroups)
 		whereValues := wb.Where(sb, q.Query.ConditionGroups)
 		values = append(values, whereValues...)
 	}
 
 	// ORDER BY
 	if len(*q.Query.Order) > 0 {
-		ob := NewOrderByBaseBuilder(q.Query.Order)
+		ob := NewOrderByBaseBuilder(m.u, q.Query.Order)
 		ob.OrderBy(sb, q.Query.Order)
 	}
 

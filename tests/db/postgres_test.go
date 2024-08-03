@@ -6,7 +6,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/postgres"
 )
 
 func TestPostgreSQLQueryBuilder(t *testing.T) {
@@ -44,7 +44,7 @@ func TestPostgreSQLQueryBuilder(t *testing.T) {
 		},
 	}
 
-	builder := db.NewPostgreSQLQueryBuilder()
+	builder := postgres.NewPostgreSQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -5,15 +5,18 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type JoinBaseBuilder struct {
+	u           interfaces.SQLUtils
 	join        *structs.Joins
 	columnNames *[]string
 }
 
-func NewJoinBaseBuilder(j *structs.Joins) *JoinBaseBuilder {
+func NewJoinBaseBuilder(util interfaces.SQLUtils, j *structs.Joins) *JoinBaseBuilder {
 	return &JoinBaseBuilder{
+		u:           util,
 		join:        j,
 		columnNames: &[]string{},
 	}
@@ -48,7 +51,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			joinType, targetName := jb.processJoin(j)
 
 			if joinClause.Query != nil {
-				b := &BaseQueryBuilder{}
+				b := jb.u.GetQueryBuilderStrategy()
 				sqQuery, sqValues := b.Build("", joinClause.Query, 0, nil)
 				targetName = "(" + sqQuery + ")" + " AS " + targetName
 				values = append(values, sqValues...)
@@ -131,7 +134,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 		}
 
 		if join.Query != nil {
-			b := &BaseQueryBuilder{}
+			b := jb.u.GetQueryBuilderStrategy()
 			sqQuery, sqValues := b.Build("", join.Query, 0, nil)
 			targetName = "(" + sqQuery + ")" + " AS " + targetName
 			values = append(values, sqValues...)

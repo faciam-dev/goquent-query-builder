@@ -4,11 +4,11 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type UpdateBuilder struct {
-	dbBuilder      db.QueryBuilderStrategy
+	dbBuilder      interfaces.QueryBuilderStrategy
 	cache          cache.Cache
 	query          *structs.UpdateQuery
 	orderByBuilder *OrderByBuilder
@@ -16,7 +16,7 @@ type UpdateBuilder struct {
 	WhereBuilder[UpdateBuilder]
 }
 
-func NewUpdateBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
+func NewUpdateBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
 	ub := &UpdateBuilder{
 		dbBuilder: strategy,
 		cache:     cache,

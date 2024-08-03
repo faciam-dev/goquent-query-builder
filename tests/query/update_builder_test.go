@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -18,7 +18,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_all",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Update(map[string]interface{}{
 						"name": "Joe",
@@ -31,7 +31,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "=", 1).
 					Update(map[string]interface{}{
@@ -46,8 +46,8 @@ func TestUpdateBuilder(t *testing.T) {
 			"Update_where_not",
 			func() *query.UpdateBuilder {
 
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
-					//					SetParent(query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100))).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					//					SetParent(query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100))).
 					Table("users").
 					Where("id", "!=", 1).
 					OrWhereNot(func(b *query.WhereBuilder[query.UpdateBuilder]) {
@@ -64,7 +64,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_any",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereAny([]string{"name", "note"}, "LIKE", "%test%").
 					Update(map[string]interface{}{
@@ -78,7 +78,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_in",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereIn("id", []interface{}{1, 2, 3}).
 					Update(map[string]interface{}{
@@ -92,7 +92,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_null",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereNull("name").
 					Update(map[string]interface{}{
@@ -106,7 +106,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_column",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereColumn([]string{"name", "note"}, "name", "=", "note").
 					Update(map[string]interface{}{
@@ -120,7 +120,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_or_columns",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					OrWhereColumns([]string{"name", "nick_name", "memo", "note"}, [][]string{{"name", "=", "nick_name"}, {"memo", "=", "note"}}).
 					Update(map[string]interface{}{
@@ -134,7 +134,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_between",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereBetween("age", 18, 30).
 					Update(map[string]interface{}{
@@ -148,7 +148,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_not_between",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereNotBetween("age", 18, 30).
 					Update(map[string]interface{}{
@@ -162,7 +162,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_between_column",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereBetweenColumns([]string{"age", "min_age", "max_age"}, "age", "min_age", "max_age").
 					Update(map[string]interface{}{
@@ -176,7 +176,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_where_Date",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereDate("created_at", "=", "2021-01-01").
 					Update(map[string]interface{}{
@@ -190,7 +190,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_JOINS",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
@@ -205,7 +205,7 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_orderBy",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					OrderBy("name", "ASC").
 					Update(map[string]interface{}{
