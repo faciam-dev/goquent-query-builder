@@ -129,8 +129,8 @@ out:
 
 func (b *Builder) aggregate(column string, aggregateFunc string) *Builder {
 	*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{
-		Name: column,
-		Raw:  fmt.Sprintf("%s(%s)", aggregateFunc, column),
+		Name:     column,
+		Function: aggregateFunc,
 	})
 	return b
 }

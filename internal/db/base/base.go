@@ -5,6 +5,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type SelectBuilderStrategy interface {
@@ -72,6 +73,8 @@ type BaseQueryBuilder struct {
 	InsertBaseBuilder
 	UpdateBaseBuilder
 	DeleteBaseBuilder
+
+	util interfaces.SQLUtils
 }
 
 func NewBaseQueryBuilder() *BaseQueryBuilder {

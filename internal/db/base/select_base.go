@@ -1,7 +1,6 @@
 package base
 
 import (
-	"log"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -12,23 +11,17 @@ import (
 
 type SelectBaseBuilder struct {
 	columnNames *[]string
-	util        interfaces.SQLUtils
+	u           interfaces.SQLUtils
 }
 
 func NewSelectBaseBuilder(u interfaces.SQLUtils, columnNames *[]string) *SelectBaseBuilder {
 	return &SelectBaseBuilder{
 		columnNames: columnNames,
-		util:        u,
+		u:           u,
 	}
 }
 
 func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
-	if b.util == nil {
-		log.Print(b)
-		log.Fatal("SQLUtils is not set")
-
-	}
-
 	if columns == nil {
 		sb.WriteString(" * ")
 		return []interface{}{}
@@ -70,7 +63,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 				sb.WriteString("DISTINCT ")
 			}
 			if column.Name != "" {
-				sb.WriteString(b.util.EscapeIdentifier(column.Name))
+				sb.WriteString(b.u.EscapeIdentifier(column.Name))
 			} else {
 				sb.WriteString("*")
 			}
@@ -82,7 +75,22 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 			continue
 		}
 
-		if column.Raw != "" {
+		if column.Function != "" {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(column.Function)
+			sb.WriteString("(")
+			if column.Distinct {
+				sb.WriteString("DISTINCT ")
+			}
+			if column.Name != "" {
+				sb.WriteString(b.u.EscapeIdentifier(column.Name))
+			} else {
+				sb.WriteString("*")
+			}
+			sb.WriteString(")")
+		} else if column.Raw != "" {
 			if column.Values != nil && len(column.Values) > 0 {
 				colValues = append(colValues, column.Values...)
 			}
@@ -95,7 +103,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(b.util.EscapeIdentifier(column.Name))
+			sb.WriteString(b.u.EscapeIdentifier(column.Name))
 			//colNames = append(colNames, column.Name)
 		}
 	}
@@ -135,7 +143,7 @@ func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join,
 		name = join.Name
 	}
 
-	targetNameForSelect := targetName + ".*"
+	targetNameForSelect := j.u.EscapeIdentifier(targetName) + ".*"
 
 	//sb.Grow(consts.StringBuffer_Select_Grow)
 
@@ -149,7 +157,7 @@ func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join,
 		outputed = true
 	}
 
-	nameForSelect := name + ".*"
+	nameForSelect := j.u.EscapeIdentifier(name) + ".*"
 	if !sliceutils.Contains(*j.columnNames, nameForSelect) {
 		if idx > 0 || outputed {
 			sb.WriteString(", ")

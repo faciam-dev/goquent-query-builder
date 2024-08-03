@@ -19,7 +19,7 @@ func NewOrderByBaseBuilder(util interfaces.SQLUtils, order *[]structs.Order) *Or
 	}
 }
 
-func (OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
+func (o OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
 	if order == nil || len(*order) == 0 {
 		return
 	}
@@ -42,7 +42,7 @@ func (OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
 		if order.IsAsc {
 			desc = "ASC"
 		}
-		sb.WriteString(order.Column)
+		sb.WriteString(o.u.EscapeIdentifier(order.Column))
 		sb.WriteString(" ")
 		sb.WriteString(desc)
 	}

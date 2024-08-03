@@ -70,7 +70,7 @@ func (m MySQLQueryBuilder) Build(cacheKey string, q *structs.Query, number int, 
 	colValues := m.selectBuilderStrategy.Select(sb, q.Columns, q.Table.Name, q.Joins)
 
 	sb.WriteString(" ")
-	m.FromBuilderStrategy.From(sb, m.util.EscapeIdentifier(q.Table.Name))
+	m.FromBuilderStrategy.From(sb, q.Table.Name)
 	values := colValues
 
 	// JOIN

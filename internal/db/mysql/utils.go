@@ -24,6 +24,10 @@ func (s *SQLUtils) EscapeIdentifier(value interface{}) string {
 
 	if v, ok := value.(string); ok {
 		if v != "*" {
+			if strings.Contains(v, ".") {
+				parts := strings.Split(v, ".")
+				return "`" + strings.ReplaceAll(parts[0], "`", "``") + "`.`" + strings.ReplaceAll(parts[1], "`", "``") + "`"
+			}
 			return "`" + strings.ReplaceAll(v, "`", "``") + "`"
 		}
 	}

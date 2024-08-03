@@ -6,6 +6,7 @@ type Column struct {
 	Values   []interface{}
 	Distinct bool
 	Count    bool
+	Function string
 }
 
 type Table struct {

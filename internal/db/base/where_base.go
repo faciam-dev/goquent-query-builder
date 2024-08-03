@@ -127,7 +127,7 @@ func (wb *WhereBaseBuilder) GetConditionOperator(c structs.Where) string {
 }
 
 func (wb *WhereBaseBuilder) ProcessSubQuery(sb *strings.Builder, c structs.Where) []interface{} {
-	condQuery := c.Column + " " + c.Condition
+	condQuery := wb.u.EscapeIdentifier(c.Column) + " " + c.Condition
 	b := wb.u.GetQueryBuilderStrategy()
 	sqQuery, sqValues := b.Build("", c.Query, 0, nil)
 
