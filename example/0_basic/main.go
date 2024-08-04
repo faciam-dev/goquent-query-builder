@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/cache"
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/profiling"
 )
 
@@ -18,8 +19,8 @@ func main() {
 	// if you dont want to use cache, you can use cache.NewBlankQueryCache()
 	// asyncCache := cache.NewBlankQueryCache()
 
-	// SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
-	qb := api.NewSelectBuilder(dbStrategy, asyncCache).
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ? ORDER BY `users`.`name` ASC with values: [18]
+	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -52,14 +53,14 @@ func main() {
 	})
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
-	iqb := api.NewInsertBuilder(dbStrategy, asyncCache).
+	iqb := api.NewInsertQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Insert(map[string]interface{}{
 			"name": "John Doe",
 			"age":  30,
 		})
 
-	query, values = iqb.Build()
+	query, values, _ = iqb.Build()
 
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
@@ -67,14 +68,14 @@ func main() {
 	})
 
 	// UPDATE users SET age = ? WHERE id = ?
-	uqb := api.NewUpdateBuilder(dbStrategy, asyncCache).
+	uqb := api.NewUpdateQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Update(map[string]interface{}{
 			"age": 40,
 		}).
 		Where("id", "=", 1)
 
-	query, values = uqb.Build()
+	query, values, _ = uqb.Build()
 
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)
@@ -82,12 +83,12 @@ func main() {
 	})
 
 	// DELETE FROM users WHERE id = ?
-	dqb := api.NewDeleteBuilder(dbStrategy, asyncCache).
+	dqb := api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Where("id", "=", 1).
 		Delete()
 
-	query, values = dqb.Build()
+	query, values, _ = dqb.Build()
 
 	profiling.Profile(query, func() {
 		fmt.Println("Executing query:", query, "with values:", values)

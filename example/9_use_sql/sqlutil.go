@@ -47,3 +47,28 @@ func QueryToMap(db *sql.DB, query string, args ...any) ([]map[string]interface{}
 
 	return results, nil
 }
+
+func Exec(db *sql.DB, query string, args ...any) ([]map[string]interface{}, error) {
+	result, err := db.Exec(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+
+	return []map[string]interface{}{
+		{
+			"last_id":       lastID,
+			"rows_affected": rowsAffected,
+		},
+	}, nil
+
+}

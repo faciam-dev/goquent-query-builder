@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/cache"
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 	// UPDATE users SET name = 'John Doe'
 	//
 
-	// Executing query: UPDATE users SET name = ? with values: [John Doe]
+	// Executing query: UPDATE `users` SET `name` = ? with values: [John Doe]
 
 	qb := api.NewUpdateQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -38,7 +39,7 @@ func main() {
 	// WHERE users.id = 1
 	//
 
-	// Executing query: UPDATE users SET name = ? WHERE users.id = ? with values: [John Doe 1]
+	// Executing query: UPDATE `users` SET `name` = ? WHERE `users`.`id` = ? with values: [John Doe 1]
 
 	qb = api.NewUpdateQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -62,7 +63,7 @@ func main() {
 	// WHERE users.id = 1
 	//
 
-	// Executing query: UPDATE users JOIN profiles ON users.id = profiles.user_id SET users.name = ? WHERE users.id = ? with values: [John Doe 1]
+	// Executing query: UPDATE `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` SET `name` = ? WHERE `users`.`id` = ? with values: [John Doe 1]
 
 	qb = api.NewUpdateQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -90,7 +91,7 @@ func main() {
 	// WHERE users.id = 1 AND profiles.age > 18
 	//
 
-	// Executing query: UPDATE users JOIN profiles ON users.id = profiles.user_id SET users.name = ? WHERE users.id = ? AND profiles.age > ? with values: [John Doe 1 18]
+	// Executing query: UPDATE `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` SET `name` = ? WHERE `users`.`id` = ? AND `profiles`.`age` > ? with values: [John Doe 1 18]
 
 	qb = api.NewUpdateQueryBuilder(dbStrategy, asyncCache).
 		Table("users").

@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/cache"
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
 func main() {
@@ -16,7 +17,7 @@ func main() {
 	// Simple Delete query
 	// DELETE FROM users
 	//
-	// Executing query: DELETE FROM users with values: []
+	// Executing query: DELETE FROM `users` with values: []
 	qb := api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
 		Table("users")
 
@@ -34,7 +35,7 @@ func main() {
 	// DELETE FROM users
 	// WHERE users.id = 1
 	//
-	// Executing query: DELETE FROM users WHERE users.id = ? with values: [1]
+	// Executing query: DELETE FROM `users` WHERE `users`.`id` = ? with values: [1]
 	qb = api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Where("users.id", "=", 1)
@@ -54,7 +55,7 @@ func main() {
 	// JOIN profiles ON users.id = profiles.user_id
 	// WHERE users.id = 1
 	//
-	// Executing query: DELETE FROM users JOIN profiles ON users.id = profiles.user_id WHERE users.id = ? with values: [1]
+	// Executing query: DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `users`.`id` = ? with values: [1]
 	qb = api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
@@ -77,7 +78,7 @@ func main() {
 	// JOIN profiles ON users.id = profiles.user_id
 	// WHERE users.id = 1 AND profiles.age > 18
 	//
-	// Executing query: DELETE FROM users JOIN profiles ON users.id = profiles.user_id WHERE users.id = ? AND profiles.age > ? with values: [1 18]
+	// DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `users`.`id` = ? AND `profiles`.`age` > ? with values: [1 18]
 	qb = api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
@@ -103,7 +104,7 @@ func main() {
 	// ORDER BY users.name ASC
 	//
 
-	// Executing query: DELETE FROM users JOIN profiles ON users.id = profiles.user_id WHERE users.id = ? AND profiles.age > ? ORDER BY users.name ASC with values: [1 18]
+	// DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `users`.`id` = ? AND `profiles`.`age` > ? ORDER BY `users`.`name` ASC with values: [1 18]
 	qb = api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {

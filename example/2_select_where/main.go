@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/cache"
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 	// WHERE (profiles.age > 18)
 	// ORDER BY users.name ASC
 	//
-	// Executing query: SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id WHERE (profiles.age > 18) ORDER BY users.name ASC with values: [18]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE (`profiles`.`age` > ?) ORDER BY `users`.`name` ASC with values: [18]
 	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name as name").
@@ -47,7 +48,7 @@ func main() {
 	// FROM users
 	// WHERE users.age NOT BETWEEN 18 AND 30
 	//
-	// Executing query: SELECT users.id, users.name as name FROM users WHERE (users.age NOT BETWEEN 18 AND 30) with values: [18 30]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` WHERE `users`.`age` NOT BETWEEN ? AND ? with values: [18 30]
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name as name").
@@ -73,7 +74,7 @@ func main() {
 	// FROM users
 	// WHERE users.age BETWEEN 18 AND 30
 	//
-	// Executing query: SELECT users.id, users.name as name FROM users WHERE (users.age NOT BETWEEN 18 AND 30) UNION SELECT users.id, users.name as name FROM users WHERE (users.age BETWEEN 18 AND 30) with values: [18 30 18 30]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` WHERE `users`.`age` BETWEEN ? AND ? UNION SELECT `id`, `users`.`name` as `name` FROM `users` WHERE `users`.`age` NOT BETWEEN ? AND ? with values: [18 30 18 30]
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name as name").
@@ -102,7 +103,7 @@ func main() {
 	// WHERE EXISTS (SELECT name, age FROM profiles WHERE age > 18)
 	//
 
-	// Executing query: SELECT users.id, users.name as name FROM users WHERE EXISTS (SELECT name, age FROM profiles WHERE age > 18) with values: [18]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` WHERE EXISTS (SELECT `name`, `age` FROM `profiles` WHERE `age` > ?) with values: [18]
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name as name").
@@ -129,7 +130,7 @@ func main() {
 	// WHERE NOT EXISTS (SELECT name, age FROM profiles WHERE age > 18)
 	//
 
-	// Executing query: SELECT users.id, users.name as name FROM users WHERE NOT EXISTS (SELECT name, age FROM profiles WHERE age > 18) with values: [18]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` WHERE NOT EXISTS (SELECT `name`, `age` FROM `profiles` WHERE `age` > ?) with values: [18]
 
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -157,7 +158,7 @@ func main() {
 	// WHERE users.age BETWEEN users.min_age AND users.max_age
 	//
 
-	// Executing query: SELECT users.id, users.name as name FROM users WHERE (users.age BETWEEN users.min_age AND users.max_age) with values: []
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` WHERE `users`.`age` BETWEEN `users`.`min_age` AND `users`.`max_age` with values: []
 
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -181,7 +182,7 @@ func main() {
 	// WHERE DATE(users.created_at) = '2021-01-01'
 	//
 
-	// Executing query: SELECT users.id, users.name as name FROM users WHERE DATE(users.created_at) = '2021-01-01' with values: [2021-01-01]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` WHERE DATE(`users`.`created_at`) = ? with values: [2021-01-01]
 
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").

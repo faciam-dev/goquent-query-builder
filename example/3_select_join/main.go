@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/cache"
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 	// ORDER BY users.name ASC
 	//
 
-	// Executing query: SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id ORDER BY users.name ASC with values: []
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` ORDER BY `users`.`name` ASC with values: []
 
 	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -47,7 +48,7 @@ func main() {
 	// AND profiles.age > 18
 	// ORDER BY users.name ASC
 
-	// Executing query: SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id AND profiles.age > ? ORDER BY users.name ASC with values: [18]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` AND `profiles`.`age` > ? ORDER BY `users`.`name` ASC with values: [18]
 
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -78,7 +79,7 @@ func main() {
 	// AND profiles.age > 18
 	// ORDER BY users.name ASC
 
-	// Executing query: SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id JOIN addresses ON users.id = addresses.user_id AND profiles.age > ? ORDER BY users.name ASC with values: [18]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` AND `profiles`.`age` > ? INNER JOIN `addresses` ON `users`.`id` = `addresses`.`user_id` ORDER BY `users`.`name` ASC with values: [18]
 
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -111,7 +112,7 @@ func main() {
 	// AND addresses.city = 'New York'
 	// ORDER BY users.name ASC
 
-	// Executing query: SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id JOIN addresses ON users.id = addresses.user_id AND profiles.age > ? AND addresses.city = ? ORDER BY users.name ASC with values: [18 New York]
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` AND `profiles`.`age` > ? INNER JOIN `addresses` ON `users`.`id` = `addresses`.`user_id` AND `addresses`.`city` = ? ORDER BY `users`.`name` ASC with values: [18 New York]
 
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
@@ -145,8 +146,7 @@ func main() {
 	// AND profiles.age > 18
 	// ORDER BY users.name ASC
 
-	// Executing query: SELECT id, users.name as name FROM users ,LATERAL(SELECT id, name FROM profiles WHERE users.id = profiles.user_id AND profiles.age > ?) as profiles WHERE profiles.age > ? ORDER BY users.name ASC with values: [18 18]
-
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` ,LATERAL(SELECT `id`, `name` FROM `profiles` WHERE `users`.`id` = `profiles`.`user_id` AND `profiles`.`age` > ?) as `profiles` WHERE `profiles`.`age` > ? ORDER BY `users`.`name` ASC with values: [18 18]
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name as name").

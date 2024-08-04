@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/cache"
 )
 
 func TestAsyncQueryCache(t *testing.T) {

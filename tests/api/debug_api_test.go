@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
+	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 )
 

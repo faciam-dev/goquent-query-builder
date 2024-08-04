@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/cache"
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
 func main() {
@@ -13,7 +14,7 @@ func main() {
 
 	asyncCache := cache.NewAsyncQueryCache(100)
 
-	// SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
+	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ? ORDER BY `users`.`name` ASC with values: [18]
 	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("id", "users.name as name").

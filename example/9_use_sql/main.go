@@ -12,7 +12,8 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/internal/cache"
+	"github.com/faciam-dev/goquent-query-builder/cache"
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
 // QueryToMap is a helper function to convert sql.Rows to []map[string]interface{}
@@ -61,12 +62,13 @@ func main() {
 			},
 		})
 
-	query, values := iqb.Build()
-	_, err = QueryToMap(d, query, values...)
+	query, values, _ := iqb.Build()
+	result, err := Exec(d, query, values...)
 	if err != nil {
 		m.Down()
 		log.Fatal(err)
 	}
+	fmt.Println(result)
 
 	// INSERT INTO profiles (user_id, age) VALUES (?, ?)
 	iqb = api.NewInsertQueryBuilder(dbStrategy, asyncCache).
@@ -85,14 +87,15 @@ func main() {
 				"age":     15,
 			},
 		})
-	query, values = iqb.Build()
-	_, err = QueryToMap(d, query, values...)
+	query, values, _ = iqb.Build()
+	result, err = Exec(d, query, values...)
 	if err != nil {
 		m.Down()
 		log.Fatal(err)
 	}
+	fmt.Println(result)
 
-	// SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
+	// SELECT `users`.`id` as `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ? ORDER BY `users`.`name` ASC
 	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("users.id as id", "users.name as name").
