@@ -15,7 +15,7 @@ func main() {
 
 	// Complex query with WhereGroup and having
 	//
-	// SELECT users.id, users.name AS name
+	// SELECT users.id, users.name as name
 	// FROM users
 	// JOIN profiles ON users.id = profiles.user_id
 	// WHERE (profiles.age > 18)
@@ -24,10 +24,10 @@ func main() {
 	// ORDER BY users.name ASC
 	//
 
-	// Executing query: SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id WHERE (profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC with values: [18 1]
+	// Executing query: SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id WHERE (profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC with values: [18 1]
 	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
-		Select("id", "users.name AS name").
+		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		WhereGroup(func(qb *api.WhereSelectQueryBuilder) {
 			qb.Where("profiles.age", ">", 18)
@@ -47,7 +47,7 @@ func main() {
 
 	// Complex query with WhereGroup and having and JoinQuery
 	//
-	// SELECT users.id, users.name AS name
+	// SELECT users.id, users.name as name
 	// FROM users
 	// JOIN profiles ON users.id = profiles.user_id
 	// AND profiles.age > 18
@@ -56,11 +56,11 @@ func main() {
 	// HAVING COUNT(profiles.id) > 1
 	// ORDER BY users.name ASC
 
-	// Executing query: SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id AND profiles.age > 18 WHERE (profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC with values: [18 1]
+	// Executing query: SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id AND profiles.age > 18 WHERE (profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC with values: [18 1]
 
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
-		Select("id", "users.name AS name").
+		Select("id", "users.name as name").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
 			b.On("users.id", "=", "profiles.user_id").
 				Where("profiles.age", ">", 18)
@@ -83,7 +83,7 @@ func main() {
 
 	// Complex query with WhereGroup and having and JoinQuery and multiple conditions
 
-	// SELECT users.id, users.name AS name
+	// SELECT users.id, users.name as name
 	// FROM users
 	// JOIN profiles ON users.id = profiles.user_id
 	// AND profiles.age > 18
@@ -94,11 +94,11 @@ func main() {
 	// LIMIT 1
 	//
 
-	// Executing query: SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id AND profiles.age > 18 WHERE (profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC LIMIT 1 with values: [18 18 1]
+	// Executing query: SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id AND profiles.age > 18 WHERE (profiles.age > 18) GROUP BY users.id HAVING COUNT(profiles.id) > 1 ORDER BY users.name ASC LIMIT 1 with values: [18 18 1]
 
 	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
-		Select("id", "users.name AS name").
+		Select("id", "users.name as name").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
 			b.On("users.id", "=", "profiles.user_id").
 				Where("profiles.age", ">", 18)

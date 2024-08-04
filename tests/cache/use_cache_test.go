@@ -34,7 +34,7 @@ func TestUseCacheTest(t *testing.T) {
 			func() *query.Builder {
 				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
 				return query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					SelectRaw("`id`, `name`, `profiles`.`point` * ? AS `profiles_point`", 1.05).
+					SelectRaw("`id`, `name`, `profiles`.`point` * ? as `profiles_point`", 1.05).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("status", "=", "active").
@@ -42,7 +42,7 @@ func TestUseCacheTest(t *testing.T) {
 					Where("age", ">", 18).
 					OrderBy("name", "ASC")
 			},
-			"SELECT `id`, `name`, `profiles`.`point` * ? AS `profiles_point` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `status` = ? AND `user_id` IN (SELECT `id` FROM `users` WHERE `name` = ?) AND `age` > ? ORDER BY `name` ASC",
+			"SELECT `id`, `name`, `profiles`.`point` * ? as `profiles_point` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `status` = ? AND `user_id` IN (SELECT `id` FROM `users` WHERE `name` = ?) AND `age` > ? ORDER BY `name` ASC",
 			[]interface{}{1.05, "active", "John", 18},
 		},
 	}

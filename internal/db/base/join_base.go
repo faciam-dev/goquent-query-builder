@@ -53,7 +53,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			if joinClause.Query != nil {
 				b := jb.u.GetQueryBuilderStrategy()
 				sqQuery, sqValues := b.Build("", joinClause.Query, 0, nil)
-				targetName = "(" + sqQuery + ")" + " AS " + jb.u.EscapeIdentifier(targetName)
+				targetName = "(" + sqQuery + ")" + " as " + jb.u.EscapeIdentifier(targetName)
 				values = append(values, sqValues...)
 			}
 			sb.WriteString(" ")
@@ -140,7 +140,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 		if join.Query != nil {
 			b := jb.u.GetQueryBuilderStrategy()
 			sqQuery, sqValues := b.Build("", join.Query, 0, nil)
-			targetName = "(" + sqQuery + ")" + " AS " + jb.u.EscapeIdentifier(targetName)
+			targetName = "(" + sqQuery + ")" + " as " + jb.u.EscapeIdentifier(targetName)
 			values = append(values, sqValues...)
 		}
 

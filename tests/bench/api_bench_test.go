@@ -16,7 +16,7 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 
 	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
 		Table("users").
-		Select("id", "users.name AS name")
+		Select("id", "users.name as name")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -38,7 +38,7 @@ func BenchmarkNormalSelectQuery(b *testing.B) {
 
 	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
 		Table("users").
-		Select("id", "users.name AS name").
+		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18).
 		OrderBy("users.name", "ASC")
@@ -64,7 +64,7 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 
 	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
 		Table("users").
-		Select("id", "users.name AS name").
+		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18).
 		OrderBy("users.name", "ASC").
@@ -91,7 +91,7 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 
 	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
 		Table("users").
-		Select("id", "users.name AS name").
+		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18).
 		OrderBy("users.name", "ASC").

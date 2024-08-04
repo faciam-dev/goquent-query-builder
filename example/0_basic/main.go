@@ -18,10 +18,10 @@ func main() {
 	// if you dont want to use cache, you can use cache.NewBlankQueryCache()
 	// asyncCache := cache.NewBlankQueryCache()
 
-	// SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
+	// SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
 	qb := api.NewSelectBuilder(dbStrategy, asyncCache).
 		Table("users").
-		Select("id", "users.name AS name").
+		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18).
 		OrderBy("users.name", "ASC")

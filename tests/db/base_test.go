@@ -702,7 +702,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " ,LATERAL(SELECT id FROM users) AS orders",
+				Expected: " ,LATERAL(SELECT id FROM users) as orders",
 				Values:   nil,
 			},
 		},
@@ -746,7 +746,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " ,LEFT LATERAL(SELECT id FROM users WHERE age > ?) AS orders",
+				Expected: " ,LEFT LATERAL(SELECT id FROM users WHERE age > ?) as orders",
 				Values:   []interface{}{18},
 			},
 		},
