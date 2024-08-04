@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/faciam-dev/goquent-query-builder/api"
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/pkg/api"
 )
 
 func main() {

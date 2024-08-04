@@ -3,10 +3,10 @@ package query_test
 import (
 	"testing"
 
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
+	"github.com/faciam-dev/goquent-query-builder/database/postgres"
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/postgres"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 

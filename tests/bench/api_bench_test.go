@@ -3,9 +3,9 @@ package bench_test
 import (
 	"testing"
 
+	"github.com/faciam-dev/goquent-query-builder/api"
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
-	"github.com/faciam-dev/goquent-query-builder/pkg/api"
 )
 
 func BenchmarkSimpleSelectQuery(b *testing.B) {

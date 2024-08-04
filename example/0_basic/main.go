@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/faciam-dev/goquent-query-builder/api"
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/profiling"
-	"github.com/faciam-dev/goquent-query-builder/pkg/api"
 )
 
 func main() {
