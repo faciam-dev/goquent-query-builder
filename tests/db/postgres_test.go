@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/faciam-dev/goquent-query-builder/database/postgres"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/postgres"
 )
 
 func TestPostgreSQLQueryBuilder(t *testing.T) {

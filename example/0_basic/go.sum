@@ -1,4 +1,2 @@
-github.com/faciam-dev/goquent-query-builder v0.0.0-20240722173332-49cb1a310f31 h1:VvlcIt54hXNtc2Y4sQNKM/LRrqBrbyyJO7ac959VSRc=
-github.com/faciam-dev/goquent-query-builder v0.0.0-20240722173332-49cb1a310f31/go.mod h1:So/vYeJ6HGhg0r9GA0cyrD/sFq0uIgxGWgrzZ4D56b4=
-github.com/faciam-dev/goquent-query-builder v0.0.0-20240731144822-b85b3e8fe3f4 h1:NZQfnzB6f2mclBm9pJ0j+oXYHgfKREcV1yY0mMNYPec=
-github.com/faciam-dev/goquent-query-builder v0.0.0-20240731144822-b85b3e8fe3f4/go.mod h1:So/vYeJ6HGhg0r9GA0cyrD/sFq0uIgxGWgrzZ4D56b4=
+github.com/faciam-dev/goquent-query-builder v0.0.0-20240804082036-60372b2e990c h1:yDM3gh5N5thmncalUOjKM7VFsv1Ebk21d6tIl6YYZbQ=
+github.com/faciam-dev/goquent-query-builder v0.0.0-20240804082036-60372b2e990c/go.mod h1:4H0KSF3vKYF9ieLwrj5EOW1Q7c0ISSrq/cBLuJvOK7c=

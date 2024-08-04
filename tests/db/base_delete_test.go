@@ -3,9 +3,9 @@ package db_test
 import (
 	"testing"
 
+	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 )
 
 func TestBaseDeleteQueryBuilder(t *testing.T) {

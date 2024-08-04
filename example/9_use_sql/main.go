@@ -8,11 +8,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
+	my "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
+	"github.com/faciam-dev/goquent-query-builder/api"
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/pkg/api"
 )
 
 // QueryToMap is a helper function to convert sql.Rows to []map[string]interface{}
@@ -27,7 +27,7 @@ func main() {
 	defer d.Close()
 
 	// migrate
-	driver, err := mysql.WithInstance(d, &mysql.Config{})
+	driver, err := my.WithInstance(d, &my.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func main() {
 	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
-	iqb := api.NewInsertBuilder(dbStrategy, asyncCache).
+	iqb := api.NewInsertQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -69,7 +69,7 @@ func main() {
 	}
 
 	// INSERT INTO profiles (user_id, age) VALUES (?, ?)
-	iqb = api.NewInsertBuilder(dbStrategy, asyncCache).
+	iqb = api.NewInsertQueryBuilder(dbStrategy, asyncCache).
 		Table("profiles").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -93,7 +93,7 @@ func main() {
 	}
 
 	// SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
-	qb := api.NewSelectBuilder(dbStrategy, asyncCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
 		Table("users").
 		Select("users.id as id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
