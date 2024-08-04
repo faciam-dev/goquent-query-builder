@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -10,7 +10,7 @@ type InsertQueryBuilder struct {
 	builder *query.InsertBuilder
 }
 
-func NewInsertQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *InsertQueryBuilder {
+func NewInsertQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *InsertQueryBuilder {
 	return &InsertQueryBuilder{
 		builder: query.NewInsertBuilder(strategy, cache),
 	}

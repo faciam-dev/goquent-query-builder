@@ -12,7 +12,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
 	"github.com/faciam-dev/goquent-query-builder/pkg/api"
 )
 
@@ -44,7 +43,7 @@ func main() {
 	}
 
 	// Initialize database strategy
-	dbStrategy := db.NewMySQLQueryBuilder()
+	dbStrategy := mysql.NewMySQLQueryBuilder()
 	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
@@ -93,10 +92,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// SELECT users.id, users.name AS name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
+	// SELECT users.id, users.name as name FROM users JOIN profiles ON users.id = profiles.user_id WHERE profiles.age > 18 ORDER BY users.name ASC
 	qb := api.NewSelectBuilder(dbStrategy, asyncCache).
 		Table("users").
-		Select("users.id AS id", "users.name AS name").
+		Select("users.id as id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18).
 		OrderBy("users.name", "ASC")

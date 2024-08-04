@@ -4,19 +4,22 @@ import (
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type OrderByBaseBuilder struct {
+	u     interfaces.SQLUtils
 	order *[]structs.Order
 }
 
-func NewOrderByBaseBuilder(order *[]structs.Order) *OrderByBaseBuilder {
+func NewOrderByBaseBuilder(util interfaces.SQLUtils, order *[]structs.Order) *OrderByBaseBuilder {
 	return &OrderByBaseBuilder{
+		u:     util,
 		order: order,
 	}
 }
 
-func (OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
+func (o OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
 	if order == nil || len(*order) == 0 {
 		return
 	}
@@ -39,7 +42,7 @@ func (OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
 		if order.IsAsc {
 			desc = "ASC"
 		}
-		sb.WriteString(order.Column)
+		sb.WriteString(o.u.EscapeIdentifier(order.Column))
 		sb.WriteString(" ")
 		sb.WriteString(desc)
 	}

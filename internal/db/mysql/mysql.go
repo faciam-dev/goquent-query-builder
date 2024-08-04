@@ -1,4 +1,4 @@
-package db
+package mysql
 
 import (
 	"strings"
@@ -6,10 +6,10 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/postgres"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
-type PostgreSQLQueryBuilder struct {
+type MySQLQueryBuilder struct {
 	base.BaseQueryBuilder
 	base.DeleteBaseBuilder
 	base.InsertBaseBuilder
@@ -26,26 +26,39 @@ type PostgreSQLQueryBuilder struct {
 	insertBuilderStrategy  base.InsertBuilderStrategy
 	updateBuilderStrategy  base.UpdateBuilderStrategy
 	deleteBuilderStrategy  base.DeleteBuilderStrategy
+
+	util interfaces.SQLUtils
 }
 
-func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
-	queryBuilder := &PostgreSQLQueryBuilder{}
-	queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(&[]string{})
-	queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder()
-	queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(&structs.Joins{})
-	queryBuilder.whereBuilderStrategy = postgres.NewWherePostgreSQLBuilder(&[]structs.WhereGroup{})
-	queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(&[]structs.Order{})
-	queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder()
+func NewMySQLQueryBuilder() *MySQLQueryBuilder {
+	queryBuilder := &MySQLQueryBuilder{}
+	u := NewSQLUtils()
+	queryBuilder.util = u
+	//queryBuilder.BaseQueryBuilder = *base.NewBaseQueryBuilder()
+	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
+	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
+	queryBuilder.FromBaseBuilder = *base.NewFromBaseBuilder(u)
+	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
+	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
+	queryBuilder.DeleteBaseBuilder = *base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
+	queryBuilder.InsertBaseBuilder = *base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
+	queryBuilder.UpdateBaseBuilder = *base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
+	queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
+	queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
+	queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
+	queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, &[]structs.WhereGroup{})
+	queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
+	queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
 	queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
 	queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
-	queryBuilder.insertBuilderStrategy = base.NewInsertBaseBuilder(&structs.InsertQuery{})
-	queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(&structs.UpdateQuery{})
-	queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(&structs.DeleteQuery{})
+	queryBuilder.insertBuilderStrategy = base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
+	queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
+	queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
 	return queryBuilder
 }
 
 // Build builds the query.
-func (m PostgreSQLQueryBuilder) Build(cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
+func (m MySQLQueryBuilder) Build(cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
 	sb := &strings.Builder{}
 
 	// grow the string builder based on the length of the cache key
@@ -99,6 +112,6 @@ func (m PostgreSQLQueryBuilder) Build(cacheKey string, q *structs.Query, number 
 	return query, values
 }
 
-func (m PostgreSQLQueryBuilder) Where(sb *strings.Builder, conditionGroups *[]structs.WhereGroup) []interface{} {
-	return m.whereBuilderStrategy.Where(sb, conditionGroups)
+func (m MySQLQueryBuilder) Where(sb *strings.Builder, c *[]structs.WhereGroup) []interface{} {
+	return m.whereBuilderStrategy.Where(sb, c)
 }

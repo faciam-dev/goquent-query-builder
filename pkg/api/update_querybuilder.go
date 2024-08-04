@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -14,7 +14,7 @@ type UpdateQueryBuilder struct {
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
-func NewUpdateQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *UpdateQueryBuilder {
+func NewUpdateQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *UpdateQueryBuilder {
 	ub := &UpdateQueryBuilder{
 		builder: query.NewUpdateBuilder(strategy, cache),
 		orderByQueryBuilder: &OrderByQueryBuilder{

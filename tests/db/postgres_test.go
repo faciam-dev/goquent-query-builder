@@ -6,7 +6,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/postgres"
 )
 
 func TestPostgreSQLQueryBuilder(t *testing.T) {
@@ -38,13 +38,13 @@ func TestPostgreSQLQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE (to_tsvector(?, name) || to_tsvector(?, description)) @@ websearch_to_tsquery(?, ?)",
+				Expected: ` WHERE (to_tsvector($1, "name") || to_tsvector($1, "description")) @@ websearch_to_tsquery($1, $1)`,
 				Values:   []interface{}{"english", "english", "english", "search"},
 			},
 		},
 	}
 
-	builder := db.NewPostgreSQLQueryBuilder()
+	builder := postgres.NewPostgreSQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

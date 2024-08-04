@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -18,20 +18,20 @@ func TestUpdateBuilder(t *testing.T) {
 		{
 			"Update_all",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Update(map[string]interface{}{
 						"name": "Joe",
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ?",
+			"UPDATE `users` SET `age` = ?, `name` = ?",
 			[]interface{}{31, "Joe"},
 		},
 		{
 			"Update_where",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "=", 1).
 					Update(map[string]interface{}{
@@ -39,15 +39,14 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE id = ?",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` = ?",
 			[]interface{}{31, "Joe", 1},
 		},
 		{
 			"Update_where_not",
 			func() *query.UpdateBuilder {
 
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
-					//					SetParent(query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100))).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "!=", 1).
 					OrWhereNot(func(b *query.WhereBuilder[query.UpdateBuilder]) {
@@ -58,13 +57,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE id != ? OR NOT (age > ? AND name = ?)",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` != ? OR NOT (`age` > ? AND `name` = ?)",
 			[]interface{}{31, "Joe", 1, 18, "John"},
 		},
 		{
 			"Update_where_any",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereAny([]string{"name", "note"}, "LIKE", "%test%").
 					Update(map[string]interface{}{
@@ -72,13 +71,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE (name LIKE ? OR note LIKE ?)",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE (`name` LIKE ? OR `note` LIKE ?)",
 			[]interface{}{31, "Joe", "%test%", "%test%"},
 		},
 		{
 			"Update_where_in",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereIn("id", []interface{}{1, 2, 3}).
 					Update(map[string]interface{}{
@@ -86,13 +85,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE id IN (?, ?, ?)",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` IN (?, ?, ?)",
 			[]interface{}{31, "Joe", 1, 2, 3},
 		},
 		{
 			"Update_where_null",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereNull("name").
 					Update(map[string]interface{}{
@@ -100,13 +99,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE name IS NULL",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `name` IS NULL",
 			[]interface{}{31, "Joe"},
 		},
 		{
 			"Update_where_column",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereColumn([]string{"name", "note"}, "name", "=", "note").
 					Update(map[string]interface{}{
@@ -114,13 +113,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE name = note",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `name` = `note`",
 			[]interface{}{31, "Joe"},
 		},
 		{
 			"Update_where_or_columns",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					OrWhereColumns([]string{"name", "nick_name", "memo", "note"}, [][]string{{"name", "=", "nick_name"}, {"memo", "=", "note"}}).
 					Update(map[string]interface{}{
@@ -128,13 +127,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE name = nick_name OR memo = note",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `name` = `nick_name` OR `memo` = `note`",
 			[]interface{}{31, "Joe"},
 		},
 		{
 			"Update_where_between",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereBetween("age", 18, 30).
 					Update(map[string]interface{}{
@@ -142,13 +141,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE age BETWEEN ? AND ?",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `age` BETWEEN ? AND ?",
 			[]interface{}{31, "Joe", 18, 30},
 		},
 		{
 			"Update_where_not_between",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereNotBetween("age", 18, 30).
 					Update(map[string]interface{}{
@@ -156,13 +155,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE age NOT BETWEEN ? AND ?",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `age` NOT BETWEEN ? AND ?",
 			[]interface{}{31, "Joe", 18, 30},
 		},
 		{
 			"Update_where_between_column",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereBetweenColumns([]string{"age", "min_age", "max_age"}, "age", "min_age", "max_age").
 					Update(map[string]interface{}{
@@ -170,13 +169,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE age BETWEEN min_age AND max_age",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE `age` BETWEEN `min_age` AND `max_age`",
 			[]interface{}{31, "Joe"},
 		},
 		{
 			"Update_where_Date",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereDate("created_at", "=", "2021-01-01").
 					Update(map[string]interface{}{
@@ -184,13 +183,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? WHERE DATE(created_at) = ?",
+			"UPDATE `users` SET `age` = ?, `name` = ? WHERE DATE(`created_at`) = ?",
 			[]interface{}{31, "Joe", "2021-01-01"},
 		},
 		{
 			"Update_JOINS",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
@@ -199,13 +198,13 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users INNER JOIN profiles ON users.id = profiles.user_id SET age = ?, name = ? WHERE age > ?",
+			"UPDATE `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` SET `age` = ?, `name` = ? WHERE `age` > ?",
 			[]interface{}{31, "Joe", 18},
 		},
 		{
 			"Update_orderBy",
 			func() *query.UpdateBuilder {
-				return query.NewUpdateBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					OrderBy("name", "ASC").
 					Update(map[string]interface{}{
@@ -213,7 +212,7 @@ func TestUpdateBuilder(t *testing.T) {
 						"age":  31,
 					})
 			},
-			"UPDATE users SET age = ?, name = ? ORDER BY name ASC",
+			"UPDATE `users` SET `age` = ?, `name` = ? ORDER BY `name` ASC",
 			[]interface{}{31, "Joe"},
 		},
 	}

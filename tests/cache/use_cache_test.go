@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -19,22 +19,22 @@ func TestUseCacheTest(t *testing.T) {
 		{
 			"Complex_Query",
 			func() *query.Builder {
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Select("id", "name").
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
 					OrderBy("name", "ASC")
 			},
-			"SELECT id, name FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE age > ? ORDER BY name ASC",
+			"SELECT `id`, `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `age` > ? ORDER BY `name` ASC",
 			[]interface{}{18},
 		},
 		{
 			"Complex_Query_With_Subquery",
 			func() *query.Builder {
-				sq := query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
-					SelectRaw("id, name, profiles.point * ? AS profiles_point", 1.05).
+				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					SelectRaw("`id`, `name`, `profiles`.`point` * ? as `profiles_point`", 1.05).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("status", "=", "active").
@@ -42,7 +42,7 @@ func TestUseCacheTest(t *testing.T) {
 					Where("age", ">", 18).
 					OrderBy("name", "ASC")
 			},
-			"SELECT id, name, profiles.point * ? AS profiles_point FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE status = ? AND user_id IN (SELECT id FROM users WHERE name = ?) AND age > ? ORDER BY name ASC",
+			"SELECT `id`, `name`, `profiles`.`point` * ? as `profiles_point` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `status` = ? AND `user_id` IN (SELECT `id` FROM `users` WHERE `name` = ?) AND `age` > ? ORDER BY `name` ASC",
 			[]interface{}{1.05, "active", "John", 18},
 		},
 	}

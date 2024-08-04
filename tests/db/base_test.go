@@ -6,7 +6,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 )
 
 type QueryBuilderExpected struct {
@@ -31,7 +31,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "SELECT id, name",
+				Expected: "SELECT `id`, `name`",
 				Values:   nil,
 			},
 		},
@@ -133,7 +133,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				Table: structs.Table{Name: "users"},
 			},
 			QueryBuilderExpected{
-				Expected: "FROM users",
+				Expected: "FROM `users`",
 				Values:   nil,
 			}},
 
@@ -156,7 +156,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE age > ?",
+				Expected: " WHERE `age` > ?",
 				Values:   []interface{}{18},
 			},
 		},
@@ -207,7 +207,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE (age > (SELECT id FROM users) AND name = ?) AND city = ?",
+				Expected: " WHERE (`age` > (SELECT `id` FROM `users`) AND `name` = ?) AND `city` = ?",
 				Values:   []interface{}{"John", "New York"},
 			},
 		},
@@ -253,7 +253,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE (age > ? AND name = ?) OR (age > ? AND name = ?)",
+				Expected: " WHERE (`age` > ? AND `name` = ?) OR (`age` > ? AND `name` = ?)",
 				Values:   []interface{}{18, "John", 18, "John"},
 			},
 		},
@@ -280,7 +280,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE age > 18 AND name = ?",
+				Expected: " WHERE age > 18 AND `name` = ?",
 				Values:   []interface{}{"John"},
 			},
 		},
@@ -311,7 +311,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE age > 18 OR name = ? OR city = 'New York'",
+				Expected: " WHERE age > 18 OR `name` = ? OR city = 'New York'",
 				Values:   []interface{}{"John"},
 			},
 		},
@@ -350,7 +350,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE (age > ? AND name = ?) AND city = ?",
+				Expected: " WHERE (`age` > ? AND `name` = ?) AND `city` = ?",
 				Values:   []interface{}{18, "John", "New York"},
 			},
 		},
@@ -372,7 +372,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE name IS NULL",
+				Expected: " WHERE `name` IS NULL",
 				Values:   nil,
 			},
 		},
@@ -395,7 +395,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE name = users.name",
+				Expected: " WHERE `name` = `users`.`name`",
 				Values:   nil,
 			},
 		},
@@ -423,7 +423,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE age BETWEEN ? AND ?",
+				Expected: " WHERE `age` BETWEEN ? AND ?",
 				Values:   []interface{}{18, 30},
 			},
 		},
@@ -451,7 +451,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE age NOT BETWEEN ? AND ?",
+				Expected: " WHERE `age` NOT BETWEEN ? AND ?",
 				Values:   []interface{}{18, 30},
 			},
 		},
@@ -480,7 +480,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE age NOT BETWEEN users.age AND users.age",
+				Expected: " WHERE `age` NOT BETWEEN `users`.`age` AND `users`.`age`",
 				Values:   nil,
 			},
 		},
@@ -518,7 +518,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE EXISTS (SELECT id FROM users)",
+				Expected: " WHERE EXISTS (SELECT `id` FROM `users`)",
 				Values:   nil,
 			},
 		},
@@ -556,7 +556,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE NOT EXISTS (SELECT id FROM users)",
+				Expected: " WHERE NOT EXISTS (SELECT `id` FROM `users`)",
 				Values:   nil,
 			},
 		},
@@ -581,7 +581,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " WHERE DATE(created_at) = ?",
+				Expected: " WHERE DATE(`created_at`) = ?",
 				Values:   []interface{}{"2021-01-01"},
 			},
 		},
@@ -603,7 +603,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " INNER JOIN orders ON users.id = orders.user_id",
+				Expected: " INNER JOIN `orders` ON `users`.`id` = `orders`.`user_id`",
 				Values:   nil,
 			},
 		},
@@ -625,7 +625,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " LEFT JOIN orders ON users.id = orders.user_id",
+				Expected: " LEFT JOIN `orders` ON `users`.`id` = `orders`.`user_id`",
 				Values:   nil,
 			},
 		},
@@ -654,7 +654,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " INNER JOIN orders ON users.id = orders.user_id INNER JOIN products ON users.id = products.user_id",
+				Expected: " INNER JOIN `orders` ON `users`.`id` = `orders`.`user_id` INNER JOIN `products` ON `users`.`id` = `products`.`user_id`",
 				Values:   nil,
 			},
 		},
@@ -670,7 +670,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " ORDER BY name ASC",
+				Expected: " ORDER BY `name` ASC",
 				Values:   nil,
 			},
 		},
@@ -702,7 +702,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " ,LATERAL(SELECT id FROM users) AS orders",
+				Expected: " ,LATERAL(SELECT `id` FROM `users`) as `orders`",
 				Values:   nil,
 			},
 		},
@@ -746,7 +746,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " ,LEFT LATERAL(SELECT id FROM users WHERE age > ?) AS orders",
+				Expected: " ,LEFT LATERAL(SELECT `id` FROM `users` WHERE `age` > ?) as `orders`",
 				Values:   []interface{}{18},
 			},
 		},
@@ -777,7 +777,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " GROUP BY name",
+				Expected: " GROUP BY `name`",
 				Values:   nil,
 			},
 		},
@@ -798,7 +798,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " GROUP BY name HAVING age > ?",
+				Expected: " GROUP BY `name` HAVING `age` > ?",
 				Values:   []interface{}{18},
 			},
 		},
@@ -817,7 +817,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " GROUP BY name HAVING age > 18",
+				Expected: " GROUP BY `name` HAVING age > 18",
 				Values:   nil,
 			},
 		},
@@ -840,7 +840,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: " GROUP BY name HAVING birthday > '2000-01-01' OR city = 'New York'",
+				Expected: " GROUP BY `name` HAVING birthday > '2000-01-01' OR city = 'New York'",
 				Values:   nil,
 			},
 		},
@@ -914,7 +914,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 		},
 	}
 
-	builder := base.BaseQueryBuilder{}
+	builder := mysql.NewMySQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -968,7 +968,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 				got = builder.Lock(tt.input.Lock)
 			}
 			if got != tt.expected.Expected {
-				t.Errorf("expected '%s' but got '%s'", tt.expected, got)
+				t.Errorf("expected '%s' but got '%s'", tt.expected.Expected, got)
 			}
 
 			if len(gotValues) != len(tt.expected.Values) {

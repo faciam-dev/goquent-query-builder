@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 )
 
 func TestBaseInsertQueryBuilder(t *testing.T) {
@@ -25,7 +25,7 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "INSERT INTO users (age, name) VALUES (?, ?)",
+				Expected: "INSERT INTO `users` (`age`, `name`) VALUES (?, ?)",
 				Values:   []interface{}{"John", 30},
 			},
 		},
@@ -46,7 +46,7 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "INSERT INTO users (age, name) VALUES (?, ?), (?, ?)",
+				Expected: "INSERT INTO `users` (`age`, `name`) VALUES (?, ?), (?, ?)",
 				Values:   []interface{}{30, "John", 25, "Mike"},
 			},
 		},
@@ -83,13 +83,13 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "INSERT INTO users (name, age) SELECT name, age FROM profiles WHERE age > ?",
+				Expected: "INSERT INTO `users` (`name`, `age`) SELECT `name`, `age` FROM `profiles` WHERE `age` > ?",
 				Values:   []interface{}{18},
 			},
 		},
 	}
 
-	builder := base.BaseQueryBuilder{}
+	builder := mysql.NewMySQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -5,16 +5,20 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type GroupByBaseBuilder struct {
+	u interfaces.SQLUtils
 }
 
-func NewGroupByBaseBuilder() *GroupByBaseBuilder {
-	return &GroupByBaseBuilder{}
+func NewGroupByBaseBuilder(util interfaces.SQLUtils) *GroupByBaseBuilder {
+	return &GroupByBaseBuilder{
+		u: util,
+	}
 }
 
-func (GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupBy) []interface{} {
+func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupBy) []interface{} {
 	if groupBy == nil || len(groupBy.Columns) == 0 {
 		return []interface{}{}
 	}
@@ -26,7 +30,7 @@ func (GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupBy)
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(column)
+			sb.WriteString(g.u.EscapeIdentifier(column))
 		}
 	}
 
@@ -70,10 +74,10 @@ func (GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupBy)
 				sb.WriteString(op)
 				sb.WriteString(" ")
 			}
-			sb.WriteString(having.Column)
+			sb.WriteString(g.u.EscapeIdentifier(having.Column))
 			sb.WriteString(" ")
 			sb.WriteString(having.Condition)
-			sb.WriteString(" ?")
+			sb.WriteString(" " + g.u.GetPlaceholder())
 		}
 
 		//if len(havingValues) > 0 {

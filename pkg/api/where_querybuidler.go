@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -12,7 +12,7 @@ type WhereQueryBuilder[T any, C any] struct {
 	parent  *T
 }
 
-func NewWhereQueryBuilder[T any, C any](strategy db.QueryBuilderStrategy, cache cache.Cache) *WhereQueryBuilder[T, C] {
+func NewWhereQueryBuilder[T any, C any](strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *WhereQueryBuilder[T, C] {
 	return &WhereQueryBuilder[T, C]{
 		builder: query.NewWhereBuilder[C](strategy, cache),
 	}

@@ -5,16 +5,19 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type WhereMySQLBuilder struct {
 	base.WhereBaseBuilder
 	whereBaseBuilder *base.WhereBaseBuilder
+	u                interfaces.SQLUtils
 }
 
-func NewWhereMySQLBuilder(wg *[]structs.WhereGroup) *WhereMySQLBuilder {
+func NewWhereMySQLBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WhereMySQLBuilder {
 	return &WhereMySQLBuilder{
-		whereBaseBuilder: base.NewWhereBaseBuilder(wg),
+		whereBaseBuilder: base.NewWhereBaseBuilder(util, wg),
+		u:                util,
 	}
 }
 
@@ -57,7 +60,7 @@ func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup
 			case c.FullText != nil:
 				values = append(values, wb.ProcessFullText(sb, c)...)
 			case c.Function != "":
-				values = append(values, wb.ProcessFunction(sb, c)...)
+				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, c)...)
 			default:
 				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, c)...)
 			}
@@ -90,9 +93,9 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Wher
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(column)
+		sb.WriteString(wb.u.EscapeIdentifier(column))
 	}
-	sb.WriteString(") AGAINST (? " + mode + expand + ")")
+	sb.WriteString(") AGAINST (" + wb.u.GetPlaceholder() + " " + mode + expand + ")")
 	values := []interface{}{c.Value}
 
 	return values

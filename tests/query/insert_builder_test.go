@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -18,20 +18,20 @@ func TestInsertBuilder(t *testing.T) {
 		{
 			"Insert",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Insert(map[string]interface{}{
 						"name": "John Doe",
 						"age":  30,
 					})
 			},
-			"INSERT INTO users (age, name) VALUES (?, ?)",
+			"INSERT INTO `users` (`age`, `name`) VALUES (?, ?)",
 			[]interface{}{30, "John Doe"},
 		},
 		{
 			"InsertBatch",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					InsertBatch([]map[string]interface{}{
 						{
@@ -44,20 +44,20 @@ func TestInsertBuilder(t *testing.T) {
 						},
 					})
 			},
-			"INSERT INTO users (age, name) VALUES (?, ?), (?, ?)",
+			"INSERT INTO `users` (`age`, `name`) VALUES (?, ?), (?, ?)",
 			[]interface{}{30, "John Doe", 25, "Jane Doe"},
 		},
 		{
 			"InsertUsing",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
-					InsertUsing([]string{"name", "age"}, query.NewBuilder(db.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					InsertUsing([]string{"name", "age"}, query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 						Table("profiles").
 						Select("name", "age").
 						Where("age", ">", 18))
 			},
-			"INSERT INTO users (name, age) SELECT name, age FROM profiles WHERE age > ?",
+			"INSERT INTO `users` (`name`, `age`) SELECT `name`, `age` FROM `profiles` WHERE `age` > ?",
 			[]interface{}{18},
 		},
 	}

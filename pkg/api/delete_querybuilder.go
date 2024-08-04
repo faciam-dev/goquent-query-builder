@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -14,7 +14,7 @@ type DeleteQueryBuilder struct {
 	orderByQueryBuilder *OrderByQueryBuilder
 }
 
-func NewDeleteQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *DeleteQueryBuilder {
+func NewDeleteQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *DeleteQueryBuilder {
 	db := &DeleteQueryBuilder{
 		builder: query.NewDeleteBuilder(strategy, cache),
 		orderByQueryBuilder: &OrderByQueryBuilder{

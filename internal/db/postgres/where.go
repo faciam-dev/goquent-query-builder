@@ -5,16 +5,19 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type WherePostgreSQLBuilder struct {
 	base.WhereBaseBuilder
 	whereBaseBuilder *base.WhereBaseBuilder
+	u                interfaces.SQLUtils
 }
 
-func NewWherePostgreSQLBuilder(wg *[]structs.WhereGroup) *WherePostgreSQLBuilder {
+func NewWherePostgreSQLBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WherePostgreSQLBuilder {
 	return &WherePostgreSQLBuilder{
-		whereBaseBuilder: base.NewWhereBaseBuilder(wg),
+		whereBaseBuilder: base.NewWhereBaseBuilder(util, wg),
+		u:                util,
 	}
 }
 
@@ -57,7 +60,7 @@ func (wb *WherePostgreSQLBuilder) Where(sb *strings.Builder, wg *[]structs.Where
 			case c.FullText != nil:
 				values = append(values, wb.ProcessFullText(sb, c)...)
 			case c.Function != "":
-				values = append(values, wb.ProcessFunction(sb, c)...)
+				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, c)...)
 			default:
 				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, c)...)
 			}
@@ -96,10 +99,10 @@ func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *strings.Builder, c structs
 		if i > 0 {
 			sb.WriteString(" || ")
 		}
-		sb.WriteString("to_tsvector(?, " + column + ")")
+		sb.WriteString("to_tsvector(" + wb.u.GetPlaceholder() + ", " + wb.u.EscapeIdentifier(column) + ")")
 		values = append(values, language)
 	}
-	sb.WriteString(") @@ " + mode + "(?, ?)")
+	sb.WriteString(") @@ " + mode + "(" + wb.u.GetPlaceholder() + ", " + wb.u.GetPlaceholder() + ")")
 	values = append(values, language, c.FullText.Search)
 
 	return values

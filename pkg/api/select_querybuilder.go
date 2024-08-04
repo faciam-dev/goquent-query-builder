@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -15,7 +15,7 @@ type SelectQueryBuilder struct {
 	Queries             []*structs.Query
 }
 
-func NewSelectQueryBuilder(strategy db.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
+func NewSelectQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
 	sb := &SelectQueryBuilder{
 		//WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
 		builder: query.NewBuilder(strategy, cache),

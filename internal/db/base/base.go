@@ -5,6 +5,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type SelectBuilderStrategy interface {
@@ -72,6 +73,26 @@ type BaseQueryBuilder struct {
 	InsertBaseBuilder
 	UpdateBaseBuilder
 	DeleteBaseBuilder
+
+	util interfaces.SQLUtils
+}
+
+func NewBaseQueryBuilder() *BaseQueryBuilder {
+	queryBuilder := &BaseQueryBuilder{}
+	u := NewSQLUtils()
+	queryBuilder.util = u
+	queryBuilder.SelectBaseBuilder = *NewSelectBaseBuilder(u, &[]string{})
+	queryBuilder.FromBaseBuilder = *NewFromBaseBuilder(u)
+	queryBuilder.JoinBaseBuilder = *NewJoinBaseBuilder(u, &structs.Joins{})
+	queryBuilder.WhereBaseBuilder = *NewWhereBaseBuilder(u, &[]structs.WhereGroup{})
+	queryBuilder.OrderByBaseBuilder = *NewOrderByBaseBuilder(u, &[]structs.Order{})
+	queryBuilder.GroupByBaseBuilder = *NewGroupByBaseBuilder(u)
+	queryBuilder.LimitBaseBuilder = *NewLimitBaseBuilder()
+	queryBuilder.OffsetBaseBuilder = *NewOffsetBaseBuilder()
+	queryBuilder.InsertBaseBuilder = *NewInsertBaseBuilder(u, &structs.InsertQuery{})
+	queryBuilder.UpdateBaseBuilder = *NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
+	queryBuilder.DeleteBaseBuilder = *NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
+	return queryBuilder
 }
 
 // Lock returns the lock statement.

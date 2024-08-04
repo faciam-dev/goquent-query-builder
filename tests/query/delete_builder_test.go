@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/db"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -18,28 +18,28 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_all",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Delete()
 			},
-			"DELETE FROM users",
+			"DELETE FROM `users`",
 			[]interface{}{},
 		},
 		{
 			"Delete_where",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "=", 1).
 					Delete()
 			},
-			"DELETE FROM users WHERE id = ?",
+			"DELETE FROM `users` WHERE `id` = ?",
 			[]interface{}{1},
 		},
 		{
 			"Delete_where_not",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", "!=", 1).
 					OrWhereNot(func(b *query.WhereBuilder[query.DeleteBuilder]) {
@@ -47,139 +47,139 @@ func TestDeleteBuilder(t *testing.T) {
 					}).
 					Delete()
 			},
-			"DELETE FROM users WHERE id != ? OR NOT (age > ? AND name = ?)",
+			"DELETE FROM `users` WHERE `id` != ? OR NOT (`age` > ? AND `name` = ?)",
 			[]interface{}{1, 18, "John"},
 		},
 		{
 			"Delete_where_in",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereIn("id", []interface{}{1, 2, 3}).
 					Delete()
 			},
-			"DELETE FROM users WHERE id IN (?, ?, ?)",
+			"DELETE FROM `users` WHERE `id` IN (?, ?, ?)",
 			[]interface{}{1, 2, 3},
 		},
 		{
 			"Delete_where_not_in",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereNotIn("id", []interface{}{1, 2, 3}).
 					Delete()
 			},
-			"DELETE FROM users WHERE id NOT IN (?, ?, ?)",
+			"DELETE FROM `users` WHERE `id` NOT IN (?, ?, ?)",
 			[]interface{}{1, 2, 3},
 		},
 		{
 			"Delete_where_any",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereAny([]string{"name", "note"}, "LIKE", "%test%").
 					Delete()
 			},
-			"DELETE FROM users WHERE (name LIKE ? OR note LIKE ?)",
+			"DELETE FROM `users` WHERE (`name` LIKE ? OR `note` LIKE ?)",
 			[]interface{}{"%test%", "%test%"},
 		},
 		{
 			"Delete_where_all",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Where("id", ">", 10000).
 					WhereAll([]string{"firstname", "lastname"}, "LIKE", "%test%").
 					Delete()
 			},
-			"DELETE FROM users WHERE id > ? AND (firstname LIKE ? AND lastname LIKE ?)",
+			"DELETE FROM `users` WHERE `id` > ? AND (`firstname` LIKE ? AND `lastname` LIKE ?)",
 			[]interface{}{10000, "%test%", "%test%"},
 		},
 		{
 			"Delete_where_null",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereNull("name").
 					Delete()
 			},
-			"DELETE FROM users WHERE name IS NULL",
+			"DELETE FROM `users` WHERE `name` IS NULL",
 			[]interface{}{},
 		},
 		{
 			"Delete_where_not_null",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereNotNull("name").
 					Delete()
 			},
-			"DELETE FROM users WHERE name IS NOT NULL",
+			"DELETE FROM `users` WHERE `name` IS NOT NULL",
 			[]interface{}{},
 		},
 		{
 			"Delete_where_column",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereColumn([]string{"name", "note"}, "name", "=", "note").
 					Delete()
 			},
-			"DELETE FROM users WHERE name = note",
+			"DELETE FROM `users` WHERE `name` = `note`",
 			[]interface{}{},
 		},
 		{
 			"Delete_where_between",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereBetween("age", 18, 30).
 					Delete()
 			},
-			"DELETE FROM users WHERE age BETWEEN ? AND ?",
+			"DELETE FROM `users` WHERE `age` BETWEEN ? AND ?",
 			[]interface{}{18, 30},
 		},
 		{
 			"Delete_where_not_between",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereNotBetween("age", 18, 30).
 					Delete()
 			},
-			"DELETE FROM users WHERE age NOT BETWEEN ? AND ?",
+			"DELETE FROM `users` WHERE `age` NOT BETWEEN ? AND ?",
 			[]interface{}{18, 30},
 		},
 		{
 			"Delete_where_between_columns",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at").
 					Delete()
 			},
-			"DELETE FROM users WHERE created_at BETWEEN updated_at AND deleted_at",
+			"DELETE FROM `users` WHERE `created_at` BETWEEN `updated_at` AND `deleted_at`",
 			[]interface{}{},
 		},
 		{
 			"Delete_JOINS",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
 					Delete()
 			},
-			"DELETE users FROM users INNER JOIN profiles ON users.id = profiles.user_id WHERE age > ?",
+			"DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `age` > ?",
 			[]interface{}{18},
 		},
 		/*
 			{
 				"Delete_using",
 				func() *query.DeleteBuilder {
-					return query.NewDeleteBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+					return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 						Table("users").
-						Using(query.NewBuilder(&db.MySQLQueryBuilder{}, cache.NewAsyncQueryCache(100)).
+						Using(query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 							Table("profiles").
 							Select("name", "age").
 							Where("age", ">", 18).GetQuery()).
