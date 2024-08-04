@@ -34,7 +34,12 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	queryBuilder := &MySQLQueryBuilder{}
 	u := NewSQLUtils()
 	queryBuilder.util = u
-	queryBuilder.BaseQueryBuilder = *base.NewBaseQueryBuilder()
+	//queryBuilder.BaseQueryBuilder = *base.NewBaseQueryBuilder()
+	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
+	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
+	queryBuilder.FromBaseBuilder = *base.NewFromBaseBuilder(u)
+	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
+	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
 	queryBuilder.DeleteBaseBuilder = *base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
 	queryBuilder.InsertBaseBuilder = *base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
 	queryBuilder.UpdateBaseBuilder = *base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})

@@ -5,7 +5,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
-	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/mysql"
 )
 
 func TestBaseUpdateQueryBuilder(t *testing.T) {
@@ -44,7 +44,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "UPDATE users SET age = ?, name = ? WHERE id = ?",
+				Expected: "UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` = ?",
 				Values:   []interface{}{30, "Joe", 1},
 			},
 		},
@@ -85,7 +85,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "UPDATE users SET age = ?, name = ? WHERE NOT (id != ? AND age > ? AND name = ?)",
+				Expected: "UPDATE `users` SET `age` = ?, `name` = ? WHERE NOT (`id` != ? AND `age` > ? AND `name` = ?)",
 				Values:   []interface{}{30, "Joe", 1, 18, "John"},
 			},
 		},
@@ -121,7 +121,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "UPDATE users SET age = ?, name = ? WHERE id BETWEEN ? AND ?",
+				Expected: "UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` BETWEEN ? AND ?",
 				Values:   []interface{}{30, "Joe", 1, 10},
 			},
 		},
@@ -162,7 +162,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "UPDATE users INNER JOIN profiles ON users.id = profiles.user_id SET age = ?, name = ? WHERE age > ?",
+				Expected: "UPDATE `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` SET `age` = ?, `name` = ? WHERE `age` > ?",
 				Values:   []interface{}{18, "Joe", 30},
 			},
 		},
@@ -200,13 +200,13 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 				},
 			},
 			QueryBuilderExpected{
-				Expected: "UPDATE users SET age = ?, name = ? WHERE id = ? ORDER BY name ASC",
+				Expected: "UPDATE `users` SET `age` = ?, `name` = ? WHERE `id` = ? ORDER BY `name` ASC",
 				Values:   []interface{}{30, "Joe", 1},
 			},
 		},
 	}
 
-	builder := base.NewBaseQueryBuilder()
+	builder := mysql.NewMySQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
