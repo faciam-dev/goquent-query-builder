@@ -51,19 +51,20 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 	firstDistinct := false
 
 	// if there are columns to select
-	for i, column := range *columns {
-		if column.Distinct && !column.Count && !firstDistinct {
+	for i := 0; i < len(*columns); i++ {
+		//	for i := range *columns {
+		if (*columns)[i].Distinct && !(*columns)[i].Count && !firstDistinct {
 			sb.WriteString("DISTINCT ")
 			firstDistinct = true
 		}
 
-		if column.Count {
+		if (*columns)[i].Count {
 			sb.WriteString("COUNT(")
-			if column.Distinct {
+			if (*columns)[i].Distinct {
 				sb.WriteString("DISTINCT ")
 			}
-			if column.Name != "" {
-				sb.WriteString(b.u.EscapeIdentifier(column.Name))
+			if (*columns)[i].Name != "" {
+				sb.WriteString(b.u.EscapeIdentifier(sb, (*columns)[i].Name))
 			} else {
 				sb.WriteString("*")
 			}
@@ -75,35 +76,35 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 			continue
 		}
 
-		if column.Function != "" {
+		if (*columns)[i].Function != "" {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(column.Function)
+			sb.WriteString((*columns)[i].Function)
 			sb.WriteString("(")
-			if column.Distinct {
+			if (*columns)[i].Distinct {
 				sb.WriteString("DISTINCT ")
 			}
-			if column.Name != "" {
-				sb.WriteString(b.u.EscapeIdentifier(column.Name))
+			if (*columns)[i].Name != "" {
+				sb.WriteString(b.u.EscapeIdentifier(sb, (*columns)[i].Name))
 			} else {
 				sb.WriteString("*")
 			}
 			sb.WriteString(")")
-		} else if column.Raw != "" {
-			if column.Values != nil && len(column.Values) > 0 {
-				colValues = append(colValues, column.Values...)
+		} else if (*columns)[i].Raw != "" {
+			if (*columns)[i].Values != nil && len((*columns)[i].Values) > 0 {
+				colValues = append(colValues, (*columns)[i].Values...)
 			}
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(column.Raw) // or colNames = column.Raw
+			sb.WriteString((*columns)[i].Raw) // or colNames = column.Raw
 			//colNames = append(colNames, column.Raw)
-		} else if column.Name != "" {
+		} else if (*columns)[i].Name != "" {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(b.u.EscapeIdentifier(column.Name))
+			sb.WriteString(b.u.EscapeIdentifier(sb, (*columns)[i].Name))
 			//colNames = append(colNames, column.Name)
 		}
 	}
@@ -143,7 +144,16 @@ func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join,
 		name = join.Name
 	}
 
-	targetNameForSelect := j.u.EscapeIdentifier(targetName) + ".*"
+	wsb := strings.Builder{}
+	wsb.Grow(consts.StringBuffer_Short_Query_Grow)
+	j.u.EscapeIdentifier(&wsb, targetName)
+	wsb.WriteString(".*")
+	targetNameForSelect := wsb.String()
+	wsb.Reset()
+
+	//targetNameForSelect := j.u.EscapeIdentifier(&wsb, targetName) + ".*"
+
+	//targetNameForSelect := j.u.EscapeIdentifier(&wsb, targetName) + ".*"
 
 	//sb.Grow(consts.StringBuffer_Select_Grow)
 
@@ -157,7 +167,13 @@ func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join,
 		outputed = true
 	}
 
-	nameForSelect := j.u.EscapeIdentifier(name) + ".*"
+	wsb.Grow(consts.StringBuffer_Short_Query_Grow)
+	j.u.EscapeIdentifier(&wsb, name)
+	wsb.WriteString(".*")
+	nameForSelect := wsb.String()
+	wsb.Reset()
+
+	//nameForSelect := j.u.EscapeIdentifier(sb, name) + ".*"
 	if !sliceutils.Contains(*j.columnNames, nameForSelect) {
 		if idx > 0 || outputed {
 			sb.WriteString(", ")

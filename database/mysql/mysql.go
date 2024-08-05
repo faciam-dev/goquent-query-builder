@@ -2,8 +2,8 @@ package mysql
 
 import (
 	"strings"
+	"sync"
 
-	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -57,18 +57,24 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	return queryBuilder
 }
 
-// Build builds the query.
-func (m MySQLQueryBuilder) Build(cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
-	sb := &strings.Builder{}
+var stringbufPool = sync.Pool{
+	New: func() interface{} {
+		return new(strings.Builder)
+	},
+}
 
-	// grow the string builder based on the length of the cache key
-	if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
-		sb.Grow(consts.StringBuffer_Short_Query_Grow)
-	} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
-		sb.Grow(consts.StringBuffer_Middle_Query_Grow)
-	} else {
-		sb.Grow(consts.StringBuffer_Long_Query_Grow)
-	}
+// Build builds the query.
+func (m MySQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
+	/*
+		// grow the string builder based on the length of the cache key
+		if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
+			sb.Grow(consts.StringBuffer_Short_Query_Grow)
+		} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
+			sb.Grow(consts.StringBuffer_Middle_Query_Grow)
+		} else {
+			sb.Grow(consts.StringBuffer_Long_Query_Grow)
+		}
+	*/
 
 	// SELECT
 	sb.WriteString("SELECT ")
@@ -106,8 +112,10 @@ func (m MySQLQueryBuilder) Build(cacheKey string, q *structs.Query, number int, 
 	// UNION
 	m.Union(sb, unions, number)
 
-	query := sb.String()
-	sb.Reset()
+	//query := sb.String()
+	//sb.Reset()
+
+	query := ""
 
 	return query, values
 }

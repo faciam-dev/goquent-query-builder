@@ -18,7 +18,7 @@ func (s *SQLUtils) GetPlaceholder() string {
 	return "$1"
 }
 
-func (s *SQLUtils) EscapeIdentifierAliasedValue(value interface{}) string {
+func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value interface{}) string {
 	if value == nil {
 		return "NULL"
 	}
@@ -26,20 +26,27 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(value interface{}) string {
 	target := regexp.MustCompile(`(?i)\s+as\s+`)
 	if target.MatchString(value.(string)) {
 		parts := target.Split(value.(string), -1)
-		return s.EscapeIdentifier(parts[0]) + " as " + s.EscapeIdentifier(parts[1])
+		return s.EscapeIdentifier(sb, parts[0]) + " as " + s.EscapeIdentifier(sb, parts[1])
 	}
 
 	return value.(string)
 }
 
-func (s *SQLUtils) EscapeIdentifier(value interface{}) string {
+func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, value interface{}) string {
 	if value == nil {
 		return "NULL"
 	}
 
 	if v, ok := value.(string); ok {
 		if strings.Contains(strings.ToLower(v), " as ") {
-			return s.EscapeIdentifierAliasedValue(value)
+			split := strings.Split(v, " as ")
+			if len(split) != 2 {
+				split = strings.Split(v, " AS ")
+			}
+			if len(split) == 2 {
+				return s.EscapeIdentifier(sb, split[0]) + " as " + s.EscapeIdentifier(sb, split[1])
+			}
+			return s.EscapeIdentifierAliasedValue(sb, value)
 		}
 
 		if v != "*" {

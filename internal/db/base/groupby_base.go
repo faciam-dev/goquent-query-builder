@@ -30,7 +30,7 @@ func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupB
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(g.u.EscapeIdentifier(column))
+			sb.WriteString(g.u.EscapeIdentifier(sb, column))
 		}
 	}
 
@@ -40,43 +40,43 @@ func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupB
 		sb.WriteString(" HAVING ")
 
 		//havingValues := make([]interface{}, 0, len(*groupBy.Having))
-		for n, having := range *groupBy.Having {
+		for n := range *groupBy.Having {
 			op := "AND"
-			if having.Operator == consts.LogicalOperator_AND {
+			if (*groupBy.Having)[n].Operator == consts.LogicalOperator_AND {
 				op = "AND"
-			} else if having.Operator == consts.LogicalOperator_OR {
+			} else if (*groupBy.Having)[n].Operator == consts.LogicalOperator_OR {
 				op = "OR"
 			}
 
-			if having.Raw != "" {
+			if (*groupBy.Having)[n].Raw != "" {
 				if n > 0 {
 					sb.WriteString(" ")
 					sb.WriteString(op)
 					sb.WriteString(" ")
 				}
-				sb.WriteString(having.Raw)
+				sb.WriteString((*groupBy.Having)[n].Raw)
 				continue
 			}
-			if having.Column == "" {
+			if (*groupBy.Having)[n].Column == "" {
 				continue
 			}
-			if having.Condition == "" {
+			if (*groupBy.Having)[n].Condition == "" {
 				continue
 			}
-			if having.Value == "" {
+			if (*groupBy.Having)[n].Value == "" {
 				continue
 			}
 			//havingValues = append(havingValues, having.Value)
-			values = append(values, having.Value)
+			values = append(values, (*groupBy.Having)[n].Value)
 
 			if n > 0 {
 				sb.WriteString(" ")
 				sb.WriteString(op)
 				sb.WriteString(" ")
 			}
-			sb.WriteString(g.u.EscapeIdentifier(having.Column))
+			sb.WriteString(g.u.EscapeIdentifier(sb, (*groupBy.Having)[n].Column))
 			sb.WriteString(" ")
-			sb.WriteString(having.Condition)
+			sb.WriteString((*groupBy.Having)[n].Condition)
 			sb.WriteString(" " + g.u.GetPlaceholder())
 		}
 

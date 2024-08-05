@@ -157,7 +157,7 @@ type Order struct {
 }
 
 type Orders struct {
-	Orders []*Order
+	Orders *[]Order
 }
 
 type GroupBy struct {

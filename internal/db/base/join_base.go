@@ -50,19 +50,29 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 
 			joinType, targetName := jb.processJoin(j)
 
-			if joinClause.Query != nil {
-				b := jb.u.GetQueryBuilderStrategy()
-				sqQuery, sqValues := b.Build("", joinClause.Query, 0, nil)
-				targetName = "(" + sqQuery + ")" + " as " + jb.u.EscapeIdentifier(targetName)
-				values = append(values, sqValues...)
-			}
+			/*
+				if joinClause.Query != nil {
+					b := jb.u.GetQueryBuilderStrategy()
+					sqQuery, sqValues := b.Build("", joinClause.Query, 0, nil)
+					targetName = "(" + sqQuery + ")" + " as " + jb.u.EscapeIdentifier(sb, targetName)
+					values = append(values, sqValues...)
+				}
+			*/
 			sb.WriteString(" ")
 			sb.WriteString(joinType)
 			sb.WriteString(" JOIN ")
 			if joinClause.Query != nil {
-				sb.WriteString(targetName)
+				sb.WriteString("(")
+				//sb.WriteString(sqQuery)
+				b := jb.u.GetQueryBuilderStrategy()
+				_, sqValues := b.Build(sb, "", joinClause.Query, 0, nil)
+				//targetName = "(" + sqQuery + ")" + " as " + jb.u.EscapeIdentifier(sb, targetName)
+				values = append(values, sqValues...)
+				//sb.WriteString(targetName)
+				sb.WriteString(") as ")
+				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
 			} else {
-				sb.WriteString(jb.u.EscapeIdentifier(targetName))
+				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
 			}
 			sb.WriteString(" ON ")
 
@@ -77,12 +87,12 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 				}
 
 				sb.WriteString(op)
-				sb.WriteString(jb.u.EscapeIdentifier(on.Column))
+				sb.WriteString(jb.u.EscapeIdentifier(sb, on.Column))
 				sb.WriteString(" ")
 				sb.WriteString(on.Condition)
 				if on.Value != "" {
 					sb.WriteString(" ")
-					sb.WriteString(jb.u.EscapeIdentifier(on.Value.(string))) // TODO: check if this is correct
+					sb.WriteString(jb.u.EscapeIdentifier(sb, on.Value.(string))) // TODO: check if this is correct
 				}
 			}
 
@@ -96,7 +106,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 					}
 				}
 				sb.WriteString(op)
-				sb.WriteString(jb.u.EscapeIdentifier(condition.Column))
+				sb.WriteString(jb.u.EscapeIdentifier(sb, condition.Column))
 				sb.WriteString(" ")
 				sb.WriteString(condition.Condition)
 				sb.WriteString(" " + jb.u.GetPlaceholder()) // TODO: check if this is correct
@@ -115,20 +125,19 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 	lateralJoins := make([]*structs.Join, 0, len(*joins.Joins))
 	otherJoins := make([]*structs.Join, 0, len(*joins.Joins))
 
-	for _, join := range *joins.Joins {
-		if _, ok := join.TargetNameMap[consts.Join_LATERAL]; ok {
-			lateralJoins = append(lateralJoins, &join)
-		} else if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
-			lateralJoins = append(lateralJoins, &join)
+	for i := range *joins.Joins {
+		if _, ok := (*joins.Joins)[i].TargetNameMap[consts.Join_LATERAL]; ok {
+			lateralJoins = append(lateralJoins, &(*joins.Joins)[i])
+		} else if _, ok := (*joins.Joins)[i].TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
+			lateralJoins = append(lateralJoins, &(*joins.Joins)[i])
 		} else {
-			otherJoins = append(otherJoins, &join)
+			otherJoins = append(otherJoins, &(*joins.Joins)[i])
 		}
 	}
 
-	//sortedJoins = append(lateralJoins, otherJoins...)
-
-	for _, join := range append(lateralJoins, otherJoins...) {
-		joinType, targetName := jb.processJoin(join)
+	sortedJoins := append(lateralJoins, otherJoins...)
+	for i := range sortedJoins {
+		joinType, targetName := jb.processJoin(sortedJoins[i])
 		if targetName == "" {
 			continue
 		}
@@ -137,49 +146,71 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			continue
 		}
 
-		if join.Query != nil {
-			b := jb.u.GetQueryBuilderStrategy()
-			sqQuery, sqValues := b.Build("", join.Query, 0, nil)
-			targetName = "(" + sqQuery + ")" + " as " + jb.u.EscapeIdentifier(targetName)
-			values = append(values, sqValues...)
-		}
+		/*
+			if sortedJoins[i].Query != nil {
+				b := jb.u.GetQueryBuilderStrategy()
+				sqQuery, sqValues := b.Build("", sortedJoins[i].Query, 0, nil)
+				targetName = "(" + sqQuery + ")" + " as " + jb.u.EscapeIdentifier(sb, targetName)
+				values = append(values, sqValues...)
+			}
+		*/
 
-		if _, ok := join.TargetNameMap[consts.Join_LATERAL]; ok {
+		if _, ok := sortedJoins[i].TargetNameMap[consts.Join_LATERAL]; ok {
 			sb.WriteString(" ,")
 			sb.WriteString(joinType)
-			if join.Query != nil {
-				sb.WriteString(targetName)
+			if sortedJoins[i].Query != nil {
+				sb.WriteString("(")
+				b := jb.u.GetQueryBuilderStrategy()
+				_, sqValues := b.Build(sb, "", sortedJoins[i].Query, 0, nil)
+				sb.WriteString(") as ")
+				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
+				values = append(values, sqValues...)
+				//sb.WriteString(targetName)
 			} else {
-				sb.WriteString(jb.u.EscapeIdentifier(targetName))
+				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
 			}
-		} else if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
+		} else if _, ok := sortedJoins[i].TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
 			sb.WriteString(" ,")
 			sb.WriteString(joinType)
-			if join.Query != nil {
-				sb.WriteString(targetName)
+			if sortedJoins[i].Query != nil {
+				sb.WriteString("(")
+				b := jb.u.GetQueryBuilderStrategy()
+				_, sqValues := b.Build(sb, "", sortedJoins[i].Query, 0, nil)
+				//sb.WriteString(sqQuery)
+				sb.WriteString(") as ")
+				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
+				values = append(values, sqValues...)
+				//sb.WriteString(targetName)
 			} else {
-				sb.WriteString(jb.u.EscapeIdentifier(targetName))
+				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
 			}
-		} else if _, ok := join.TargetNameMap[consts.Join_CROSS]; ok {
+		} else if _, ok := sortedJoins[i].TargetNameMap[consts.Join_CROSS]; ok {
 			sb.WriteString(" ")
 			sb.WriteString(joinType)
 			sb.WriteString(" JOIN ")
-			sb.WriteString(jb.u.EscapeIdentifier(targetName))
+			sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
 		} else {
 			sb.WriteString(" ")
 			sb.WriteString(joinType)
 			sb.WriteString(" JOIN ")
-			if join.Query != nil {
-				sb.WriteString(targetName)
+			if sortedJoins[i].Query != nil {
+				sb.WriteString("(")
+				//sb.WriteString(targetName)
+				b := jb.u.GetQueryBuilderStrategy()
+				_, sqValues := b.Build(sb, "", sortedJoins[i].Query, 0, nil)
+				//sb.WriteString(sqQuery)
+				sb.WriteString(") as ")
+				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
+				values = append(values, sqValues...)
 			} else {
-				sb.WriteString(jb.u.EscapeIdentifier(targetName))
+				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
 			}
 			sb.WriteString(" ON ")
-			sb.WriteString(jb.u.EscapeIdentifier(join.SearchColumn))
+			sb.WriteString(jb.u.EscapeIdentifier(sb, sortedJoins[i].SearchColumn))
 			sb.WriteString(" ")
-			sb.WriteString(join.SearchCondition)
+			sb.WriteString(sortedJoins[i].SearchCondition)
 			sb.WriteString(" ")
-			sb.WriteString(jb.u.EscapeIdentifier(join.SearchTargetColumn))
+			sb.WriteString(jb.u.EscapeIdentifier(sb, sortedJoins[i].SearchTargetColumn))
 		}
 	}
 

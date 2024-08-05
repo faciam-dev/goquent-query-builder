@@ -34,11 +34,12 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 		q.Query.Joins.Joins != nil &&
 		(len(*q.Query.Joins.Joins) > 0 || (q.Query.Joins.JoinClause != nil && len(*q.Query.Joins.JoinClause) > 0)) {
 		sb.WriteString(" ")
-		sb.WriteString(m.u.EscapeIdentifier(q.Table))
+		sb.WriteString(m.u.EscapeIdentifier(sb, q.Table))
 	}
 
 	// FROM
-	sb.WriteString(" FROM " + m.u.EscapeIdentifier(q.Table))
+	sb.WriteString(" FROM ")
+	sb.WriteString(m.u.EscapeIdentifier(sb, q.Table))
 
 	// JOIN
 	jb := NewJoinBaseBuilder(m.u, q.Query.Joins)

@@ -1,6 +1,7 @@
 package query
 
 import (
+	"strings"
 	"time"
 
 	"github.com/faciam-dev/goquent-query-builder/cache"
@@ -739,9 +740,15 @@ func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {
 		return cachedQuery, values
 	}
 
-	query, values := b.dbBuilder.Build(cacheKey, sq, 0, nil)
+	sb := strings.Builder{}
+	sb.Grow(consts.StringBuffer_Where_Grow)
 
+	_, values := b.dbBuilder.Build(&sb, cacheKey, sq, 0, nil)
+
+	query := sb.String()
 	b.cache.Set(cacheKey, query)
+
+	sb.Reset()
 
 	return query, values
 }

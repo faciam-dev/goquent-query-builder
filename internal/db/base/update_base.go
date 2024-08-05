@@ -30,7 +30,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 
 	// UPDATE
 	sb.WriteString("UPDATE ")
-	sb.WriteString(m.u.EscapeIdentifier(q.Table))
+	sb.WriteString(m.u.EscapeIdentifier(sb, q.Table))
 
 	// JOIN
 	b := NewJoinBaseBuilder(m.u, q.Query.Joins)
@@ -47,7 +47,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	}
 	sort.Strings(columns)
 	for i, column := range columns {
-		sb.WriteString(m.u.EscapeIdentifier(column))
+		sb.WriteString(m.u.EscapeIdentifier(sb, column))
 		sb.WriteString(" = " + m.u.GetPlaceholder())
 		if i < len(columns)-1 {
 			sb.WriteString(", ")

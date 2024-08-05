@@ -26,23 +26,23 @@ func (o OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order)
 
 	sb.WriteString(" ORDER BY ")
 
-	for i, order := range *order {
+	for i := range *order {
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		if order.Raw != "" {
-			sb.WriteString(order.Raw)
+		if (*order)[i].Raw != "" {
+			sb.WriteString((*order)[i].Raw)
 			continue
 		}
-		if order.Column == "" {
+		if (*order)[i].Column == "" {
 			continue
 		}
 
 		desc := "DESC"
-		if order.IsAsc {
+		if (*order)[i].IsAsc {
 			desc = "ASC"
 		}
-		sb.WriteString(o.u.EscapeIdentifier(order.Column))
+		sb.WriteString(o.u.EscapeIdentifier(sb, (*order)[i].Column))
 		sb.WriteString(" ")
 		sb.WriteString(desc)
 	}

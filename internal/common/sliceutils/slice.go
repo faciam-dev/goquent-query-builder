@@ -1,10 +1,13 @@
 package sliceutils
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 func Contains[T comparable](elems []T, v T) bool {
-	for _, s := range elems {
-		if v == s {
+	for i := range elems {
+		if v == elems[i] {
 			return true
 		}
 	}
@@ -104,4 +107,19 @@ func ToInterfaceSlice(slice interface{}) []interface{} {
 	default:
 		return nil
 	}
+}
+
+func AppendAndExtends[T any](slice []T, elems ...T) []T {
+	for i := 0; i < len(elems); i++ {
+		if len(slice)+1 < cap(slice) {
+			log.Println(len(slice), cap(slice), i)
+			slice = slice[:len(slice)+1]
+			log.Println(len(slice), cap(slice), i)
+			slice[len(slice)] = elems[i]
+		} else if cap(slice) < len(slice)+1 {
+			slice = append(slice, elems[i])
+		}
+	}
+
+	return slice
 }

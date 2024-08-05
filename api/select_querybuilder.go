@@ -12,7 +12,7 @@ type SelectQueryBuilder struct {
 	JoinQueryBuilder[SelectQueryBuilder, query.Builder]
 	builder             *query.Builder
 	orderByQueryBuilder *OrderByQueryBuilder
-	Queries             []*structs.Query
+	Queries             *[]structs.Query
 }
 
 func NewSelectQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
@@ -23,6 +23,8 @@ func NewSelectQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache
 			builder: query.NewOrderByBuilder(&[]structs.Order{}),
 		},
 	}
+	sb.Queries = &[]structs.Query{}
+
 	whereBuilder := NewWhereQueryBuilder[SelectQueryBuilder, query.Builder](strategy, cache)
 	whereBuilder.SetParent(sb)
 	sb.WhereQueryBuilder = *whereBuilder
@@ -83,7 +85,7 @@ func (qb *SelectQueryBuilder) Union(sb *SelectQueryBuilder) *SelectQueryBuilder 
 	sb.builder.SetWhereBuilder(sb.WhereQueryBuilder.builder)
 	sb.builder.SetJoinBuilder(sb.JoinQueryBuilder.builder)
 	sb.builder.SetOrderByBuilder(sb.orderByQueryBuilder.builder)
-	qb.Queries = append(qb.Queries, sb.GetQuery())
+	*qb.Queries = append(*qb.Queries, *sb.GetQuery())
 	qb.builder.Union(sb.builder)
 	return qb
 }
@@ -92,7 +94,7 @@ func (qb *SelectQueryBuilder) UnionAll(sb *SelectQueryBuilder) *SelectQueryBuild
 	sb.builder.SetWhereBuilder(sb.WhereQueryBuilder.builder)
 	sb.builder.SetJoinBuilder(sb.JoinQueryBuilder.builder)
 	sb.builder.SetOrderByBuilder(sb.orderByQueryBuilder.builder)
-	qb.Queries = append(qb.Queries, sb.GetQuery())
+	*qb.Queries = append(*qb.Queries, *sb.GetQuery())
 	qb.builder.UnionAll(sb.builder)
 	return qb
 }

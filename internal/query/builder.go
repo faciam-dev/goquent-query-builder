@@ -3,6 +3,7 @@ package query
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -64,6 +65,12 @@ func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *B
 	b.JoinBuilder = *joinBuilder
 
 	return b
+}
+
+var stringbufPool = sync.Pool{
+	New: func() interface{} {
+		return new(strings.Builder)
+	},
 }
 
 func (b *Builder) SetWhereBuilder(whereBuilder *WhereBuilder[Builder]) {
@@ -301,13 +308,27 @@ func (b *Builder) Build() (string, []interface{}, error) {
 		IsAll: false,
 	})
 
-	sb := &strings.Builder{}
-	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo check if this is correct
+	sb := stringbufPool.Get().(*strings.Builder)
+	sb.Reset()
 
 	query := ""
 	values := make([]interface{}, 0)
-	for i, u := range *b.selectQuery.Union {
-		cacheKey := generateCacheKey(&u)
+
+	cacheKey := ""
+	for i := range *b.selectQuery.Union {
+		cacheKey += generateCacheKey(&(*b.selectQuery.Union)[i])
+	}
+
+	// grow the string builder based on the length of the cache key
+	if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
+		sb.Grow(consts.StringBuffer_Short_Query_Grow)
+	} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
+		sb.Grow(consts.StringBuffer_Middle_Query_Grow)
+	} else {
+		sb.Grow(consts.StringBuffer_Long_Query_Grow)
+	}
+
+	for i := range *b.selectQuery.Union {
 		if cachedQuery, found := b.cache.Get(cacheKey); found {
 			vals := make([]interface{}, 0, len(b.selectValues)+len(b.JoinBuilder.joinValues)+len(b.WhereBuilder.whereValues)+len(b.groupByValues))
 			vals = append(vals, b.selectValues...)
@@ -318,19 +339,20 @@ func (b *Builder) Build() (string, []interface{}, error) {
 			values = append(values, vals...)
 			continue
 		} else {
-			q, v := b.dbBuilder.Build(cacheKey, u.Query, i, b.selectQuery.Union)
+			_, v := b.dbBuilder.Build(sb, cacheKey, (*b.selectQuery.Union)[i].Query, i, b.selectQuery.Union)
 
-			b.cache.Set(cacheKey, q)
-
-			sb.WriteString(q)
+			//sb.WriteString(q)
 			values = append(values, v...)
 		}
 	}
 
+	query = sb.String()
+	b.cache.Set(cacheKey, query)
+
 	// remove the last UNION
 	*b.selectQuery.Union = (*b.selectQuery.Union)[:len(*b.selectQuery.Union)-1]
 
-	query = sb.String()
+	stringbufPool.Put(sb)
 
 	return query, values, nil
 }
@@ -366,7 +388,8 @@ func (b *Builder) buildQuery() {
 }
 
 func generateCacheKey(u *structs.Union) string {
-	var sb strings.Builder
+	sb := stringbufPool.Get().(*strings.Builder)
+	sb.Reset()
 	sb.Grow(consts.StringBuffer_CacheKey_Grow)
 
 	q := u.Query
@@ -458,6 +481,7 @@ func generateCacheKey(u *structs.Union) string {
 	}
 
 	key := sb.String()
+	stringbufPool.Put(sb)
 
 	return key
 }

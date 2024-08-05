@@ -3,7 +3,6 @@ package base
 import (
 	"strings"
 
-	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -105,17 +104,17 @@ func (BaseQueryBuilder) Lock(lock *structs.Lock) string {
 }
 
 // Build builds the query.
-func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
-	sb := &strings.Builder{}
-
-	// grow the string builder based on the length of the cache key
-	if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
-		sb.Grow(consts.StringBuffer_Short_Query_Grow)
-	} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
-		sb.Grow(consts.StringBuffer_Middle_Query_Grow)
-	} else {
-		sb.Grow(consts.StringBuffer_Long_Query_Grow)
-	}
+func (m BaseQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
+	/*
+		// grow the string builder based on the length of the cache key
+		if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
+			sb.Grow(consts.StringBuffer_Short_Query_Grow)
+		} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
+			sb.Grow(consts.StringBuffer_Middle_Query_Grow)
+		} else {
+			sb.Grow(consts.StringBuffer_Long_Query_Grow)
+		}
+	*/
 
 	values := make([]interface{}, 0)
 

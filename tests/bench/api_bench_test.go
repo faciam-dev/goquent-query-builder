@@ -111,13 +111,6 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
-	// go test -benchmem -run=^$ -bench BenchmarkComplexSelectQueryWithUsingSubQuery -benchtime=1s
-	// before refactor
-	// 640671              2157 ns/op            890 B/op          25 allocs/op
-	// after refactor
-	// 2204690               545.7 ns/op         1184 B/op          9 allocs/op
-	// c.f.) use AsyncQueryCache
-	// 2705778             446.4 ns/op          673 B/op          14 allocs/op
 }
 
 func BenchmarkSimpleInsert(b *testing.B) {
