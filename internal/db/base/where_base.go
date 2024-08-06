@@ -161,9 +161,9 @@ func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *strings.Builder, c struc
 		sb.WriteString(" ")
 		sb.WriteString(c.Condition)
 		sb.WriteString(" ")
-		sb.WriteString(wb.u.EscapeIdentifier(sb, c.Between.From.(string)))
+		wb.u.EscapeIdentifier(sb, c.Between.From.(string))
 		sb.WriteString(" AND ")
-		sb.WriteString(wb.u.EscapeIdentifier(sb, c.Between.To.(string)))
+		wb.u.EscapeIdentifier(sb, c.Between.To.(string))
 	} else {
 		wb.u.EscapeIdentifier(sb, c.Column)
 		sb.WriteString(" ")
@@ -188,12 +188,12 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *strings.Builder, c structs.W
 	if c.Raw != "" {
 		sb.WriteString(c.Raw)
 	} else {
-		sb.WriteString(wb.u.EscapeIdentifier(sb, c.Column))
+		wb.u.EscapeIdentifier(sb, c.Column)
 		sb.WriteString(" ")
 		sb.WriteString(c.Condition)
 		if c.ValueColumn != "" {
 			sb.WriteString(" ")
-			sb.WriteString(wb.u.EscapeIdentifier(sb, c.ValueColumn))
+			wb.u.EscapeIdentifier(sb, c.ValueColumn)
 		} else if c.Value != nil {
 			if len(c.Value) > 1 {
 				sb.WriteString(" (")
@@ -205,7 +205,8 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *strings.Builder, c structs.W
 				}
 				sb.WriteString(")")
 			} else {
-				sb.WriteString(" " + wb.u.GetPlaceholder())
+				sb.WriteString(" ")
+				sb.WriteString(wb.u.GetPlaceholder())
 			}
 		}
 	}
@@ -230,12 +231,12 @@ func (wb *WhereBaseBuilder) ProcessFunction(sb *strings.Builder, c structs.Where
 	//wsb.Grow(consts.StringBuffer_Where_Grow)
 	sb.WriteString(c.Function)
 	sb.WriteString("(")
-	sb.WriteString(wb.u.EscapeIdentifier(sb, c.Column))
+	wb.u.EscapeIdentifier(sb, c.Column)
 	sb.WriteString(") ")
 	sb.WriteString(c.Condition)
 	if c.ValueColumn != "" {
 		sb.WriteString(" ")
-		sb.WriteString(wb.u.EscapeIdentifier(sb, c.ValueColumn))
+		wb.u.EscapeIdentifier(sb, c.ValueColumn)
 	} else if c.Value != nil {
 		if len(c.Value) > 1 {
 			sb.WriteString(" (")

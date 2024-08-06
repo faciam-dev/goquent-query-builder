@@ -975,7 +975,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 				gotOffset := sb.String()
 				got = gotLimit + gotOffset
 			case "Lock":
-				got = builder.Lock(tt.input.Lock)
+				builder.Lock(sb, tt.input.Lock)
+				got = sb.String()
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected.Expected, got)

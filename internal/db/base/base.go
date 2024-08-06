@@ -95,12 +95,13 @@ func NewBaseQueryBuilder() *BaseQueryBuilder {
 }
 
 // Lock returns the lock statement.
-func (BaseQueryBuilder) Lock(lock *structs.Lock) string {
+func (BaseQueryBuilder) Lock(sb *strings.Builder, lock *structs.Lock) {
 	if lock == nil || lock.LockType == "" {
-		return ""
+		return
 	}
 
-	return " " + lock.LockType
+	sb.WriteString(" ")
+	sb.WriteString(lock.LockType)
 }
 
 // Build builds the query.
@@ -149,8 +150,7 @@ func (m BaseQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *structs
 	m.Offset(sb, q.Offset)
 
 	// LOCK
-	lock := m.Lock(q.Lock)
-	sb.WriteString(lock)
+	m.Lock(sb, q.Lock)
 
 	// UNION
 	m.Union(sb, unions, number)

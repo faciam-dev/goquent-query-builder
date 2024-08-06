@@ -99,8 +99,7 @@ func (m PostgreSQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *s
 	m.OffsetBuilderStrategy.Offset(sb, q.Offset)
 
 	// LOCK
-	lock := m.Lock(q.Lock)
-	sb.WriteString(lock)
+	m.Lock(sb, q.Lock)
 
 	// UNION
 	m.Union(sb, unions, number)

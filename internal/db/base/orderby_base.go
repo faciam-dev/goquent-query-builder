@@ -42,7 +42,7 @@ func (o OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order)
 		if (*order)[i].IsAsc {
 			desc = "ASC"
 		}
-		sb.WriteString(o.u.EscapeIdentifier(sb, (*order)[i].Column))
+		o.u.EscapeIdentifier(sb, (*order)[i].Column)
 		sb.WriteString(" ")
 		sb.WriteString(desc)
 	}

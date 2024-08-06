@@ -19,7 +19,8 @@ func (s *SQLUtils) GetPlaceholder() string {
 }
 
 func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value string) string {
-	if strings.Contains(strings.ToLower(value), " as ") {
+	eoc := strings.Index(strings.ToLower(value), " as ")
+	if eoc != -1 {
 		eoc := strings.Index(value, " as ")
 		var pa, pb string
 		pa = value[:eoc]
@@ -60,8 +61,8 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value strin
 func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) string {
 	//if v, ok := value.(string); ok {
 	if v != "*" {
-		if strings.Contains(v, ".") {
-			eoc := strings.Index(v, ".")
+		eoc := strings.Index(v, ".")
+		if eoc != -1 {
 			var pa, pb string
 			pa = v[:eoc]
 			pb = v[eoc+1:]

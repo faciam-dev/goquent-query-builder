@@ -1,7 +1,7 @@
 package base
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -20,5 +20,5 @@ func (OffsetBaseBuilder) Offset(sb *strings.Builder, offset *structs.Offset) {
 	}
 
 	sb.WriteString(" OFFSET ")
-	sb.WriteString(fmt.Sprint(offset.Offset))
+	sb.WriteString(strconv.FormatInt(int64(offset.Offset), 10))
 }

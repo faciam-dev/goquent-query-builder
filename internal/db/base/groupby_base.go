@@ -30,7 +30,7 @@ func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupB
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(g.u.EscapeIdentifier(sb, groupByColumns[i]))
+			g.u.EscapeIdentifier(sb, groupByColumns[i])
 		}
 	}
 
@@ -74,7 +74,7 @@ func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupB
 				sb.WriteString(op)
 				sb.WriteString(" ")
 			}
-			sb.WriteString(g.u.EscapeIdentifier(sb, (*groupBy.Having)[n].Column))
+			g.u.EscapeIdentifier(sb, (*groupBy.Having)[n].Column)
 			sb.WriteString(" ")
 			sb.WriteString((*groupBy.Having)[n].Condition)
 			sb.WriteString(" ")
