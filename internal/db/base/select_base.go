@@ -29,13 +29,14 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 	//colNames := make([]string, 0, len(*columns))
 
 	// if there are no columns to select, select all columns
-	if len(*columns) == 0 && joins.Joins != nil {
-		for i, join := range *joins.Joins {
+	if len(*columns) == 0 && (joins.Joins != nil || joins.LateralJoins != nil) {
+		//joined := append(*joins.LateralJoins, *joins.Joins)
+		for i, join := range append(*joins.LateralJoins, *joins.Joins...) {
 			b.processJoin(sb, &join, tableName, i)
 		}
 
-		if joins.JoinClause != nil {
-			for _, joinClause := range *joins.JoinClause {
+		if joins.JoinClauses != nil {
+			for _, joinClause := range *joins.JoinClauses {
 				join := structs.Join{
 					TargetNameMap: joinClause.TargetNameMap,
 					Name:          joinClause.Name,
@@ -44,7 +45,6 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 			}
 		}
 
-		return []interface{}{}
 	}
 
 	colValues := make([]interface{}, 0, len(*columns))
@@ -64,7 +64,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 				sb.WriteString("DISTINCT ")
 			}
 			if (*columns)[i].Name != "" {
-				sb.WriteString(b.u.EscapeIdentifier(sb, (*columns)[i].Name))
+				sb.WriteString(b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name))
 			} else {
 				sb.WriteString("*")
 			}
@@ -86,7 +86,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 				sb.WriteString("DISTINCT ")
 			}
 			if (*columns)[i].Name != "" {
-				sb.WriteString(b.u.EscapeIdentifier(sb, (*columns)[i].Name))
+				sb.WriteString(b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name))
 			} else {
 				sb.WriteString("*")
 			}
@@ -104,7 +104,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(b.u.EscapeIdentifier(sb, (*columns)[i].Name))
+			sb.WriteString(b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name))
 			//colNames = append(colNames, column.Name)
 		}
 	}

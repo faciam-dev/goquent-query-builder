@@ -178,7 +178,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 									ConditionGroups: &[]structs.WhereGroup{},
 									Conditions:      &[]structs.Where{},
 									Joins: &structs.Joins{
-										Joins: &[]structs.Join{},
+										Joins:        &[]structs.Join{},
+										LateralJoins: &[]structs.Join{},
 									},
 									Order: &[]structs.Order{},
 									Group: &structs.GroupBy{},
@@ -501,7 +502,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 										ConditionGroups: &[]structs.WhereGroup{},
 										Conditions:      &[]structs.Where{},
 										Joins: &structs.Joins{
-											Joins: &[]structs.Join{},
+											Joins:        &[]structs.Join{},
+											LateralJoins: &[]structs.Join{},
 										},
 										Order: &[]structs.Order{},
 										Group: &structs.GroupBy{},
@@ -539,7 +541,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 										ConditionGroups: &[]structs.WhereGroup{},
 										Conditions:      &[]structs.Where{},
 										Joins: &structs.Joins{
-											Joins: &[]structs.Join{},
+											Joins:        &[]structs.Join{},
+											LateralJoins: &[]structs.Join{},
 										},
 										Order: &[]structs.Order{},
 										Group: &structs.GroupBy{},
@@ -600,6 +603,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 							SearchTargetColumn: "orders.user_id",
 						},
 					},
+					LateralJoins: &[]structs.Join{},
 				},
 			},
 			QueryBuilderExpected{
@@ -622,6 +626,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 							SearchTargetColumn: "orders.user_id",
 						},
 					},
+					LateralJoins: &[]structs.Join{},
 				},
 			},
 			QueryBuilderExpected{
@@ -651,6 +656,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 							SearchTargetColumn: "products.user_id",
 						},
 					},
+					LateralJoins: &[]structs.Join{},
 				},
 			},
 			QueryBuilderExpected{
@@ -680,7 +686,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 			structs.Query{
 				Table: structs.Table{Name: "users"},
 				Joins: &structs.Joins{
-					Joins: &[]structs.Join{
+					Joins: &[]structs.Join{},
+					LateralJoins: &[]structs.Join{
 						{
 							Name:          "orders",
 							TargetNameMap: map[string]string{"lateral": "orders"},
@@ -692,7 +699,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 								ConditionGroups: &[]structs.WhereGroup{},
 								Conditions:      &[]structs.Where{},
 								Joins: &structs.Joins{
-									Joins: &[]structs.Join{},
+									Joins:        &[]structs.Join{},
+									LateralJoins: &[]structs.Join{},
 								},
 								Order: &[]structs.Order{},
 								Group: &structs.GroupBy{},
@@ -712,7 +720,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 			structs.Query{
 				Table: structs.Table{Name: "users"},
 				Joins: &structs.Joins{
-					Joins: &[]structs.Join{
+					Joins: &[]structs.Join{},
+					LateralJoins: &[]structs.Join{
 						{
 							Name:          "orders",
 							TargetNameMap: map[string]string{"left_lateral": "orders"},
@@ -736,7 +745,8 @@ func TestBaseQueryBuilder(t *testing.T) {
 								},
 								Conditions: &[]structs.Where{},
 								Joins: &structs.Joins{
-									Joins: &[]structs.Join{},
+									Joins:        &[]structs.Join{},
+									LateralJoins: &[]structs.Join{},
 								},
 								Order: &[]structs.Order{},
 								Group: &structs.GroupBy{},

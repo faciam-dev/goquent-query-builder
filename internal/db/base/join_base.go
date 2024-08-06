@@ -39,13 +39,13 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 	if joins == nil {
 		return []interface{}{}
 	}
-	if joins.JoinClause != nil {
-		for _, joinClause := range *joins.JoinClause {
-			vals := make([]interface{}, 0, len(*joinClause.Conditions))
+	if joins.JoinClauses != nil {
+		for i := range *joins.JoinClauses {
+			vals := make([]interface{}, 0, len(*(*joins.JoinClauses)[i].Conditions))
 
 			j := &structs.Join{
-				TargetNameMap: joinClause.TargetNameMap,
-				Name:          joinClause.Name,
+				TargetNameMap: (*joins.JoinClauses)[i].TargetNameMap,
+				Name:          (*joins.JoinClauses)[i].Name,
 			}
 
 			joinType, targetName := jb.processJoin(j)
@@ -61,11 +61,11 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			sb.WriteString(" ")
 			sb.WriteString(joinType)
 			sb.WriteString(" JOIN ")
-			if joinClause.Query != nil {
+			if (*joins.JoinClauses)[i].Query != nil {
 				sb.WriteString("(")
 				//sb.WriteString(sqQuery)
 				b := jb.u.GetQueryBuilderStrategy()
-				_, sqValues := b.Build(sb, "", joinClause.Query, 0, nil)
+				_, sqValues := b.Build(sb, "", (*joins.JoinClauses)[i].Query, 0, nil)
 				//targetName = "(" + sqQuery + ")" + " as " + jb.u.EscapeIdentifier(sb, targetName)
 				values = append(values, sqValues...)
 				//sb.WriteString(targetName)
@@ -77,7 +77,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			sb.WriteString(" ON ")
 
 			op := ""
-			for i, on := range *joinClause.On {
+			for i, on := range *(*joins.JoinClauses)[i].On {
 				if i > 0 {
 					if on.Operator == consts.LogicalOperator_OR {
 						op = " OR "
@@ -97,8 +97,8 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 			}
 
 			op = ""
-			for i, condition := range *joinClause.Conditions {
-				if i > 0 || len(*joinClause.On) > 0 {
+			for i, condition := range *(*joins.JoinClauses)[i].Conditions {
+				if i > 0 || len(*(*joins.JoinClauses)[i].On) > 0 {
 					if condition.Operator == consts.LogicalOperator_OR {
 						op = " OR "
 					} else {
@@ -121,23 +121,25 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 	}
 
 	// sort by lateral joins first
-	//	sortedJoins := make([]*structs.Join, 0, len(*joins.Joins))
-	lateralJoins := make([]*structs.Join, 0, len(*joins.Joins))
-	otherJoins := make([]*structs.Join, 0, len(*joins.Joins))
+	//sortedJoins := make([]*structs.Join, 0, len(*joins.Joins))
+	/*
+		lateralJoins := make([]*structs.Join, 0, len(*joins.Joins))
+		otherJoins := make([]*structs.Join, 0, len(*joins.Joins))
 
-	for i := range *joins.Joins {
-		if _, ok := (*joins.Joins)[i].TargetNameMap[consts.Join_LATERAL]; ok {
-			lateralJoins = append(lateralJoins, &(*joins.Joins)[i])
-		} else if _, ok := (*joins.Joins)[i].TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
-			lateralJoins = append(lateralJoins, &(*joins.Joins)[i])
-		} else {
-			otherJoins = append(otherJoins, &(*joins.Joins)[i])
+		for i := range *joins.Joins {
+			if _, ok := (*joins.Joins)[i].TargetNameMap[consts.Join_LATERAL]; ok {
+				lateralJoins = append(lateralJoins, &(*joins.Joins)[i])
+			} else if _, ok := (*joins.Joins)[i].TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
+				lateralJoins = append(lateralJoins, &(*joins.Joins)[i])
+			} else {
+				otherJoins = append(otherJoins, &(*joins.Joins)[i])
+			}
 		}
-	}
+	*/
 
-	sortedJoins := append(lateralJoins, otherJoins...)
+	sortedJoins := append(*joins.LateralJoins, *joins.Joins...)
 	for i := range sortedJoins {
-		joinType, targetName := jb.processJoin(sortedJoins[i])
+		joinType, targetName := jb.processJoin(&sortedJoins[i])
 		if targetName == "" {
 			continue
 		}

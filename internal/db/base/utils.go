@@ -18,47 +18,38 @@ func (s *SQLUtils) GetPlaceholder() string {
 	return "?"
 }
 
-func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value interface{}) string {
-	if value == nil {
-		return "NULL"
-	}
+func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value string) string {
 
 	target := regexp.MustCompile(`(?i)\s+as\s+`)
-	if target.MatchString(value.(string)) {
-		parts := target.Split(value.(string), -1)
+	if target.MatchString(value) {
+		parts := target.Split(value, -1)
 		return s.EscapeIdentifier(sb, parts[0]) + " as " + s.EscapeIdentifier(sb, parts[1])
 	}
 
-	return value.(string)
+	return value
 }
 
-func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, value interface{}) string {
-	if value == nil {
-		return "NULL"
+func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) string {
+	if strings.Contains(strings.ToLower(v), " as ") {
+		split := strings.Split(v, " as ")
+		if len(split) != 2 {
+			split = strings.Split(v, " AS ")
+		}
+		if len(split) == 2 {
+			return s.EscapeIdentifier(sb, split[0]) + " as " + s.EscapeIdentifier(sb, split[1])
+		}
+		return s.EscapeIdentifierAliasedValue(sb, v)
 	}
 
-	if v, ok := value.(string); ok {
-		if strings.Contains(strings.ToLower(v), " as ") {
-			split := strings.Split(v, " as ")
-			if len(split) != 2 {
-				split = strings.Split(v, " AS ")
-			}
-			if len(split) == 2 {
-				return s.EscapeIdentifier(sb, split[0]) + " as " + s.EscapeIdentifier(sb, split[1])
-			}
-			return s.EscapeIdentifierAliasedValue(sb, value)
+	if v != "*" {
+		if strings.Contains(v, ".") {
+			parts := strings.Split(v, ".")
+			return `"` + strings.ReplaceAll(parts[0], `"`, `""`) + `"."` + strings.ReplaceAll(parts[1], `"`, `""`) + `"`
 		}
-
-		if v != "*" {
-			if strings.Contains(v, ".") {
-				parts := strings.Split(v, ".")
-				return `"` + strings.ReplaceAll(parts[0], `"`, `""`) + `"."` + strings.ReplaceAll(parts[1], `"`, `""`) + `"`
-			}
-			return `"` + strings.ReplaceAll(v, `"`, `""`) + `"`
-		}
+		return `"` + strings.ReplaceAll(v, `"`, `""`) + `"`
 	}
 
-	return value.(string)
+	return v
 }
 
 func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {

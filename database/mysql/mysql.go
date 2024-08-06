@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"strings"
-	"sync"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
@@ -55,12 +54,6 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
 	queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
 	return queryBuilder
-}
-
-var stringbufPool = sync.Pool{
-	New: func() interface{} {
-		return new(strings.Builder)
-	},
 }
 
 // Build builds the query.

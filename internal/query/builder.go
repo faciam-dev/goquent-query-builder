@@ -1,7 +1,6 @@
 package query
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 
@@ -310,6 +309,7 @@ func (b *Builder) Build() (string, []interface{}, error) {
 
 	sb := stringbufPool.Get().(*strings.Builder)
 	sb.Reset()
+	sb.Grow(consts.StringBuffer_Short_Query_Grow)
 
 	query := ""
 	values := make([]interface{}, 0)
@@ -395,7 +395,11 @@ func generateCacheKey(u *structs.Union) string {
 	q := u.Query
 	// Union key
 	//sb.WriteString(fmt.Sprintf("%d", i))
-	sb.WriteString(fmt.Sprintf("%t", u.IsAll))
+	if u.IsAll {
+		sb.WriteString("ALL")
+	} else {
+		sb.WriteString("UNION")
+	}
 	sb.WriteString("|")
 
 	// Table key
@@ -424,19 +428,19 @@ func generateCacheKey(u *structs.Union) string {
 
 	// Join key
 	if q.Joins.Joins != nil {
-		for _, j := range *q.Joins.Joins {
-			sb.WriteString(j.Name)
+		for j := range *q.Joins.Joins {
+			sb.WriteString((*q.Joins.Joins)[j].Name)
 			sb.WriteString(",")
-			sb.WriteString(j.SearchColumn)
+			sb.WriteString((*q.Joins.Joins)[j].SearchColumn)
 			sb.WriteString(",")
-			sb.WriteString(j.SearchCondition)
+			sb.WriteString((*q.Joins.Joins)[j].SearchCondition)
 			sb.WriteString(",")
-			sb.WriteString(j.SearchTargetColumn)
+			sb.WriteString((*q.Joins.Joins)[j].SearchTargetColumn)
 			sb.WriteString(",")
 		}
 	}
-	if q.Joins.JoinClause != nil {
-		for _, jc := range *q.Joins.JoinClause {
+	if q.Joins.JoinClauses != nil {
+		for _, jc := range *q.Joins.JoinClauses {
 			for _, on := range *jc.On {
 				sb.WriteString(on.Column)
 				sb.WriteString(",")
@@ -456,14 +460,14 @@ func generateCacheKey(u *structs.Union) string {
 	sb.WriteString("|")
 
 	// Condition key
-	for _, c := range *q.ConditionGroups {
-		if c.Operator == consts.LogicalOperator_AND {
+	for c := range *q.ConditionGroups {
+		if (*q.ConditionGroups)[c].Operator == consts.LogicalOperator_AND {
 			sb.WriteString("AND")
 		} else {
 			sb.WriteString("OR")
 		}
 		sb.WriteString(",")
-		for _, w := range c.Conditions {
+		for _, w := range (*q.ConditionGroups)[c].Conditions {
 			if w.Operator == consts.LogicalOperator_AND {
 				sb.WriteString("AND")
 			} else {

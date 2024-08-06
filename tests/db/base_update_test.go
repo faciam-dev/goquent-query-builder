@@ -38,7 +38,8 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 						},
 					},
 					Joins: &structs.Joins{
-						Joins: &[]structs.Join{},
+						Joins:        &[]structs.Join{},
+						LateralJoins: &[]structs.Join{},
 					},
 					Order: &[]structs.Order{},
 				},
@@ -157,6 +158,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 								SearchTargetColumn: "profiles.user_id",
 							},
 						},
+						LateralJoins: &[]structs.Join{},
 					},
 					Order: &[]structs.Order{},
 				},
@@ -189,7 +191,8 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 						},
 					},
 					Joins: &structs.Joins{
-						Joins: &[]structs.Join{},
+						Joins:        &[]structs.Join{},
+						LateralJoins: &[]structs.Join{},
 					},
 					Order: &[]structs.Order{
 						{
