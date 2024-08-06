@@ -59,30 +59,22 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value strin
 }
 
 func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) string {
-	//if v, ok := value.(string); ok {
 	if v != "*" {
-		eoc := strings.Index(v, ".")
-		if eoc != -1 {
-			var pa, pb string
-			pa = v[:eoc]
-			pb = v[eoc+1:]
-			//parts := strings.Split(v, ".")
+		if eoc := strings.Index(v, "."); eoc != -1 {
+			//sb.Grow(len(v) + 4) // 事前にバッファを拡張
 			sb.WriteString("`")
-			sb.WriteString(strings.ReplaceAll(pa, "`", "``"))
+			sb.WriteString(strings.ReplaceAll(v[:eoc], "`", "``"))
 			sb.WriteString("`.`")
-			sb.WriteString(strings.ReplaceAll(pb, "`", "``"))
+			sb.WriteString(strings.ReplaceAll(v[eoc+1:], "`", "``"))
 			sb.WriteString("`")
 			return ""
-			//return "`" + strings.ReplaceAll(parts[0], "`", "``") + "`.`" + strings.ReplaceAll(parts[1], "`", "``") + "`"
 		}
+		//sb.Grow(len(v) + 2) // 事前にバッファを拡張
 		sb.WriteString("`")
 		sb.WriteString(strings.ReplaceAll(v, "`", "``"))
 		sb.WriteString("`")
 		return ""
-		//return "`" + strings.ReplaceAll(v, "`", "``") + "`"
 	}
-	//}
-
 	return v
 }
 

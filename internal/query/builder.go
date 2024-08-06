@@ -309,9 +309,9 @@ func (b *Builder) Build() (string, []interface{}, error) {
 
 	sb := stringbufPool.Get().(*strings.Builder)
 	sb.Reset()
-	sb.Grow(consts.StringBuffer_Short_Query_Grow)
+	//sb.Grow(consts.StringBuffer_Short_Query_Grow)
 
-	query := ""
+	//query := ""
 	values := make([]interface{}, 0)
 
 	cacheKey := ""
@@ -346,7 +346,7 @@ func (b *Builder) Build() (string, []interface{}, error) {
 		}
 	}
 
-	query = sb.String()
+	query := sb.String()
 	b.cache.Set(cacheKey, query)
 
 	// remove the last UNION

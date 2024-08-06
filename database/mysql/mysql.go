@@ -58,17 +58,6 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 
 // Build builds the query.
 func (m MySQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
-	/*
-		// grow the string builder based on the length of the cache key
-		if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
-			sb.Grow(consts.StringBuffer_Short_Query_Grow)
-		} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
-			sb.Grow(consts.StringBuffer_Middle_Query_Grow)
-		} else {
-			sb.Grow(consts.StringBuffer_Long_Query_Grow)
-		}
-	*/
-
 	// SELECT
 	sb.WriteString("SELECT ")
 	colValues := m.selectBuilderStrategy.Select(sb, q.Columns, q.Table.Name, q.Joins)
@@ -82,24 +71,34 @@ func (m MySQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *struct
 	values = append(values, joinValues...)
 
 	// WHERE
-	whereValues := m.whereBuilderStrategy.Where(sb, q.ConditionGroups)
-	values = append(values, whereValues...)
+	if len(*q.ConditionGroups) > 0 {
+		whereValues := m.whereBuilderStrategy.Where(sb, q.ConditionGroups)
+		values = append(values, whereValues...)
+	}
 
 	// GROUP BY / HAVING
 	groupByValues := m.groupByBuilderStrategy.GroupBy(sb, q.Group)
 	values = append(values, groupByValues...)
 
 	// ORDER BY
-	m.orderByBuilderStrategy.OrderBy(sb, q.Order)
+	if len(*q.Order) > 0 {
+		m.orderByBuilderStrategy.OrderBy(sb, q.Order)
+	}
 
 	// LIMIT
-	m.limitBuilderStrategy.Limit(sb, q.Limit)
+	if q.Limit != nil && q.Limit.Limit > 0 {
+		m.limitBuilderStrategy.Limit(sb, q.Limit)
+	}
 
 	// OFFSET
-	m.OffsetBuilderStrategy.Offset(sb, q.Offset)
+	if q.Offset != nil && q.Offset.Offset > 0 {
+		m.OffsetBuilderStrategy.Offset(sb, q.Offset)
+	}
 
 	// LOCK
-	m.Lock(sb, q.Lock)
+	if q.Lock != nil && q.Lock.LockType != "" {
+		m.Lock(sb, q.Lock)
+	}
 
 	// UNION
 	m.Union(sb, unions, number)
