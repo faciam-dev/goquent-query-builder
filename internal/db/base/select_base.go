@@ -23,16 +23,18 @@ func NewSelectBaseBuilder(u interfaces.SQLUtils, columnNames *[]string) *SelectB
 
 func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
 	if columns == nil {
-		sb.WriteString(" * ")
+		sb.WriteString("*")
 		return []interface{}{}
 	}
 	//colNames := make([]string, 0, len(*columns))
 
+	outputed := false
 	// if there are no columns to select, select all columns
 	if len(*columns) == 0 && (joins.Joins != nil || joins.LateralJoins != nil) {
 		//joined := append(*joins.LateralJoins, *joins.Joins)
 		for i, join := range append(*joins.LateralJoins, *joins.Joins...) {
 			b.processJoin(sb, &join, tableName, i)
+			outputed = true
 		}
 
 		if joins.JoinClauses != nil {
@@ -42,9 +44,15 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 					Name:          joinClause.Name,
 				}
 				b.processJoin(sb, &join, tableName, 0)
+				outputed = true
 			}
 		}
 
+	}
+
+	if len(*columns) == 0 && !outputed {
+		sb.WriteString("*")
+		return []interface{}{}
 	}
 
 	colValues := make([]interface{}, 0, len(*columns))
@@ -104,7 +112,8 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name))
+
+			b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name)
 			//colNames = append(colNames, column.Name)
 		}
 	}

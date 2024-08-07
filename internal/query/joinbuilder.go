@@ -125,22 +125,22 @@ func (b *JoinBuilder[T]) RightJoinQuery(table string, fn func(j *JoinClauseBuild
 	return b.parent
 }
 
-func (b *JoinBuilder[T]) JoinSub(q *Builder, alias, my, condition, target string) *T {
+func (b *JoinBuilder[T]) JoinSub(q *SelectBuilder, alias, my, condition, target string) *T {
 	b.joinSubCommon(consts.Join_INNER, q, alias, my, condition, target)
 	return b.parent
 }
 
-func (b *JoinBuilder[T]) LeftJoinSub(q *Builder, alias, my, condition, target string) *T {
+func (b *JoinBuilder[T]) LeftJoinSub(q *SelectBuilder, alias, my, condition, target string) *T {
 	b.joinSubCommon(consts.Join_LEFT, q, alias, my, condition, target)
 	return b.parent
 }
 
-func (b *JoinBuilder[T]) RightJoinSub(q *Builder, alias, my, condition, target string) *T {
+func (b *JoinBuilder[T]) RightJoinSub(q *SelectBuilder, alias, my, condition, target string) *T {
 	b.joinSubCommon(consts.Join_RIGHT, q, alias, my, condition, target)
 	return b.parent
 }
 
-func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *Builder, alias, my, condition, target string) *T {
+func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *SelectBuilder, alias, my, condition, target string) *T {
 
 	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.WhereBuilder.query.Conditions,
@@ -154,7 +154,7 @@ func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *Builder, alias, my, c
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
 		Joins:           q.JoinBuilder.Joins,
-		Order:           q.orderByBuilder.Order,
+		Order:           q.OrderByBuilder.Order,
 	}
 
 	myTable := b.Table.Name
@@ -177,15 +177,15 @@ func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *Builder, alias, my, c
 	return b.parent
 }
 
-func (b *JoinBuilder[T]) JoinLateral(q *Builder, alias string) *T {
+func (b *JoinBuilder[T]) JoinLateral(q *SelectBuilder, alias string) *T {
 	return b.joinLateralCommon(consts.Join_LATERAL, q, alias)
 }
 
-func (b *JoinBuilder[T]) LeftJoinLateral(q *Builder, alias string) *T {
+func (b *JoinBuilder[T]) LeftJoinLateral(q *SelectBuilder, alias string) *T {
 	return b.joinLateralCommon(consts.Join_LEFT_LATERAL, q, alias)
 }
 
-func (b *JoinBuilder[T]) joinLateralCommon(joinType string, q *Builder, alias string) *T {
+func (b *JoinBuilder[T]) joinLateralCommon(joinType string, q *SelectBuilder, alias string) *T {
 
 	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.WhereBuilder.query.Conditions,
@@ -199,7 +199,7 @@ func (b *JoinBuilder[T]) joinLateralCommon(joinType string, q *Builder, alias st
 		Table:           structs.Table{Name: q.selectQuery.Table},
 		Columns:         q.selectQuery.Columns,
 		Joins:           q.JoinBuilder.Joins,
-		Order:           q.orderByBuilder.Order,
+		Order:           q.OrderByBuilder.Order,
 	}
 
 	myTable := b.Table.Name

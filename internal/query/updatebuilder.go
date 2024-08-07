@@ -8,10 +8,10 @@ import (
 )
 
 type UpdateBuilder struct {
-	dbBuilder      interfaces.QueryBuilderStrategy
-	cache          cache.Cache
-	query          *structs.UpdateQuery
-	orderByBuilder *OrderByBuilder
+	dbBuilder interfaces.QueryBuilderStrategy
+	cache     cache.Cache
+	query     *structs.UpdateQuery
+	OrderByBuilder[UpdateBuilder]
 	JoinBuilder[UpdateBuilder]
 	WhereBuilder[UpdateBuilder]
 }
@@ -23,7 +23,6 @@ func NewUpdateBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cach
 		query: &structs.UpdateQuery{
 			Query: &structs.Query{},
 		},
-		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 
 	whereBuilder := NewWhereBuilder[UpdateBuilder](strategy, cache)
@@ -34,9 +33,14 @@ func NewUpdateBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cach
 	joinBuilder.SetParent(ub)
 	ub.JoinBuilder = *joinBuilder
 
+	orderByBuilder := NewOrderByBuilder[UpdateBuilder](strategy, cache)
+	orderByBuilder.SetParent(ub)
+	ub.OrderByBuilder = *orderByBuilder
+
 	return ub
 }
 
+/*
 func (b *UpdateBuilder) SetWhereBuilder(whereBuilder WhereBuilder[UpdateBuilder]) {
 	b.WhereBuilder = whereBuilder
 }
@@ -45,9 +49,10 @@ func (b *UpdateBuilder) SetJoinBuilder(joinBuilder JoinBuilder[UpdateBuilder]) {
 	b.JoinBuilder = joinBuilder
 }
 
-func (b *UpdateBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
-	b.orderByBuilder = orderByBuilder
+func (b *UpdateBuilder) SetOrderByBuilder(orderByBuilder OrderByBuilder[UpdateBuilder]) {
+	b.OrderByBuilder = orderByBuilder
 }
+*/
 
 func (b *UpdateBuilder) Table(table string) *UpdateBuilder {
 	b.query.Table = table
@@ -75,24 +80,24 @@ func (u *UpdateBuilder) Build() (string, []interface{}, error) {
 	u.query.Query.Conditions = u.WhereBuilder.query.Conditions
 	u.query.Query.ConditionGroups = u.WhereBuilder.query.ConditionGroups
 	u.query.Query.Joins = u.JoinBuilder.Joins
-	u.query.Query.Order = u.orderByBuilder.Order
+	u.query.Query.Order = u.OrderByBuilder.Order
 
 	query, values, err := u.dbBuilder.BuildUpdate(u.query)
 	return query, values, err
 }
 
 func (b *UpdateBuilder) OrderBy(column string, direction string) *UpdateBuilder {
-	b.orderByBuilder.OrderBy(column, direction)
+	b.OrderByBuilder.OrderBy(column, direction)
 	return b
 }
 
 func (b *UpdateBuilder) OrderByRaw(raw string) *UpdateBuilder {
-	b.orderByBuilder.OrderByRaw(raw)
+	b.OrderByBuilder.OrderByRaw(raw)
 	return b
 }
 
 func (b *UpdateBuilder) ReOrder() *UpdateBuilder {
-	b.orderByBuilder.ReOrder()
+	b.OrderByBuilder.ReOrder()
 	return b
 }
 

@@ -63,10 +63,22 @@ func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) string {
 		if eoc := strings.Index(v, "."); eoc != -1 {
 			//sb.Grow(len(v) + 4) // 事前にバッファを拡張
 			sb.WriteString("`")
-			sb.WriteString(strings.ReplaceAll(v[:eoc], "`", "``"))
-			sb.WriteString("`.`")
-			sb.WriteString(strings.ReplaceAll(v[eoc+1:], "`", "``"))
+			if eo := strings.Index(v, "`"); eo != -1 {
+				sb.WriteString(strings.ReplaceAll(v[:eo], "`", "``"))
+				sb.WriteString("`.`")
+				sb.WriteString(strings.ReplaceAll(v[eo+1:eoc], "`", "``"))
+			} else {
+				sb.WriteString(v[:eoc])
+				sb.WriteString("`.`")
+				sb.WriteString(v[eoc+1:])
+			}
 			sb.WriteString("`")
+			/*
+				sb.WriteString(strings.ReplaceAll(v[:eoc], "`", "``"))
+				sb.WriteString("`.`")
+				sb.WriteString(strings.ReplaceAll(v[eoc+1:], "`", "``"))
+				sb.WriteString("`")
+			*/
 			return ""
 		}
 		//sb.Grow(len(v) + 2) // 事前にバッファを拡張

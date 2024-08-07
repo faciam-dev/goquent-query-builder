@@ -33,7 +33,7 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	queryBuilder := &MySQLQueryBuilder{}
 	u := NewSQLUtils()
 	queryBuilder.util = u
-	//queryBuilder.BaseQueryBuilder = *base.NewBaseQueryBuilder()
+	queryBuilder.BaseQueryBuilder = *base.NewBaseQueryBuilder()
 	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
 	queryBuilder.FromBaseBuilder = *base.NewFromBaseBuilder(u)
@@ -67,8 +67,10 @@ func (m MySQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *struct
 	values := colValues
 
 	// JOIN
-	joinValues := m.joinBuilderStrategy.Join(sb, q.Joins)
-	values = append(values, joinValues...)
+	if q.Joins.JoinClauses != nil && (len(*q.Joins.JoinClauses) > 0 || len(*q.Joins.LateralJoins) > 0 || len(*q.Joins.Joins) > 0) {
+		joinValues := m.joinBuilderStrategy.Join(sb, q.Joins)
+		values = append(values, joinValues...)
+	}
 
 	// WHERE
 	if len(*q.ConditionGroups) > 0 {
@@ -77,8 +79,10 @@ func (m MySQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *struct
 	}
 
 	// GROUP BY / HAVING
-	groupByValues := m.groupByBuilderStrategy.GroupBy(sb, q.Group)
-	values = append(values, groupByValues...)
+	if q.Group != nil && len(q.Group.Columns) > 0 {
+		groupByValues := m.groupByBuilderStrategy.GroupBy(sb, q.Group)
+		values = append(values, groupByValues...)
+	}
 
 	// ORDER BY
 	if len(*q.Order) > 0 {

@@ -53,7 +53,6 @@ type FullTextOptions struct {
 
 type WhereGroup struct {
 	Conditions   []Where
-	Subgroups    []WhereGroup
 	Operator     int
 	IsDummyGroup bool
 	IsNot        bool
@@ -68,7 +67,6 @@ type Query struct {
 	Limit           *Limit
 	Offset          *Offset
 	Order           *[]Order
-	SubQuery        *[]Query
 	Group           *GroupBy
 	Lock            *Lock
 }
@@ -79,14 +77,13 @@ type Union struct {
 }
 
 type SelectQuery struct {
-	Table    string
-	Columns  *[]Column
-	Limit    *Limit
-	Offset   *Offset
-	SubQuery *[]Query
-	Union    *[]Union
-	Group    *GroupBy
-	Lock     *Lock
+	Table   string
+	Columns *[]Column
+	Limit   *Limit
+	Offset  *Offset
+	Union   *[]Union
+	Group   *GroupBy
+	Lock    *Lock
 }
 
 type InsertQuery struct {

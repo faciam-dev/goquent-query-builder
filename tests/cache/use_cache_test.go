@@ -12,13 +12,13 @@ import (
 func TestUseCacheTest(t *testing.T) {
 	tests := []struct {
 		name           string
-		setup          func() *query.Builder
+		setup          func() *query.SelectBuilder
 		expectedQuery  string
 		expectedValues []interface{}
 	}{
 		{
 			"Complex_Query",
-			func() *query.Builder {
+			func() *query.SelectBuilder {
 				return query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					Select("id", "name").
 					Table("users").
@@ -31,7 +31,7 @@ func TestUseCacheTest(t *testing.T) {
 		},
 		{
 			"Complex_Query_With_Subquery",
-			func() *query.Builder {
+			func() *query.SelectBuilder {
 				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).Select("id").Table("users").Where("name", "=", "John")
 				return query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
 					SelectRaw("`id`, `name`, `profiles`.`point` * ? as `profiles_point`", 1.05).

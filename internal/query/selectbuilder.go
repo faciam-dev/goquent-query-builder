@@ -10,21 +10,29 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
-type Builder struct {
+/*
+type QueryBuilder struct {
+	whereBuilder   WhereBuilder[Builder]
+	joinBuilder    JoinBuilder[Builder]
+	orderByBuilder OrderByBuilder
+}
+*/
+
+type SelectBuilder struct {
 	dbBuilder     interfaces.QueryBuilderStrategy
 	cache         cache.Cache
 	query         *structs.Query
 	selectQuery   *structs.SelectQuery
 	selectValues  []interface{}
 	groupByValues []interface{}
-	WhereBuilder[Builder]
-	JoinBuilder[Builder]
-	orderByBuilder *OrderByBuilder
+	*WhereBuilder[SelectBuilder]
+	*JoinBuilder[SelectBuilder]
+	*OrderByBuilder[SelectBuilder]
 	BaseBuilder
 }
 
-func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *Builder {
-	b := &Builder{
+func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *SelectBuilder {
+	b := &SelectBuilder{
 		dbBuilder: dbBuilder,
 		cache:     cache,
 		query: &structs.Query{
@@ -37,31 +45,32 @@ func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *B
 			Limit:           &structs.Limit{},
 			Offset:          &structs.Offset{},
 			Lock:            &structs.Lock{},
-			SubQuery:        &[]structs.Query{},
 		},
 		selectQuery: &structs.SelectQuery{
-			Table:    "",
-			Columns:  &[]structs.Column{},
-			Limit:    &structs.Limit{},
-			SubQuery: &[]structs.Query{},
-			Group:    &structs.GroupBy{},
-			Offset:   &structs.Offset{},
-			Lock:     &structs.Lock{},
-			Union:    &[]structs.Union{},
+			Table:   "",
+			Columns: &[]structs.Column{},
+			Limit:   &structs.Limit{},
+			Group:   &structs.GroupBy{},
+			Offset:  &structs.Offset{},
+			Lock:    &structs.Lock{},
+			Union:   &[]structs.Union{},
 		},
 		selectValues:  []interface{}{},
 		groupByValues: []interface{}{},
 		//joinBuilder:    NewJoinBuilder(dbBuilder, cache),
-		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 
-	whereBuilder := NewWhereBuilder[Builder](dbBuilder, cache)
+	whereBuilder := NewWhereBuilder[SelectBuilder](dbBuilder, cache)
 	whereBuilder.SetParent(b)
-	b.WhereBuilder = *whereBuilder
+	b.WhereBuilder = whereBuilder
 
-	joinBuilder := NewJoinBuilder[Builder](dbBuilder, cache)
+	joinBuilder := NewJoinBuilder[SelectBuilder](dbBuilder, cache)
 	joinBuilder.SetParent(b)
-	b.JoinBuilder = *joinBuilder
+	b.JoinBuilder = joinBuilder
+
+	orderByBuilder := NewOrderByBuilder[SelectBuilder](dbBuilder, cache)
+	orderByBuilder.SetParent(b)
+	b.OrderByBuilder = orderByBuilder
 
 	return b
 }
@@ -72,38 +81,46 @@ var stringbufPool = sync.Pool{
 	},
 }
 
-func (b *Builder) SetWhereBuilder(whereBuilder *WhereBuilder[Builder]) {
-	b.WhereBuilder = *whereBuilder
+/*
+func (qb *SelectBuilder) SetBuilders(where *WhereBuilder[SelectBuilder], join *JoinBuilder[SelectBuilder], orderBy *OrderByBuilder[SelectBuilder]) {
+	qb.WhereBuilder = where
+	qb.JoinBuilder = join
+	qb.OrderByBuilder = orderBy
 }
 
-func (b *Builder) SetJoinBuilder(joinBuilder *JoinBuilder[Builder]) {
-	b.JoinBuilder = *joinBuilder
+func (b *SelectBuilder) SetWhereBuilder(whereBuilder *WhereBuilder[SelectBuilder]) {
+	b.WhereBuilder = whereBuilder
 }
 
-func (b *Builder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
-	b.orderByBuilder = orderByBuilder
+func (b *SelectBuilder) SetJoinBuilder(joinBuilder *JoinBuilder[SelectBuilder]) {
+	b.JoinBuilder = joinBuilder
 }
 
-func (b *Builder) Table(table string) *Builder {
+func (b *SelectBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder[SelectBuilder]) {
+	b.OrderByBuilder = orderByBuilder
+}
+*/
+
+func (b *SelectBuilder) Table(table string) *SelectBuilder {
 	b.selectQuery.Table = table
 	return b
 }
 
-func (b *Builder) Select(columns ...string) *Builder {
+func (b *SelectBuilder) Select(columns ...string) *SelectBuilder {
 	for _, column := range columns {
 		*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{Name: column})
 	}
 	return b
 }
 
-func (b *Builder) SelectRaw(raw string, value ...interface{}) *Builder {
+func (b *SelectBuilder) SelectRaw(raw string, value ...interface{}) *SelectBuilder {
 	b.selectValues = append(b.selectValues, value...)
 	*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{Raw: raw, Values: value})
 	return b
 }
 
 // Count adds a COUNT aggregate function to the query.
-func (b *Builder) Count(columns ...string) *Builder {
+func (b *SelectBuilder) Count(columns ...string) *SelectBuilder {
 	if len(columns) == 0 {
 		columns = append(columns, "*")
 	}
@@ -133,7 +150,7 @@ out:
 	return b
 }
 
-func (b *Builder) aggregate(column string, aggregateFunc string) *Builder {
+func (b *SelectBuilder) aggregate(column string, aggregateFunc string) *SelectBuilder {
 	*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{
 		Name:     column,
 		Function: aggregateFunc,
@@ -142,26 +159,26 @@ func (b *Builder) aggregate(column string, aggregateFunc string) *Builder {
 }
 
 // Max adds a MAX aggregate function to the query.
-func (b *Builder) Max(column string) *Builder {
+func (b *SelectBuilder) Max(column string) *SelectBuilder {
 	return b.aggregate(column, "MAX")
 }
 
 // Min adds a MIN aggregate function to the query.
-func (b *Builder) Min(column string) *Builder {
+func (b *SelectBuilder) Min(column string) *SelectBuilder {
 	return b.aggregate(column, "MIN")
 }
 
 // Sum adds a SUM aggregate function to the query.
-func (b *Builder) Sum(column string) *Builder {
+func (b *SelectBuilder) Sum(column string) *SelectBuilder {
 	return b.aggregate(column, "SUM")
 }
 
 // Avg adds an AVG aggregate function to the query.
-func (b *Builder) Avg(column string) *Builder {
+func (b *SelectBuilder) Avg(column string) *SelectBuilder {
 	return b.aggregate(column, "AVG")
 }
 
-func (b *Builder) Distinct(column ...string) *Builder {
+func (b *SelectBuilder) Distinct(column ...string) *SelectBuilder {
 	for i, c := range *b.selectQuery.Columns {
 		for _, col := range column {
 			if c.Name == col {
@@ -186,7 +203,7 @@ out:
 	return b
 }
 
-func (b *Builder) Union(sb *Builder) *Builder {
+func (b *SelectBuilder) Union(sb *SelectBuilder) *SelectBuilder {
 	*b.selectQuery.Union = append(*b.selectQuery.Union, structs.Union{
 		Query: sb.GetQuery(),
 		IsAll: false,
@@ -195,7 +212,7 @@ func (b *Builder) Union(sb *Builder) *Builder {
 	return b
 }
 
-func (b *Builder) UnionAll(sb *Builder) *Builder {
+func (b *SelectBuilder) UnionAll(sb *SelectBuilder) *SelectBuilder {
 	*b.selectQuery.Union = append(*b.selectQuery.Union, structs.Union{
 		Query: sb.GetQuery(),
 		IsAll: true,
@@ -204,27 +221,29 @@ func (b *Builder) UnionAll(sb *Builder) *Builder {
 	return b
 }
 
+/*
 // OrderBy adds an ORDER BY clause.
 func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
-	b.orderByBuilder.OrderBy(column, ascDesc)
+	b.OrderByBuilder.OrderBy(column, ascDesc)
 
 	return b
 }
 
 // ReOrder removes all ORDER BY clauses.
 func (b *Builder) ReOrder() *Builder {
-	b.orderByBuilder.ReOrder()
+	b.OrderByBuilder.ReOrder()
 	return b
 }
 
 // OrderByRaw adds a raw ORDER BY clause.
 func (b *Builder) OrderByRaw(raw string) *Builder {
-	b.orderByBuilder.OrderByRaw(raw)
+	b.OrderByBuilder.OrderByRaw(raw)
 	return b
 }
+*/
 
 // GroupBy adds a GROUP BY clause.
-func (b *Builder) GroupBy(columns ...string) *Builder {
+func (b *SelectBuilder) GroupBy(columns ...string) *SelectBuilder {
 	*b.selectQuery.Group = structs.GroupBy{
 		Columns: columns,
 		Having:  &[]structs.Having{},
@@ -233,7 +252,7 @@ func (b *Builder) GroupBy(columns ...string) *Builder {
 }
 
 // Having adds a HAVING clause with an AND operator.
-func (b *Builder) Having(column string, condition string, value interface{}) *Builder {
+func (b *SelectBuilder) Having(column string, condition string, value interface{}) *SelectBuilder {
 	*b.selectQuery.Group.Having = append(*b.selectQuery.Group.Having, structs.Having{
 		Column:    column,
 		Condition: condition,
@@ -244,7 +263,7 @@ func (b *Builder) Having(column string, condition string, value interface{}) *Bu
 }
 
 // HavingRaw adds a raw HAVING clause with an AND operator.
-func (b *Builder) HavingRaw(raw string) *Builder {
+func (b *SelectBuilder) HavingRaw(raw string) *SelectBuilder {
 	*b.selectQuery.Group.Having = append(*b.selectQuery.Group.Having, structs.Having{
 		Raw:      raw,
 		Operator: consts.LogicalOperator_AND,
@@ -253,7 +272,7 @@ func (b *Builder) HavingRaw(raw string) *Builder {
 }
 
 // OrHaving adds a HAVING clause with an OR operator.
-func (b *Builder) OrHaving(column string, condition string, value interface{}) *Builder {
+func (b *SelectBuilder) OrHaving(column string, condition string, value interface{}) *SelectBuilder {
 	*b.selectQuery.Group.Having = append(*b.selectQuery.Group.Having, structs.Having{
 		Column:    column,
 		Condition: condition,
@@ -264,7 +283,7 @@ func (b *Builder) OrHaving(column string, condition string, value interface{}) *
 }
 
 // OrHavingRaw adds a raw HAVING clause with an OR operator.
-func (b *Builder) OrHavingRaw(raw string) *Builder {
+func (b *SelectBuilder) OrHavingRaw(raw string) *SelectBuilder {
 	*b.selectQuery.Group.Having = append(*b.selectQuery.Group.Having, structs.Having{
 		Raw:      raw,
 		Operator: consts.LogicalOperator_OR,
@@ -272,24 +291,24 @@ func (b *Builder) OrHavingRaw(raw string) *Builder {
 	return b
 }
 
-func (b *Builder) Limit(limit int64) *Builder {
+func (b *SelectBuilder) Limit(limit int64) *SelectBuilder {
 	b.selectQuery.Limit.Limit = limit
 	return b
 }
 
-func (b *Builder) Offset(offset int64) *Builder {
+func (b *SelectBuilder) Offset(offset int64) *SelectBuilder {
 	b.selectQuery.Offset.Offset = offset
 	return b
 }
 
-func (b *Builder) SharedLock() *Builder {
+func (b *SelectBuilder) SharedLock() *SelectBuilder {
 	b.selectQuery.Lock = &structs.Lock{
 		LockType: consts.Lock_SHARE_MODE,
 	}
 	return b
 }
 
-func (b *Builder) LockForUpdate() *Builder {
+func (b *SelectBuilder) LockForUpdate() *SelectBuilder {
 	b.selectQuery.Lock = &structs.Lock{
 		LockType: consts.Lock_FOR_UPDATE,
 	}
@@ -298,7 +317,7 @@ func (b *Builder) LockForUpdate() *Builder {
 
 // Build generates the SQL query string and parameter values based on the query builder's current state.
 // It returns the generated query string and a slice of parameter values.
-func (b *Builder) Build() (string, []interface{}, error) {
+func (b *SelectBuilder) Build() (string, []interface{}, error) {
 	// last query to be built and add to the union
 	b.buildQuery()
 
@@ -357,7 +376,7 @@ func (b *Builder) Build() (string, []interface{}, error) {
 	return query, values, nil
 }
 
-func (b *Builder) buildQuery() {
+func (b *SelectBuilder) buildQuery() {
 	// preprocess WHERE
 	wg := b.WhereBuilder.query.ConditionGroups
 	if len(*b.WhereBuilder.query.Conditions) > 0 {
@@ -370,7 +389,7 @@ func (b *Builder) buildQuery() {
 	}
 
 	// preprocess ORDER BY
-	o := b.orderByBuilder.Order
+	o := b.OrderByBuilder.Order
 
 	b.query.Table = structs.Table{
 		Name: b.selectQuery.Table,
@@ -383,7 +402,6 @@ func (b *Builder) buildQuery() {
 	b.query.Limit = b.selectQuery.Limit
 	b.query.Offset = b.selectQuery.Offset
 	b.query.Lock = b.selectQuery.Lock
-	b.query.SubQuery = b.selectQuery.SubQuery
 
 }
 
@@ -490,27 +508,27 @@ func generateCacheKey(u *structs.Union) string {
 	return key
 }
 
-func (b *Builder) GetQuery() *structs.Query {
+func (b *SelectBuilder) GetQuery() *structs.Query {
 	b.buildQuery()
 	return b.query
 }
 
-func (b *Builder) GetStrategy() interfaces.QueryBuilderStrategy {
+func (b *SelectBuilder) GetStrategy() interfaces.QueryBuilderStrategy {
 	return b.dbBuilder
 }
 
-func (b *Builder) GetWhereBuilder() *WhereBuilder[Builder] {
-	return &b.WhereBuilder
+func (b *SelectBuilder) GetWhereBuilder() *WhereBuilder[SelectBuilder] {
+	return b.WhereBuilder
 }
 
-func (b *Builder) GetJoinBuilder() *JoinBuilder[Builder] {
-	return &b.JoinBuilder
+func (b *SelectBuilder) GetJoinBuilder() *JoinBuilder[SelectBuilder] {
+	return b.JoinBuilder
 }
 
-func (b *Builder) GetOrderByBuilder() *OrderByBuilder {
-	return b.orderByBuilder
+func (b *SelectBuilder) GetOrderByBuilder() *OrderByBuilder[SelectBuilder] {
+	return b.OrderByBuilder
 }
 
-func (b *Builder) GetCache() cache.Cache {
+func (b *SelectBuilder) GetCache() cache.Cache {
 	return b.cache
 }

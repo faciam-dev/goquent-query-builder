@@ -32,9 +32,6 @@ func (ib *InsertQueryBuilder) InsertBatch(data []map[string]interface{}) *Insert
 }
 
 func (ib *InsertQueryBuilder) InsertUsing(columns []string, qb *SelectQueryBuilder) *InsertQueryBuilder {
-	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
-	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
-	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	ib.builder.InsertUsing(columns, qb.builder)
 	return ib
 }

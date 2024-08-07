@@ -7,31 +7,40 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
+type QueryBuilderStrategy[T, C any] interface {
+	GetQueryBuilder() T
+	GetWhereBuilder() *query.WhereBuilder[C]
+	GetJoinBuilder() *query.JoinBuilder[C]
+	GetOrderByBuilder() *query.OrderByBuilder[C]
+}
+
 type SelectQueryBuilder struct {
-	WhereQueryBuilder[SelectQueryBuilder, query.Builder]
-	JoinQueryBuilder[SelectQueryBuilder, query.Builder]
-	builder             *query.Builder
-	orderByQueryBuilder *OrderByQueryBuilder
-	Queries             *[]structs.Query
+	WhereQueryBuilder[*SelectQueryBuilder, query.SelectBuilder]
+	JoinQueryBuilder[*SelectQueryBuilder, query.SelectBuilder]
+	OrderByQueryBuilder[*SelectQueryBuilder, query.SelectBuilder]
+	builder *query.SelectBuilder
+	Queries *[]structs.Query
+	QueryBuilderStrategy[SelectQueryBuilder, query.SelectBuilder]
 }
 
 func NewSelectQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
 	sb := &SelectQueryBuilder{
 		//WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
 		builder: query.NewBuilder(strategy, cache),
-		orderByQueryBuilder: &OrderByQueryBuilder{
-			builder: query.NewOrderByBuilder(&[]structs.Order{}),
-		},
 	}
 	sb.Queries = &[]structs.Query{}
 
-	whereBuilder := NewWhereQueryBuilder[SelectQueryBuilder, query.Builder](strategy, cache)
-	whereBuilder.SetParent(sb)
+	whereBuilder := NewWhereQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy, cache)
+	whereBuilder.SetParent(&sb)
 	sb.WhereQueryBuilder = *whereBuilder
 
-	joinBuilder := NewJoinQueryBuilder[SelectQueryBuilder, query.Builder](strategy, cache)
-	joinBuilder.SetParent(sb)
+	joinBuilder := NewJoinQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy, cache)
+	joinBuilder.SetParent(&sb)
 	sb.JoinQueryBuilder = *joinBuilder
+
+	orderByBuilder := NewOrderByQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy, cache)
+	orderByBuilder.SetParent(&sb)
+	sb.OrderByQueryBuilder = *orderByBuilder
 
 	return sb
 }
@@ -82,35 +91,14 @@ func (qb *SelectQueryBuilder) Distinct(column ...string) *SelectQueryBuilder {
 }
 
 func (qb *SelectQueryBuilder) Union(sb *SelectQueryBuilder) *SelectQueryBuilder {
-	sb.builder.SetWhereBuilder(sb.WhereQueryBuilder.builder)
-	sb.builder.SetJoinBuilder(sb.JoinQueryBuilder.builder)
-	sb.builder.SetOrderByBuilder(sb.orderByQueryBuilder.builder)
 	*qb.Queries = append(*qb.Queries, *sb.GetQuery())
 	qb.builder.Union(sb.builder)
 	return qb
 }
 
 func (qb *SelectQueryBuilder) UnionAll(sb *SelectQueryBuilder) *SelectQueryBuilder {
-	sb.builder.SetWhereBuilder(sb.WhereQueryBuilder.builder)
-	sb.builder.SetJoinBuilder(sb.JoinQueryBuilder.builder)
-	sb.builder.SetOrderByBuilder(sb.orderByQueryBuilder.builder)
 	*qb.Queries = append(*qb.Queries, *sb.GetQuery())
 	qb.builder.UnionAll(sb.builder)
-	return qb
-}
-
-func (qb *SelectQueryBuilder) OrderBy(column, ascDesc string) *SelectQueryBuilder {
-	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
-	return qb
-}
-
-func (qb *SelectQueryBuilder) OrderByRaw(raw string) *SelectQueryBuilder {
-	qb.orderByQueryBuilder.OrderByRaw(raw)
-	return qb
-}
-
-func (qb *SelectQueryBuilder) ReOrder() *SelectQueryBuilder {
-	qb.orderByQueryBuilder.ReOrder()
 	return qb
 }
 
@@ -170,9 +158,6 @@ func (qb *SelectQueryBuilder) LockForUpdate() *SelectQueryBuilder {
 }
 
 func (qb *SelectQueryBuilder) Build() (string, []interface{}, error) {
-	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
-	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
-	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	return qb.builder.Build()
 }
 
@@ -181,19 +166,29 @@ func (qb *SelectQueryBuilder) GetQuery() *structs.Query {
 }
 
 func (qb *SelectQueryBuilder) Dump() (string, []interface{}, error) {
-	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
-	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
-	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
-	b := query.NewDebugBuilder[*query.Builder, SelectQueryBuilder](qb.builder)
+	b := query.NewDebugBuilder[*query.SelectBuilder, SelectQueryBuilder](qb.builder)
 
 	return b.Dump()
 }
 
 func (qb *SelectQueryBuilder) RawSql() (string, error) {
-	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
-	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
-	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
-	b := query.NewDebugBuilder[*query.Builder, SelectQueryBuilder](qb.builder)
+	b := query.NewDebugBuilder[*query.SelectBuilder, SelectQueryBuilder](qb.builder)
 
 	return b.RawSql()
+}
+
+func (qb *SelectQueryBuilder) GetQueryBuilder() *SelectQueryBuilder {
+	return qb
+}
+
+func (qb *SelectQueryBuilder) GetWhereBuilder() *query.WhereBuilder[query.SelectBuilder] {
+	return qb.builder.WhereBuilder
+}
+
+func (qb *SelectQueryBuilder) GetJoinBuilder() *query.JoinBuilder[query.SelectBuilder] {
+	return qb.builder.JoinBuilder
+}
+
+func (qb *SelectQueryBuilder) GetOrderByBuilder() *query.OrderByBuilder[query.SelectBuilder] {
+	return qb.builder.GetOrderByBuilder()
 }

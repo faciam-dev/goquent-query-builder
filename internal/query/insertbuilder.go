@@ -37,7 +37,7 @@ func (ib *InsertBuilder) InsertBatch(data []map[string]interface{}) *InsertBuild
 	return ib
 }
 
-func (ib *InsertBuilder) InsertUsing(columns []string, b *Builder) *InsertBuilder {
+func (ib *InsertBuilder) InsertUsing(columns []string, b *SelectBuilder) *InsertBuilder {
 	ib.query.Columns = columns
 
 	// If there are conditions, add them to the query

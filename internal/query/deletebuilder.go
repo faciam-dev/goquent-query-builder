@@ -13,7 +13,7 @@ type DeleteBuilder struct {
 	query     *structs.DeleteQuery
 	WhereBuilder[DeleteBuilder]
 	JoinBuilder[DeleteBuilder]
-	orderByBuilder *OrderByBuilder
+	OrderByBuilder[DeleteBuilder]
 }
 
 func NewDeleteBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *DeleteBuilder {
@@ -23,7 +23,6 @@ func NewDeleteBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cach
 		query: &structs.DeleteQuery{
 			Query: &structs.Query{},
 		},
-		orderByBuilder: NewOrderByBuilder(&[]structs.Order{}),
 	}
 
 	whereBuilder := NewWhereBuilder[DeleteBuilder](strategy, cache)
@@ -33,21 +32,27 @@ func NewDeleteBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cach
 	joinBuilder := NewJoinBuilder[DeleteBuilder](strategy, cache)
 	joinBuilder.SetParent(db)
 	db.JoinBuilder = *joinBuilder
+
+	orderByBuilder := NewOrderByBuilder[DeleteBuilder](strategy, cache)
+	orderByBuilder.SetParent(db)
+	db.OrderByBuilder = *orderByBuilder
+
 	return db
 }
 
-func (b *DeleteBuilder) SetWhereBuilder(whereBuilder *WhereBuilder[DeleteBuilder]) {
-	b.WhereBuilder = *whereBuilder
-}
+/*
+	func (b *DeleteBuilder) SetWhereBuilder(whereBuilder *WhereBuilder[DeleteBuilder]) {
+		b.WhereBuilder = *whereBuilder
+	}
 
-func (b *DeleteBuilder) SetJoinBuilder(joinBuilder *JoinBuilder[DeleteBuilder]) {
-	b.JoinBuilder = *joinBuilder
-}
+	func (b *DeleteBuilder) SetJoinBuilder(joinBuilder *JoinBuilder[DeleteBuilder]) {
+		b.JoinBuilder = *joinBuilder
+	}
 
-func (b *DeleteBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder) {
-	b.orderByBuilder = orderByBuilder
-}
-
+	func (b *DeleteBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder[DeleteBuilder]) {
+		b.OrderByBuilder = *orderByBuilder
+	}
+*/
 func (b *DeleteBuilder) Table(table string) *DeleteBuilder {
 	b.query.Table = table
 	b.JoinBuilder.Table.Name = table
@@ -59,26 +64,27 @@ func (b *DeleteBuilder) Delete() *DeleteBuilder {
 	return b
 }
 
-func (u *DeleteBuilder) Build() (string, []interface{}, error) {
+func (d *DeleteBuilder) Build() (string, []interface{}, error) {
 	// If there are conditions, add them to the query
-	if len(*u.WhereBuilder.query.Conditions) > 0 {
-		*u.WhereBuilder.query.ConditionGroups = append(*u.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
-			Conditions:   *u.WhereBuilder.query.Conditions,
+	if len(*d.WhereBuilder.query.Conditions) > 0 {
+		*d.WhereBuilder.query.ConditionGroups = append(*d.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+			Conditions:   *d.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,
 		})
-		u.WhereBuilder.query.Conditions = &[]structs.Where{}
+		d.WhereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
-	u.query.Query.Conditions = u.WhereBuilder.query.Conditions
-	u.query.Query.ConditionGroups = u.WhereBuilder.query.ConditionGroups
-	u.query.Query.Joins = u.JoinBuilder.Joins
-	u.query.Query.Order = u.orderByBuilder.Order
+	d.query.Query.Conditions = d.WhereBuilder.query.Conditions
+	d.query.Query.ConditionGroups = d.WhereBuilder.query.ConditionGroups
+	d.query.Query.Joins = d.JoinBuilder.Joins
+	d.query.Query.Order = d.OrderByBuilder.Order
 
-	query, values, err := u.dbBuilder.BuildDelete(u.query)
+	query, values, err := d.dbBuilder.BuildDelete(d.query)
 	return query, values, err
 }
 
+/*
 func (b *DeleteBuilder) OrderBy(column string, direction string) *DeleteBuilder {
 	b.orderByBuilder.OrderBy(column, direction)
 	return b
@@ -93,6 +99,7 @@ func (b *DeleteBuilder) ReOrder() *DeleteBuilder {
 	b.orderByBuilder.ReOrder()
 	return b
 }
+*/
 
 func (b *DeleteBuilder) GetQuery() *structs.DeleteQuery {
 	return b.query
