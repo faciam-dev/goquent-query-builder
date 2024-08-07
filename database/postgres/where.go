@@ -14,26 +14,26 @@ type WherePostgreSQLBuilder struct {
 	u                interfaces.SQLUtils
 }
 
-func NewWherePostgreSQLBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WherePostgreSQLBuilder {
+func NewWherePostgreSQLBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup) *WherePostgreSQLBuilder {
 	return &WherePostgreSQLBuilder{
 		whereBaseBuilder: base.NewWhereBaseBuilder(util, wg),
 		u:                util,
 	}
 }
 
-func (wb *WherePostgreSQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
-	if wg == nil || len(*wg) == 0 {
+func (wb *WherePostgreSQLBuilder) Where(sb *strings.Builder, wg []structs.WhereGroup) []interface{} {
+	if len(wg) == 0 {
 		return []interface{}{}
 	}
 
 	// WHERE
-	if wb.whereBaseBuilder.HasCondition(*wg) {
+	if wb.whereBaseBuilder.HasCondition(wg) {
 		sb.WriteString(" WHERE ")
 	}
 
 	values := make([]interface{}, 0)
 
-	for i, cg := range *wg {
+	for i, cg := range wg {
 		if len(cg.Conditions) == 0 {
 			continue
 		}

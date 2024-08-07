@@ -21,7 +21,7 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 			&structs.DeleteQuery{
 				Table: "users",
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -52,7 +52,7 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 			&structs.DeleteQuery{
 				Table: "users",
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -84,7 +84,7 @@ func TestBaseDeleteQueryBuilder(t *testing.T) {
 			&structs.DeleteQuery{
 				Table: "users",
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{

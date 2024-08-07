@@ -14,58 +14,58 @@ type WhereMySQLBuilder struct {
 	u                interfaces.SQLUtils
 }
 
-func NewWhereMySQLBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WhereMySQLBuilder {
+func NewWhereMySQLBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup) *WhereMySQLBuilder {
 	return &WhereMySQLBuilder{
 		whereBaseBuilder: base.NewWhereBaseBuilder(util, wg),
 		u:                util,
 	}
 }
 
-func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
-	if wg == nil || len(*wg) == 0 {
+func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg []structs.WhereGroup) []interface{} {
+	if len(wg) == 0 {
 		return []interface{}{}
 	}
 
 	// WHERE
-	if wb.whereBaseBuilder.HasCondition(*wg) {
+	if wb.whereBaseBuilder.HasCondition(wg) {
 		sb.WriteString(" WHERE ")
 	}
 
 	values := make([]interface{}, 0)
 
-	for i := range *wg {
-		if len((*wg)[i].Conditions) == 0 {
+	for i := range wg {
+		if len((wg)[i].Conditions) == 0 {
 			continue
 		}
 
 		if i > 0 {
-			sb.WriteString(wb.WhereBaseBuilder.GetConditionGroupSeparator((*wg)[i], i))
+			sb.WriteString(wb.WhereBaseBuilder.GetConditionGroupSeparator((wg)[i], i))
 		}
 
-		sb.WriteString(wb.whereBaseBuilder.GetNotSeparator((*wg)[i]))
-		sb.WriteString(wb.whereBaseBuilder.GetParenthesesOpen((*wg)[i]))
+		sb.WriteString(wb.whereBaseBuilder.GetNotSeparator((wg)[i]))
+		sb.WriteString(wb.whereBaseBuilder.GetParenthesesOpen((wg)[i]))
 
-		for j := range (*wg)[i].Conditions {
-			if j > 0 || (i > 0 && j == 0 && (*wg)[i].IsDummyGroup) {
-				sb.WriteString(wb.whereBaseBuilder.GetConditionOperator((*wg)[i].Conditions[j]))
+		for j := range (wg)[i].Conditions {
+			if j > 0 || (i > 0 && j == 0 && (wg)[i].IsDummyGroup) {
+				sb.WriteString(wb.whereBaseBuilder.GetConditionOperator((wg)[i].Conditions[j]))
 			}
 
 			switch {
-			case (*wg)[i].Conditions[j].Query != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessSubQuery(sb, (*wg)[i].Conditions[j])...)
-			case (*wg)[i].Conditions[j].Exists != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessExistsQuery(sb, (*wg)[i].Conditions[j])...)
-			case (*wg)[i].Conditions[j].Between != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, (*wg)[i].Conditions[j])...)
-			case (*wg)[i].Conditions[j].FullText != nil:
-				values = append(values, wb.ProcessFullText(sb, (*wg)[i].Conditions[j])...)
-			case (*wg)[i].Conditions[j].Function != "":
-				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, (*wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].Query != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessSubQuery(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].Exists != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessExistsQuery(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].Between != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].FullText != nil:
+				values = append(values, wb.ProcessFullText(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].Function != "":
+				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, (wg)[i].Conditions[j])...)
 			default:
-				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, (*wg)[i].Conditions[j])...)
+				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, (wg)[i].Conditions[j])...)
 			}
 		}
-		sb.WriteString(wb.whereBaseBuilder.GetParenthesesClose((*wg)[i]))
+		sb.WriteString(wb.whereBaseBuilder.GetParenthesesClose((wg)[i]))
 	}
 
 	return values

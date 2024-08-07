@@ -38,7 +38,7 @@ func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *S
 		query: &structs.Query{
 			Table:           structs.Table{},
 			Columns:         &[]structs.Column{},
-			ConditionGroups: &[]structs.WhereGroup{},
+			ConditionGroups: []structs.WhereGroup{},
 			Joins:           &structs.Joins{},
 			Order:           &[]structs.Order{},
 			Group:           &structs.GroupBy{},
@@ -378,13 +378,13 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 
 func (b *SelectBuilder) buildQuery() {
 	// preprocess WHERE
-	wg := b.WhereBuilder.query.ConditionGroups
 	if len(*b.WhereBuilder.query.Conditions) > 0 {
-		*wg = append(*wg, structs.WhereGroup{
-			Conditions:   *b.WhereBuilder.query.Conditions,
-			Operator:     consts.LogicalOperator_AND,
-			IsDummyGroup: true,
-		})
+		b.WhereBuilder.query.ConditionGroups = append(b.WhereBuilder.query.ConditionGroups,
+			structs.WhereGroup{
+				Conditions:   *b.WhereBuilder.query.Conditions,
+				Operator:     consts.LogicalOperator_AND,
+				IsDummyGroup: true,
+			})
 		b.WhereBuilder.query.Conditions = &[]structs.Where{}
 	}
 
@@ -395,7 +395,7 @@ func (b *SelectBuilder) buildQuery() {
 		Name: b.selectQuery.Table,
 	}
 	b.query.Columns = b.selectQuery.Columns
-	b.query.ConditionGroups = wg
+	b.query.ConditionGroups = b.WhereBuilder.query.ConditionGroups
 	b.query.Joins = b.JoinBuilder.Joins
 	b.query.Order = o
 	b.query.Group = b.selectQuery.Group
@@ -478,14 +478,14 @@ func generateCacheKey(u *structs.Union) string {
 	sb.WriteString("|")
 
 	// Condition key
-	for c := range *q.ConditionGroups {
-		if (*q.ConditionGroups)[c].Operator == consts.LogicalOperator_AND {
+	for c := range q.ConditionGroups {
+		if (q.ConditionGroups)[c].Operator == consts.LogicalOperator_AND {
 			sb.WriteString("AND")
 		} else {
 			sb.WriteString("OR")
 		}
 		sb.WriteString(",")
-		for _, w := range (*q.ConditionGroups)[c].Conditions {
+		for _, w := range (q.ConditionGroups)[c].Conditions {
 			if w.Operator == consts.LogicalOperator_AND {
 				sb.WriteString("AND")
 			} else {

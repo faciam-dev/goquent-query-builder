@@ -69,7 +69,7 @@ func (b *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 func (u *UpdateBuilder) Build() (string, []interface{}, error) {
 	// If there are conditions, add them to the query
 	if len(*u.WhereBuilder.query.Conditions) > 0 {
-		*u.WhereBuilder.query.ConditionGroups = append(*u.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		u.WhereBuilder.query.ConditionGroups = append(u.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *u.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,

@@ -25,7 +25,7 @@ func NewWhereBuilder[T any](strategy interfaces.QueryBuilderStrategy, cache cach
 		cache:     cache,
 		query: &structs.Query{
 			Conditions:      &[]structs.Where{},
-			ConditionGroups: &[]structs.WhereGroup{},
+			ConditionGroups: []structs.WhereGroup{},
 		},
 		whereValues: []interface{}{},
 	}
@@ -95,7 +95,7 @@ func (b *WhereBuilder[T]) OrWhereSubQuery(column string, condition string, q *Se
 
 // whereOrOrWhereQuery adds a where clause with AND or OR operator
 func (b *WhereBuilder[T]) whereOrOrWhereQuery(column string, condition string, q *SelectBuilder, operator int) *T {
-	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+	q.WhereBuilder.query.ConditionGroups = append(q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
@@ -155,7 +155,7 @@ func (b *WhereBuilder[T]) OrWhereNot(fn func(b *WhereBuilder[T])) *T {
 // addWhereGroup adds a where group with the specified operator
 func (b *WhereBuilder[T]) addWhereGroup(fn func(b *WhereBuilder[T]), operator int, isNot bool) *T {
 	if len(*b.query.Conditions) > 0 {
-		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+		b.query.ConditionGroups = append(b.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *b.query.Conditions,
 			Operator:     operator,
 			IsDummyGroup: true,
@@ -166,7 +166,7 @@ func (b *WhereBuilder[T]) addWhereGroup(fn func(b *WhereBuilder[T]), operator in
 
 	fn(b)
 
-	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+	b.query.ConditionGroups = append(b.query.ConditionGroups, structs.WhereGroup{
 		Conditions: *b.query.Conditions,
 		Operator:   operator,
 		IsNot:      isNot,
@@ -190,7 +190,7 @@ func (b *WhereBuilder[T]) WhereAny(columns []string, condition string, value int
 func (b *WhereBuilder[T]) addWhereConditions(columns []string, condition string, value interface{}, operator int) *T {
 	// already have conditions, add them to the query
 	if len(*b.query.Conditions) > 0 {
-		*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+		b.query.ConditionGroups = append(b.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *b.query.Conditions,
 			Operator:     operator,
 			IsDummyGroup: true,
@@ -210,7 +210,7 @@ func (b *WhereBuilder[T]) addWhereConditions(columns []string, condition string,
 		b.whereValues = append(b.whereValues, value)
 	}
 
-	*b.query.ConditionGroups = append(*b.query.ConditionGroups, structs.WhereGroup{
+	b.query.ConditionGroups = append(b.query.ConditionGroups, structs.WhereGroup{
 		Conditions: conditions,
 		Operator:   consts.LogicalOperator_AND,
 	})
@@ -295,7 +295,7 @@ func (b *WhereBuilder[T]) OrWhereNotInSubQuery(column string, q *SelectBuilder) 
 
 // addWhereIn adds a where in clause with the specified operator
 func (b *WhereBuilder[T]) addWhereInSubQuery(column string, operator int, condition string, q *SelectBuilder) *T {
-	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+	q.WhereBuilder.query.ConditionGroups = append(q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
@@ -506,7 +506,7 @@ func (b *WhereBuilder[T]) addWhereExists(fn func(aq *SelectBuilder), condition s
 
 	fn(nb)
 
-	*nb.WhereBuilder.query.ConditionGroups = append(*nb.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+	nb.WhereBuilder.query.ConditionGroups = append(nb.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *nb.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
@@ -557,7 +557,7 @@ func (b *WhereBuilder[T]) OrWhereNotExistsQuery(q *SelectBuilder) *T {
 }
 
 func (b *WhereBuilder[T]) addWhereExistsQuery(q *SelectBuilder, condition string, operator int, isNot bool) *T {
-	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+	q.WhereBuilder.query.ConditionGroups = append(q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})

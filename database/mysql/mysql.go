@@ -45,7 +45,7 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
 	queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, &[]structs.WhereGroup{})
+	queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
 	queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
 	queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
 	queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
@@ -73,7 +73,7 @@ func (m MySQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *struct
 	}
 
 	// WHERE
-	if len(*q.ConditionGroups) > 0 {
+	if len(q.ConditionGroups) > 0 {
 		whereValues := m.whereBuilderStrategy.Where(sb, q.ConditionGroups)
 		values = append(values, whereValues...)
 	}
@@ -115,6 +115,6 @@ func (m MySQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *struct
 	return query, values
 }
 
-func (m MySQLQueryBuilder) Where(sb *strings.Builder, c *[]structs.WhereGroup) []interface{} {
+func (m MySQLQueryBuilder) Where(sb *strings.Builder, c []structs.WhereGroup) []interface{} {
 	return m.whereBuilderStrategy.Where(sb, c)
 }

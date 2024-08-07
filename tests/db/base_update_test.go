@@ -25,7 +25,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -59,7 +59,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -100,7 +100,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -136,7 +136,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -178,7 +178,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{

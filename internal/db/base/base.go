@@ -16,7 +16,7 @@ type FromBuilderStrategy interface {
 }
 
 type WhereBuilderStrategy interface {
-	Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{}
+	Where(sb *strings.Builder, wg []structs.WhereGroup) []interface{}
 	ProcessFullText(sb *strings.Builder, c structs.Where) []interface{}
 }
 
@@ -83,7 +83,7 @@ func NewBaseQueryBuilder() *BaseQueryBuilder {
 	queryBuilder.SelectBaseBuilder = *NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.FromBaseBuilder = *NewFromBaseBuilder(u)
 	queryBuilder.JoinBaseBuilder = *NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.WhereBaseBuilder = *NewWhereBaseBuilder(u, &[]structs.WhereGroup{})
+	queryBuilder.WhereBaseBuilder = *NewWhereBaseBuilder(u, []structs.WhereGroup{})
 	queryBuilder.OrderByBaseBuilder = *NewOrderByBaseBuilder(u, &[]structs.Order{})
 	queryBuilder.GroupByBaseBuilder = *NewGroupByBaseBuilder(u)
 	queryBuilder.LimitBaseBuilder = *NewLimitBaseBuilder()

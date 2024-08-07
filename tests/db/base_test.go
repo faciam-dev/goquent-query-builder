@@ -141,7 +141,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"Where",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -164,7 +164,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereQuery",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -175,7 +175,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 										{Name: "id"},
 									},
 									Table:           structs.Table{Name: "users"},
-									ConditionGroups: &[]structs.WhereGroup{},
+									ConditionGroups: []structs.WhereGroup{},
 									Conditions:      &[]structs.Where{},
 									Joins: &structs.Joins{
 										Joins:        &[]structs.Join{},
@@ -216,7 +216,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereGroup_Or",
 			"WhereGroup",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -262,7 +262,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereRaw",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -289,7 +289,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereRaw_Or",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -320,7 +320,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereGroup",
 			"WhereGroup",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -359,7 +359,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereNull",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -381,7 +381,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereColumn",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -404,7 +404,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereBetween",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -432,7 +432,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereNotBetween",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -460,7 +460,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereNotBetweenColumns",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -489,7 +489,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereExists",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -499,7 +499,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 											{Name: "id"},
 										},
 										Table:           structs.Table{Name: "users"},
-										ConditionGroups: &[]structs.WhereGroup{},
+										ConditionGroups: []structs.WhereGroup{},
 										Conditions:      &[]structs.Where{},
 										Joins: &structs.Joins{
 											Joins:        &[]structs.Join{},
@@ -528,7 +528,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereNotExists",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -538,7 +538,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 											{Name: "id"},
 										},
 										Table:           structs.Table{Name: "users"},
-										ConditionGroups: &[]structs.WhereGroup{},
+										ConditionGroups: []structs.WhereGroup{},
 										Conditions:      &[]structs.Where{},
 										Joins: &structs.Joins{
 											Joins:        &[]structs.Join{},
@@ -567,7 +567,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"WhereDate",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{
@@ -696,7 +696,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 									{Name: "id"},
 								},
 								Table:           structs.Table{Name: "users"},
-								ConditionGroups: &[]structs.WhereGroup{},
+								ConditionGroups: []structs.WhereGroup{},
 								Conditions:      &[]structs.Where{},
 								Joins: &structs.Joins{
 									Joins:        &[]structs.Join{},
@@ -730,7 +730,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 									{Name: "id"},
 								},
 								Table: structs.Table{Name: "users"},
-								ConditionGroups: &[]structs.WhereGroup{
+								ConditionGroups: []structs.WhereGroup{
 									{
 										Conditions: []structs.Where{
 											{

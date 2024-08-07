@@ -67,7 +67,7 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 						{Name: "age"},
 					},
 					Conditions: &[]structs.Where{},
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{

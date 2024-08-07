@@ -45,7 +45,7 @@ func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
 	queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
 	queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.whereBuilderStrategy = NewWherePostgreSQLBuilder(u, &[]structs.WhereGroup{})
+	queryBuilder.whereBuilderStrategy = NewWherePostgreSQLBuilder(u, []structs.WhereGroup{})
 	queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
 	queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
 	queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
@@ -112,6 +112,6 @@ func (m PostgreSQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *s
 	return query, values
 }
 
-func (m PostgreSQLQueryBuilder) Where(sb *strings.Builder, conditionGroups *[]structs.WhereGroup) []interface{} {
+func (m PostgreSQLQueryBuilder) Where(sb *strings.Builder, conditionGroups []structs.WhereGroup) []interface{} {
 	return m.whereBuilderStrategy.Where(sb, conditionGroups)
 }

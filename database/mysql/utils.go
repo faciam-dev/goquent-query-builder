@@ -57,7 +57,6 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value strin
 	}
 
 	sb.WriteString(value)
-	return
 }
 
 func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {

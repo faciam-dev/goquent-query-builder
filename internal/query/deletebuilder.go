@@ -67,7 +67,7 @@ func (b *DeleteBuilder) Delete() *DeleteBuilder {
 func (d *DeleteBuilder) Build() (string, []interface{}, error) {
 	// If there are conditions, add them to the query
 	if len(*d.WhereBuilder.query.Conditions) > 0 {
-		*d.WhereBuilder.query.ConditionGroups = append(*d.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		d.WhereBuilder.query.ConditionGroups = append(d.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *d.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,

@@ -42,7 +42,7 @@ func (ib *InsertBuilder) InsertUsing(columns []string, b *SelectBuilder) *Insert
 
 	// If there are conditions, add them to the query
 	if b.WhereBuilder.query.Conditions != nil && len(*b.WhereBuilder.query.Conditions) > 0 {
-		*b.WhereBuilder.query.ConditionGroups = append(*b.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		b.WhereBuilder.query.ConditionGroups = append(b.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *b.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,

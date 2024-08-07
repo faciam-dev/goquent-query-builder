@@ -146,7 +146,7 @@ func (b *JoinBuilder[T]) RightJoinSub(q *SelectBuilder, alias, my, condition, ta
 
 func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *SelectBuilder, alias, my, condition, target string) *T {
 
-	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+	q.WhereBuilder.query.ConditionGroups = append(q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})
@@ -191,7 +191,7 @@ func (b *JoinBuilder[T]) LeftJoinLateral(q *SelectBuilder, alias string) *T {
 
 func (b *JoinBuilder[T]) joinLateralCommon(joinType string, q *SelectBuilder, alias string) *T {
 
-	*q.WhereBuilder.query.ConditionGroups = append(*q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+	q.WhereBuilder.query.ConditionGroups = append(q.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 		Conditions:   *q.WhereBuilder.query.Conditions,
 		IsDummyGroup: true,
 	})

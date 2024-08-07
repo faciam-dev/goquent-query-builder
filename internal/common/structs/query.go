@@ -62,7 +62,7 @@ type Query struct {
 	Columns         *[]Column
 	Table           Table
 	Joins           *Joins
-	ConditionGroups *[]WhereGroup
+	ConditionGroups []WhereGroup
 	Conditions      *[]Where
 	Limit           *Limit
 	Offset          *Offset

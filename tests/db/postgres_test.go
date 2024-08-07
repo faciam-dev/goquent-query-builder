@@ -20,7 +20,7 @@ func TestPostgreSQLQueryBuilder(t *testing.T) {
 			"WhereFullText",
 			"Where",
 			structs.Query{
-				ConditionGroups: &[]structs.WhereGroup{
+				ConditionGroups: []structs.WhereGroup{
 					{
 						Conditions: []structs.Where{
 							{

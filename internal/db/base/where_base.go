@@ -10,29 +10,29 @@ import (
 
 type WhereBaseBuilder struct {
 	u           interfaces.SQLUtils
-	whereGroups *[]structs.WhereGroup
+	whereGroups []structs.WhereGroup
 }
 
-func NewWhereBaseBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WhereBaseBuilder {
+func NewWhereBaseBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup) *WhereBaseBuilder {
 	return &WhereBaseBuilder{
 		u:           util,
 		whereGroups: wg,
 	}
 }
 
-func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
-	if wg == nil || len(*wg) == 0 {
+func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg []structs.WhereGroup) []interface{} {
+	if wg == nil || len(wg) == 0 {
 		return []interface{}{}
 	}
 
 	// WHERE
-	if wb.HasCondition(*wg) {
+	if wb.HasCondition(wg) {
 		sb.WriteString(" WHERE ")
 	}
 
 	values := make([]interface{}, 0)
 
-	for i, cg := range *wg {
+	for i, cg := range wg {
 		if len(cg.Conditions) == 0 {
 			continue
 		}
