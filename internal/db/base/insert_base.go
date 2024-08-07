@@ -28,7 +28,7 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 
 	// INSERT INTO
 	sb.WriteString("INSERT INTO ")
-	sb.WriteString(m.u.EscapeIdentifier(sb, q.Table))
+	m.u.EscapeIdentifier(sb, q.Table)
 	sb.WriteString(" ")
 
 	columns := make([]string, 0, len(q.Values))
@@ -47,7 +47,7 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(m.u.EscapeIdentifier(sb, column))
+		m.u.EscapeIdentifier(sb, column)
 	}
 	sb.WriteString(") ")
 
@@ -73,7 +73,7 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 
 	// INSERT INTO
 	sb.WriteString("INSERT INTO ")
-	sb.WriteString(m.u.EscapeIdentifier(sb, q.Table))
+	m.u.EscapeIdentifier(sb, q.Table)
 	sb.WriteString(" ")
 
 	// get all columns from all values
@@ -97,7 +97,7 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(m.u.EscapeIdentifier(sb, column))
+		m.u.EscapeIdentifier(sb, column)
 	}
 	sb.WriteString(") VALUES ")
 
@@ -141,7 +141,7 @@ func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []inter
 
 	// INSERT INTO
 	sb.WriteString("INSERT INTO ")
-	sb.WriteString(m.u.EscapeIdentifier(sb, q.Table))
+	m.u.EscapeIdentifier(sb, q.Table)
 
 	// COLUMNS
 	columns := make([]string, 0, len(q.Columns))
@@ -151,7 +151,7 @@ func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []inter
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(m.u.EscapeIdentifier(sb, column))
+		m.u.EscapeIdentifier(sb, column)
 	}
 	sb.WriteString(") ")
 

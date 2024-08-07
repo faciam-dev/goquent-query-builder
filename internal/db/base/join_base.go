@@ -70,9 +70,9 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 				values = append(values, sqValues...)
 				//sb.WriteString(targetName)
 				sb.WriteString(") as ")
-				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
+				jb.u.EscapeIdentifier(sb, targetName)
 			} else {
-				sb.WriteString(jb.u.EscapeIdentifier(sb, targetName))
+				jb.u.EscapeIdentifier(sb, targetName)
 			}
 			sb.WriteString(" ON ")
 
@@ -87,12 +87,12 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 				}
 
 				sb.WriteString(op)
-				sb.WriteString(jb.u.EscapeIdentifier(sb, on.Column))
+				jb.u.EscapeIdentifier(sb, on.Column)
 				sb.WriteString(" ")
 				sb.WriteString(on.Condition)
 				if on.Value != "" {
 					sb.WriteString(" ")
-					sb.WriteString(jb.u.EscapeIdentifier(sb, on.Value.(string))) // TODO: check if this is correct
+					jb.u.EscapeIdentifier(sb, on.Value.(string)) // TODO: check if this is correct
 				}
 			}
 
@@ -106,7 +106,7 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *strings.Builder, joins *struct
 					}
 				}
 				sb.WriteString(op)
-				sb.WriteString(jb.u.EscapeIdentifier(sb, condition.Column))
+				jb.u.EscapeIdentifier(sb, condition.Column)
 				sb.WriteString(" ")
 				sb.WriteString(condition.Condition)
 				sb.WriteString(" " + jb.u.GetPlaceholder()) // TODO: check if this is correct

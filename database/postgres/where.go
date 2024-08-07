@@ -102,7 +102,7 @@ func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *strings.Builder, c structs
 		sb.WriteString("to_tsvector(")
 		sb.WriteString(wb.u.GetPlaceholder())
 		sb.WriteString(", ")
-		sb.WriteString(wb.u.EscapeIdentifier(sb, column))
+		wb.u.EscapeIdentifier(sb, column)
 		sb.WriteString(")")
 		values = append(values, language)
 	}

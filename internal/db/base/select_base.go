@@ -72,7 +72,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 				sb.WriteString("DISTINCT ")
 			}
 			if (*columns)[i].Name != "" {
-				sb.WriteString(b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name))
+				b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name)
 			} else {
 				sb.WriteString("*")
 			}
@@ -94,7 +94,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 				sb.WriteString("DISTINCT ")
 			}
 			if (*columns)[i].Name != "" {
-				sb.WriteString(b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name))
+				b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name)
 			} else {
 				sb.WriteString("*")
 			}

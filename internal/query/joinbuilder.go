@@ -1,6 +1,8 @@
 package query
 
 import (
+	"strings"
+
 	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -8,22 +10,24 @@ import (
 )
 
 type JoinBuilder[T any] struct {
-	Table *structs.Table
-	Joins *structs.Joins
-	WhereBuilder[JoinBuilder[T]]
+	dbBuilder  interfaces.QueryBuilderStrategy
+	cache      cache.Cache
+	Table      *structs.Table
+	Joins      *structs.Joins
 	joinValues []interface{}
 	parent     *T
 }
 
 func NewJoinBuilder[T any](dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *JoinBuilder[T] {
 	return &JoinBuilder[T]{
-		Table: &structs.Table{},
+		dbBuilder: dbBuilder,
+		cache:     cache,
+		Table:     &structs.Table{},
 		Joins: &structs.Joins{
 			Joins:        &[]structs.Join{},
 			LateralJoins: &[]structs.Join{},
 			JoinClauses:  &[]structs.JoinClause{},
 		},
-		WhereBuilder: *NewWhereBuilder[JoinBuilder[T]](dbBuilder, cache),
 	}
 }
 
@@ -170,7 +174,7 @@ func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *SelectBuilder, alias,
 	}
 
 	// todo: use cache
-	_, value := b.WhereBuilder.BuildSq(sq)
+	_, value := b.BuildSq(sq)
 
 	*b.Joins.Joins = append(*b.Joins.Joins, *args)
 	b.joinValues = append(b.joinValues, value...)
@@ -212,9 +216,33 @@ func (b *JoinBuilder[T]) joinLateralCommon(joinType string, q *SelectBuilder, al
 	}
 
 	// todo: use cache
-	_, value := b.WhereBuilder.BuildSq(sq)
+	_, value := b.BuildSq(sq)
 
 	*b.Joins.LateralJoins = append(*b.Joins.LateralJoins, *args)
 	b.joinValues = append(b.joinValues, value...)
 	return b.parent
+}
+
+// BuildSq builds the query and returns the query string and values
+func (b *JoinBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {
+
+	cacheKey := generateCacheKey(&structs.Union{Query: sq})
+
+	if cachedQuery, found := b.cache.Get(cacheKey); found {
+		values := []interface{}{}
+		values = append(values, b.joinValues...)
+		return cachedQuery, values
+	}
+
+	sb := strings.Builder{}
+	sb.Grow(consts.StringBuffer_Where_Grow)
+
+	_, values := b.dbBuilder.Build(&sb, cacheKey, sq, 0, nil)
+
+	query := sb.String()
+	b.cache.Set(cacheKey, query)
+
+	sb.Reset()
+
+	return query, values
 }

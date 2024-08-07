@@ -18,5 +18,5 @@ func NewFromBaseBuilder(util interfaces.SQLUtils) *FromBaseBuilder {
 
 func (f FromBaseBuilder) From(sb *strings.Builder, table string) {
 	sb.WriteString("FROM ")
-	sb.WriteString(f.u.EscapeIdentifier(sb, table))
+	f.u.EscapeIdentifier(sb, table)
 }
