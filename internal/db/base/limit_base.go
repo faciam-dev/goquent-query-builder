@@ -20,5 +20,5 @@ func (LimitBaseBuilder) Limit(sb *strings.Builder, limit structs.Limit) {
 	}
 
 	sb.WriteString(" LIMIT ")
-	sb.WriteString(strconv.FormatInt(int64(limit.Limit), 10))
+	sb.WriteString(strconv.FormatInt(limit.Limit, 10))
 }

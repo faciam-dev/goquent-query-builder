@@ -20,5 +20,5 @@ func (OffsetBaseBuilder) Offset(sb *strings.Builder, offset structs.Offset) {
 	}
 
 	sb.WriteString(" OFFSET ")
-	sb.WriteString(strconv.FormatInt(int64(offset.Offset), 10))
+	sb.WriteString(strconv.FormatInt(offset.Offset, 10))
 }

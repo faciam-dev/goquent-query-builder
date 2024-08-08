@@ -30,7 +30,42 @@ func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg []structs.WhereGroup) 
 		sb.WriteString(" WHERE ")
 	}
 
-	values := make([]interface{}, 0)
+	// estimate the cap of values
+	cap := 0
+	for _, cg := range wg {
+		for _, c := range cg.Conditions {
+			if c.Query != nil {
+				cap += 5
+				continue
+			}
+			if c.Exists != nil {
+				cap += 5
+				continue
+			}
+			if c.Between != nil {
+				cap += 2
+				continue
+			}
+			if c.FullText != nil {
+				cap += 2
+				continue
+			}
+			if c.Function != "" {
+				cap += 5
+				continue
+			}
+			if c.Raw != "" {
+				cap += 1
+				continue
+			}
+			if c.Value != nil {
+				cap += len(c.Value)
+				continue
+			}
+		}
+	}
+
+	values := make([]interface{}, 0, cap)
 
 	for i, cg := range wg {
 		if len(cg.Conditions) == 0 {
