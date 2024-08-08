@@ -2,7 +2,6 @@ package base
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 )
@@ -14,11 +13,11 @@ func NewOffsetBaseBuilder() *OffsetBaseBuilder {
 	return &OffsetBaseBuilder{}
 }
 
-func (OffsetBaseBuilder) Offset(sb *strings.Builder, offset structs.Offset) {
+func (OffsetBaseBuilder) Offset(sb *[]byte, offset structs.Offset) {
 	if offset.Offset == 0 {
 		return
 	}
 
-	sb.WriteString(" OFFSET ")
-	sb.WriteString(strconv.FormatInt(offset.Offset, 10))
+	*sb = append(*sb, " OFFSET "...)
+	*sb = strconv.AppendInt(*sb, offset.Offset, 10)
 }

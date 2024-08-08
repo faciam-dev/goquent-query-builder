@@ -1,8 +1,6 @@
 package mysql
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -21,14 +19,14 @@ func NewWhereMySQLBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup) *Wh
 	}
 }
 
-func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg []structs.WhereGroup) []interface{} {
+func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) []interface{} {
 	if len(wg) == 0 {
 		return []interface{}{}
 	}
 
 	// WHERE
 	if wb.whereBaseBuilder.HasCondition(wg) {
-		sb.WriteString(" WHERE ")
+		*sb = append(*sb, " WHERE "...)
 	}
 
 	values := make([]interface{}, 0)
@@ -39,15 +37,15 @@ func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg []structs.WhereGroup)
 		}
 
 		if i > 0 {
-			sb.WriteString(wb.WhereBaseBuilder.GetConditionGroupSeparator((wg)[i], i))
+			*sb = append(*sb, wb.WhereBaseBuilder.GetConditionGroupSeparator((wg)[i], i)...)
 		}
 
-		sb.WriteString(wb.whereBaseBuilder.GetNotSeparator((wg)[i]))
-		sb.WriteString(wb.whereBaseBuilder.GetParenthesesOpen((wg)[i]))
+		*sb = append(*sb, wb.whereBaseBuilder.GetNotSeparator((wg)[i])...)
+		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesOpen((wg)[i])...)
 
 		for j := range (wg)[i].Conditions {
 			if j > 0 || (i > 0 && j == 0 && (wg)[i].IsDummyGroup) {
-				sb.WriteString(wb.whereBaseBuilder.GetConditionOperator((wg)[i].Conditions[j]))
+				*sb = append(*sb, wb.whereBaseBuilder.GetConditionOperator((wg)[i].Conditions[j])...)
 			}
 
 			switch {
@@ -65,13 +63,13 @@ func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg []structs.WhereGroup)
 				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, (wg)[i].Conditions[j])...)
 			}
 		}
-		sb.WriteString(wb.whereBaseBuilder.GetParenthesesClose((wg)[i]))
+		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesClose((wg)[i])...)
 	}
 
 	return values
 }
 
-func (wb *WhereMySQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Where) []interface{} {
+func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []interface{} {
 	// parse options
 	mode := "IN NATURAL LANGUAGE MODE"
 	expand := ""
@@ -88,14 +86,14 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Wher
 		}
 	}
 
-	sb.WriteString("MATCH (")
+	*sb = append(*sb, "MATCH ("...)
 	for i, column := range c.FullText.Columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			*sb = append(*sb, ", "...)
 		}
-		wb.u.EscapeIdentifier(sb, column)
+		*sb = wb.u.EscapeIdentifier2(*sb, column)
 	}
-	sb.WriteString(") AGAINST (" + wb.u.GetPlaceholder() + " " + mode + expand + ")")
+	*sb = append(*sb, ") AGAINST ("+wb.u.GetPlaceholder()+" "+mode+expand+")"...)
 	values := []interface{}{c.Value}
 
 	return values

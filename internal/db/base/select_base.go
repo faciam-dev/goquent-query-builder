@@ -1,8 +1,6 @@
 package base
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -21,9 +19,9 @@ func NewSelectBaseBuilder(u interfaces.SQLUtils, columnNames *[]string) *SelectB
 	}
 }
 
-func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
+func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
 	if columns == nil {
-		sb.WriteString("*")
+		*sb = append(*sb, "*"...)
 		return []interface{}{}
 	}
 	//colNames := make([]string, 0, len(*columns))
@@ -51,7 +49,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 	}
 
 	if len(*columns) == 0 && !outputed {
-		sb.WriteString("*")
+		*sb = append(*sb, "*"...)
 		return []interface{}{}
 	}
 
@@ -62,23 +60,23 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 	for i := 0; i < len(*columns); i++ {
 		//	for i := range *columns {
 		if (*columns)[i].Distinct && !(*columns)[i].Count && !firstDistinct {
-			sb.WriteString("DISTINCT ")
+			*sb = append(*sb, "DISTINCT "...)
 			firstDistinct = true
 		}
 
 		if (*columns)[i].Count {
-			sb.WriteString("COUNT(")
+			*sb = append(*sb, "COUNT("...)
 			if (*columns)[i].Distinct {
-				sb.WriteString("DISTINCT ")
+				*sb = append(*sb, "DISTINCT "...)
 			}
 			if (*columns)[i].Name != "" {
-				b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name)
+				*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
 			} else {
-				sb.WriteString("*")
+				*sb = append(*sb, "*"...)
 			}
-			sb.WriteString(")")
+			*sb = append(*sb, ")"...)
 			if i < len(*columns)-1 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
 
 			continue
@@ -86,34 +84,34 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 
 		if (*columns)[i].Function != "" {
 			if i > 0 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
-			sb.WriteString((*columns)[i].Function)
-			sb.WriteString("(")
+			*sb = append(*sb, (*columns)[i].Function...)
+			*sb = append(*sb, "("...)
 			if (*columns)[i].Distinct {
-				sb.WriteString("DISTINCT ")
+				*sb = append(*sb, "DISTINCT "...)
 			}
 			if (*columns)[i].Name != "" {
-				b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name)
+				*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
 			} else {
-				sb.WriteString("*")
+				*sb = append(*sb, "*"...)
 			}
-			sb.WriteString(")")
+			*sb = append(*sb, ")"...)
 		} else if (*columns)[i].Raw != "" {
 			if (*columns)[i].Values != nil && len((*columns)[i].Values) > 0 {
 				colValues = append(colValues, (*columns)[i].Values...)
 			}
 			if i > 0 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
-			sb.WriteString((*columns)[i].Raw) // or colNames = column.Raw
+			*sb = append(*sb, (*columns)[i].Raw...) // or colNames = column.Raw
 			//colNames = append(colNames, column.Raw)
 		} else if (*columns)[i].Name != "" {
 			if i > 0 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
 
-			b.u.EscapeIdentifierAliasedValue(sb, (*columns)[i].Name)
+			*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
 			//colNames = append(colNames, column.Name)
 		}
 	}
@@ -121,7 +119,7 @@ func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Colum
 	return colValues
 }
 
-func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join, tableName string, idx int) {
+func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableName string, idx int) {
 	targetName := ""
 	//joinedTablesForSelect := ""
 
@@ -153,41 +151,43 @@ func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join,
 		name = join.Name
 	}
 
-	wsb := strings.Builder{}
-	wsb.Grow(consts.StringBuffer_Short_Query_Grow)
-	j.u.EscapeIdentifier(&wsb, targetName)
-	wsb.WriteString(".*")
-	targetNameForSelect := wsb.String()
-	wsb.Reset()
+	wsb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
+	//wsb := strings.Builder{}
+	//wsb.Grow(consts.StringBuffer_Short_Query_Grow)
+	wsb = j.u.EscapeIdentifier2(wsb, targetName)
+	wsb = append(wsb, ".*"...)
+	targetNameForSelect := string(wsb)
+	wsb = wsb[:0]
+	//wsb.Reset()
 
-	//targetNameForSelect := j.u.EscapeIdentifier(&wsb, targetName) + ".*"
+	//targetNameForSelect := j.u.EscapeIdentifier2(&wsb, targetName) + ".*"
 
-	//targetNameForSelect := j.u.EscapeIdentifier(&wsb, targetName) + ".*"
+	//targetNameForSelect := j.u.EscapeIdentifier2(&wsb, targetName) + ".*"
 
 	//sb.Grow(consts.StringBuffer_Select_Grow)
 
 	outputed := false
 	if !sliceutils.Contains(*j.columnNames, targetNameForSelect) {
 		if idx > 0 {
-			sb.WriteString(", ")
+			*sb = append(*sb, ", "...)
 		}
-		sb.WriteString(targetNameForSelect)
+		*sb = append(*sb, targetNameForSelect...)
 		*j.columnNames = append(*j.columnNames, targetNameForSelect)
 		outputed = true
 	}
 
-	wsb.Grow(consts.StringBuffer_Short_Query_Grow)
-	j.u.EscapeIdentifier(&wsb, name)
-	wsb.WriteString(".*")
-	nameForSelect := wsb.String()
-	wsb.Reset()
+	//wsb.Grow(consts.StringBuffer_Short_Query_Grow)
+	wsb = j.u.EscapeIdentifier2(wsb, name)
+	wsb = append(wsb, ".*"...)
+	nameForSelect := string(wsb)
+	//wsb.Reset()
 
-	//nameForSelect := j.u.EscapeIdentifier(sb, name) + ".*"
+	//nameForSelect := j.u.EscapeIdentifier2(sb, name) + ".*"
 	if !sliceutils.Contains(*j.columnNames, nameForSelect) {
 		if idx > 0 || outputed {
-			sb.WriteString(", ")
+			*sb = append(*sb, ", "...)
 		}
-		sb.WriteString(nameForSelect)
+		*sb = append(*sb, nameForSelect...)
 		*j.columnNames = append(*j.columnNames, nameForSelect)
 	}
 

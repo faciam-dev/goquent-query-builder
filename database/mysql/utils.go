@@ -18,7 +18,7 @@ func (s *SQLUtils) GetPlaceholder() string {
 	return "?"
 }
 
-func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value string) {
+func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte {
 	eoc := strings.Index(strings.ToLower(value), " as ")
 	if eoc != -1 {
 		eoc := strings.Index(value, " as ")
@@ -35,28 +35,28 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value strin
 		//	split = strings.Split(v, " AS ")
 		//}
 		if eoc != -1 {
-			s.EscapeIdentifier(sb, pa)
-			sb.WriteString(" as ")
-			s.EscapeIdentifier(sb, pb)
-			return
+			sb = s.EscapeIdentifier2(sb, pa)
+			sb = append(sb, " as "...)
+			sb = s.EscapeIdentifier2(sb, pb)
+			return sb
 			//return s.EscapeIdentifier(sb, split[0]) + " as " + s.EscapeIdentifier(sb, split[1])
 		}
 	} else {
-		s.EscapeIdentifier(sb, value)
-		return
+		sb = s.EscapeIdentifier2(sb, value)
+		return sb
 	}
 
 	target := regexp.MustCompile(`(?i)\s+as\s+`)
 	if target.MatchString(value) {
 		parts := target.Split(value, -1)
-		s.EscapeIdentifier(sb, parts[0])
-		sb.WriteString(" as ")
-		s.EscapeIdentifier(sb, parts[1])
-		return
+		sb = s.EscapeIdentifier2(sb, parts[0])
+		sb = append(sb, " as "...)
+		sb = s.EscapeIdentifier2(sb, parts[1])
+		return sb
 		//return s.EscapeIdentifier(sb, parts[0]) + " as " + s.EscapeIdentifier(sb, parts[1])
 	}
 
-	sb.WriteString(value)
+	return append(sb, value...)
 }
 
 func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {

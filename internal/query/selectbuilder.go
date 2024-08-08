@@ -1,7 +1,6 @@
 package query
 
 import (
-	"strings"
 	"sync"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -72,9 +71,10 @@ func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy) *SelectBuilder {
 	return b
 }
 
-var stringbufPool = sync.Pool{
+var bytebufPool = sync.Pool{
 	New: func() interface{} {
-		return new(strings.Builder)
+		s := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
+		return &s
 	},
 }
 
@@ -323,8 +323,14 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 		IsAll: false,
 	})
 
-	sb := stringbufPool.Get().(*strings.Builder)
-	sb.Reset()
+	//sb := stringbufPool.Get().([]byte)
+	//sb.Reset()
+	ptr := bytebufPool.Get().(*[]byte)
+	sb := *ptr
+	sb = sb[0:0]
+	//sb = sb[:0]
+	//sb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
+
 	//sb.Grow(consts.StringBuffer_Short_Query_Grow)
 
 	//query := ""
@@ -343,22 +349,26 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 		}
 	}
 	// grow the string builder based on the length of the cache key
-	sb.Grow(estimatedSize)
+	//sb.Grow(estimatedSize)
 
 	for i := range *b.selectQuery.Union {
 		//sb.Grow(consts.StringBuffer_Middle_Query_Grow)
 		//log.Default().Println(unsafe.Sizeof((*b.selectQuery.Union)[i].Query))
-		v := b.dbBuilder.Build(sb, (*b.selectQuery.Union)[i].Query, i, b.selectQuery.Union)
+		v := b.dbBuilder.Build(&sb, (*b.selectQuery.Union)[i].Query, i, b.selectQuery.Union)
 
 		values = append(values, v...)
 	}
 
-	query := sb.String()
+	query := string(sb)
 
 	// remove the last UNION
 	*b.selectQuery.Union = (*b.selectQuery.Union)[:len(*b.selectQuery.Union)-1]
 
-	stringbufPool.Put(sb)
+	*ptr = sb
+
+	bytebufPool.Put(ptr)
+
+	//stringbufPool.Put(sb)
 
 	return query, values, nil
 }

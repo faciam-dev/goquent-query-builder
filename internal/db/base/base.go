@@ -1,47 +1,45 @@
 package base
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type SelectBuilderStrategy interface {
-	Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{}
+	Select(sb *[]byte, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{}
 }
 
 type FromBuilderStrategy interface {
-	From(sb *strings.Builder, tableName string)
+	From(sb *[]byte, tableName string)
 }
 
 type WhereBuilderStrategy interface {
-	Where(sb *strings.Builder, wg []structs.WhereGroup) []interface{}
-	ProcessFullText(sb *strings.Builder, c structs.Where) []interface{}
+	Where(sb *[]byte, wg []structs.WhereGroup) []interface{}
+	ProcessFullText(sb *[]byte, c structs.Where) []interface{}
 }
 
 type OrderByBuilderStrategy interface {
-	OrderBy(sb *strings.Builder, order *[]structs.Order)
+	OrderBy(sb *[]byte, order *[]structs.Order)
 }
 
 type GroupByBuilderStrategy interface {
-	GroupBy(sb *strings.Builder, groupBy *structs.GroupBy) []interface{}
+	GroupBy(sb *[]byte, groupBy *structs.GroupBy) []interface{}
 }
 
 type JoinBuilderStrategy interface {
-	Join(sb *strings.Builder, joins *structs.Joins) []interface{}
+	Join(sb *[]byte, joins *structs.Joins) []interface{}
 }
 
 type UnionBuilderStrategy interface {
-	Union(sb *strings.Builder, union *structs.Union, number int) []interface{}
+	Union(sb *[]byte, union *structs.Union, number int) []interface{}
 }
 
 type LimitBuilderStrategy interface {
-	Limit(sb *strings.Builder, limit structs.Limit)
+	Limit(sb *[]byte, limit structs.Limit)
 }
 
 type OffsetBuilderStrategy interface {
-	Offset(sb *strings.Builder, offset structs.Offset)
+	Offset(sb *[]byte, offset structs.Offset)
 }
 
 type InsertBuilderStrategy interface {
@@ -95,25 +93,25 @@ func NewBaseQueryBuilder() *BaseQueryBuilder {
 }
 
 // Lock returns the lock statement.
-func (BaseQueryBuilder) Lock(sb *strings.Builder, lock *structs.Lock) {
+func (BaseQueryBuilder) Lock(sb *[]byte, lock *structs.Lock) {
 	if lock == nil || lock.LockType == "" {
 		return
 	}
 
-	sb.WriteString(" ")
-	sb.WriteString(lock.LockType)
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, lock.LockType...)
 }
 
 // Build builds the query.
-func (m BaseQueryBuilder) Build(sb *strings.Builder, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
+func (m BaseQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
 	values := make([]interface{}, 0)
 
 	// SELECT
-	sb.WriteString("SELECT ")
+	*sb = append(*sb, "SELECT "...)
 	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
 
 	// FROM
-	sb.WriteString(" ")
+	*sb = append(*sb, " "...)
 	m.From(sb, q.Table.Name)
 	values = append(values, colValues...)
 

@@ -18,8 +18,9 @@ func (s *SQLUtils) GetPlaceholder() string {
 	return "?"
 }
 
-func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value string) {
-	if strings.Contains(strings.ToLower(value), " as ") {
+func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte {
+	eoc := strings.Index(strings.ToLower(value), " as ")
+	if eoc != -1 {
 		eoc := strings.Index(value, " as ")
 		var pa, pb string
 		pa = value[:eoc]
@@ -34,27 +35,28 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb *strings.Builder, value strin
 		//	split = strings.Split(v, " AS ")
 		//}
 		if eoc != -1 {
-			s.EscapeIdentifier(sb, pa)
-			sb.WriteString(" as ")
-			s.EscapeIdentifier(sb, pb)
-			return
+			sb = s.EscapeIdentifier2(sb, pa)
+			sb = append(sb, " as "...)
+			sb = s.EscapeIdentifier2(sb, pb)
+			return sb
 			//return s.EscapeIdentifier(sb, split[0]) + " as " + s.EscapeIdentifier(sb, split[1])
 		}
 	} else {
-		s.EscapeIdentifier(sb, value)
-		return
+		sb = s.EscapeIdentifier2(sb, value)
+		return sb
 	}
 
 	target := regexp.MustCompile(`(?i)\s+as\s+`)
 	if target.MatchString(value) {
 		parts := target.Split(value, -1)
-		s.EscapeIdentifier(sb, parts[0])
-		sb.WriteString(" as ")
-		s.EscapeIdentifier(sb, parts[1])
-		return
+		sb = s.EscapeIdentifier2(sb, parts[0])
+		sb = append(sb, " as "...)
+		sb = s.EscapeIdentifier2(sb, parts[1])
+		return sb
 		//return s.EscapeIdentifier(sb, parts[0]) + " as " + s.EscapeIdentifier(sb, parts[1])
 	}
-	sb.WriteString(value)
+
+	return append(sb, value...)
 }
 
 func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {
@@ -91,17 +93,17 @@ func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 func (s *SQLUtils) EscapeIdentifier2(sb []byte, v string) []byte {
 	if v != "*" {
 		if eoc := strings.Index(v, "."); eoc != -1 {
-			sb = append(sb, "`"...)
-			if eo := strings.Index(v, "`"); eo != -1 {
-				sb = append(sb, strings.ReplaceAll(v[:eo], "`", "``")...)
-				sb = append(sb, "`.`"...)
-				sb = append(sb, strings.ReplaceAll(v[eo+1:eoc], "`", "``")...)
+			sb = append(sb, `"`...)
+			if eo := strings.Index(v, `"`); eo != -1 {
+				sb = append(sb, strings.ReplaceAll(v[:eo], `"`, `""`)...)
+				sb = append(sb, `"."`...)
+				sb = append(sb, strings.ReplaceAll(v[eo+1:eoc], `"`, `""`)...)
 			} else {
 				sb = append(sb, v[:eoc]...)
-				sb = append(sb, "`.`"...)
+				sb = append(sb, `"."`...)
 				sb = append(sb, v[eoc+1:]...)
 			}
-			sb = append(sb, "`"...)
+			sb = append(sb, `"`...)
 			/*
 				sb = append(sb, strings.ReplaceAll(v[:eoc], "`", "``")...)
 				sb = append(sb, "`.`"...)
@@ -110,15 +112,15 @@ func (s *SQLUtils) EscapeIdentifier2(sb []byte, v string) []byte {
 			*/
 			return sb
 		} else {
-			sb = append(sb, "`"...)
-			if eo := strings.Index(v, "`"); eo != -1 {
-				sb = append(sb, strings.ReplaceAll(v[:eo], "`", "``")...)
-				sb = append(sb, "`.`"...)
-				sb = append(sb, strings.ReplaceAll(v[eo+1:], "`", "``")...)
+			sb = append(sb, `"`...)
+			if eo := strings.Index(v, `"`); eo != -1 {
+				sb = append(sb, strings.ReplaceAll(v[:eo], `"`, `""`)...)
+				sb = append(sb, `"."`...)
+				sb = append(sb, strings.ReplaceAll(v[eo+1:], `"`, `""`)...)
 			} else {
 				sb = append(sb, v...)
 			}
-			sb = append(sb, "`"...)
+			sb = append(sb, `"`...)
 			return sb
 		}
 	}

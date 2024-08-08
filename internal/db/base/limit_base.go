@@ -2,7 +2,6 @@ package base
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 )
@@ -14,11 +13,11 @@ func NewLimitBaseBuilder() *LimitBaseBuilder {
 	return &LimitBaseBuilder{}
 }
 
-func (LimitBaseBuilder) Limit(sb *strings.Builder, limit structs.Limit) {
+func (LimitBaseBuilder) Limit(sb *[]byte, limit structs.Limit) {
 	if limit.Limit == 0 {
 		return
 	}
 
-	sb.WriteString(" LIMIT ")
-	sb.WriteString(strconv.FormatInt(limit.Limit, 10))
+	*sb = append(*sb, " LIMIT "...)
+	*sb = strconv.AppendInt(*sb, limit.Limit, 10)
 }

@@ -162,9 +162,9 @@ func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []inter
 	sb = append(sb, ") "...)
 
 	// SELECT
-	//b := m.u.GetQueryBuilderStrategy()
-	selectValues := []interface{}{}
-	//selectValues := b.Build(sb, q.Query, 0, nil)
+	b := m.u.GetQueryBuilderStrategy()
+	//selectValues := []interface{}{}
+	selectValues := b.Build(&sb, q.Query, 0, nil)
 	//sb = append(sb, selectQuery...)
 
 	query := string(sb)

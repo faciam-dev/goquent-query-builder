@@ -1,8 +1,6 @@
 package mysql
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -126,12 +124,12 @@ func NewMySQLQueryDeleteBuilder() *MySQLQueryBuilder {
 }
 
 // Build builds the query.
-func (m MySQLQueryBuilder) Build(sb *strings.Builder, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
+func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
 	// SELECT
-	sb.WriteString("SELECT ")
+	*sb = append(*sb, "SELECT "...)
 	colValues := m.selectBuilderStrategy.Select(sb, q.Columns, q.Table.Name, q.Joins)
 
-	sb.WriteString(" ")
+	*sb = append(*sb, " "...)
 	m.FromBuilderStrategy.From(sb, q.Table.Name)
 	values := colValues
 
@@ -184,6 +182,6 @@ func (m MySQLQueryBuilder) Build(sb *strings.Builder, q *structs.Query, number i
 	return values
 }
 
-func (m MySQLQueryBuilder) Where(sb *strings.Builder, c []structs.WhereGroup) []interface{} {
+func (m MySQLQueryBuilder) Where(sb *[]byte, c []structs.WhereGroup) []interface{} {
 	return m.whereBuilderStrategy.Where(sb, c)
 }

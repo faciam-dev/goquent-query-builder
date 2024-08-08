@@ -1,8 +1,6 @@
 package base
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -18,26 +16,26 @@ func NewGroupByBaseBuilder(util interfaces.SQLUtils) *GroupByBaseBuilder {
 	}
 }
 
-func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupBy) []interface{} {
+func (g GroupByBaseBuilder) GroupBy(sb *[]byte, groupBy *structs.GroupBy) []interface{} {
 	if groupBy == nil || len(groupBy.Columns) == 0 {
 		return []interface{}{}
 	}
 
 	groupByColumns := groupBy.Columns
 	if len(groupByColumns) > 0 {
-		sb.WriteString(" GROUP BY ")
+		*sb = append(*sb, " GROUP BY "...)
 		for i := range groupByColumns {
 			if i > 0 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
-			g.u.EscapeIdentifier(sb, groupByColumns[i])
+			*sb = g.u.EscapeIdentifier2(*sb, groupByColumns[i])
 		}
 	}
 
 	values := make([]interface{}, 0, len(*groupBy.Having))
 
 	if len(*groupBy.Having) > 0 {
-		sb.WriteString(" HAVING ")
+		*sb = append(*sb, " HAVING "...)
 
 		//havingValues := make([]interface{}, 0, len(*groupBy.Having))
 		for n := range *groupBy.Having {
@@ -50,11 +48,11 @@ func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupB
 
 			if (*groupBy.Having)[n].Raw != "" {
 				if n > 0 {
-					sb.WriteString(" ")
-					sb.WriteString(op)
-					sb.WriteString(" ")
+					*sb = append(*sb, " "...)
+					*sb = append(*sb, op...)
+					*sb = append(*sb, " "...)
 				}
-				sb.WriteString((*groupBy.Having)[n].Raw)
+				*sb = append(*sb, (*groupBy.Having)[n].Raw...)
 				continue
 			}
 			if (*groupBy.Having)[n].Column == "" {
@@ -70,15 +68,15 @@ func (g GroupByBaseBuilder) GroupBy(sb *strings.Builder, groupBy *structs.GroupB
 			values = append(values, (*groupBy.Having)[n].Value)
 
 			if n > 0 {
-				sb.WriteString(" ")
-				sb.WriteString(op)
-				sb.WriteString(" ")
+				*sb = append(*sb, " "...)
+				*sb = append(*sb, op...)
+				*sb = append(*sb, " "...)
 			}
-			g.u.EscapeIdentifier(sb, (*groupBy.Having)[n].Column)
-			sb.WriteString(" ")
-			sb.WriteString((*groupBy.Having)[n].Condition)
-			sb.WriteString(" ")
-			sb.WriteString(g.u.GetPlaceholder())
+			*sb = g.u.EscapeIdentifier2(*sb, (*groupBy.Having)[n].Column)
+			*sb = append(*sb, " "...)
+			*sb = append(*sb, (*groupBy.Having)[n].Condition...)
+			*sb = append(*sb, " "...)
+			*sb = append(*sb, g.u.GetPlaceholder()...)
 		}
 
 		//if len(havingValues) > 0 {

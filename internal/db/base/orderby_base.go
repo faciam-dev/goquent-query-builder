@@ -1,8 +1,6 @@
 package base
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -19,19 +17,19 @@ func NewOrderByBaseBuilder(util interfaces.SQLUtils, order *[]structs.Order) *Or
 	}
 }
 
-func (o OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order) {
+func (o OrderByBaseBuilder) OrderBy(sb *[]byte, order *[]structs.Order) {
 	if order == nil || len(*order) == 0 {
 		return
 	}
 
-	sb.WriteString(" ORDER BY ")
+	*sb = append(*sb, " ORDER BY "...)
 
 	for i := range *order {
 		if i > 0 {
-			sb.WriteString(", ")
+			*sb = append(*sb, ", "...)
 		}
 		if (*order)[i].Raw != "" {
-			sb.WriteString((*order)[i].Raw)
+			*sb = append(*sb, (*order)[i].Raw...)
 			continue
 		}
 		if (*order)[i].Column == "" {
@@ -42,8 +40,8 @@ func (o OrderByBaseBuilder) OrderBy(sb *strings.Builder, order *[]structs.Order)
 		if (*order)[i].IsAsc {
 			desc = "ASC"
 		}
-		o.u.EscapeIdentifier(sb, (*order)[i].Column)
-		sb.WriteString(" ")
-		sb.WriteString(desc)
+		*sb = o.u.EscapeIdentifier2(*sb, (*order)[i].Column)
+		*sb = append(*sb, " "...)
+		*sb = append(*sb, desc...)
 	}
 }

@@ -1,8 +1,6 @@
 package postgres
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -57,12 +55,12 @@ func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
 }
 
 // Build builds the query.
-func (m PostgreSQLQueryBuilder) Build(sb *strings.Builder, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
+func (m PostgreSQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
 	// SELECT
-	sb.WriteString("SELECT ")
+	*sb = append(*sb, "SELECT "...)
 	colValues := m.selectBuilderStrategy.Select(sb, q.Columns, q.Table.Name, q.Joins)
 
-	sb.WriteString(" ")
+	*sb = append(*sb, " "...)
 	m.FromBuilderStrategy.From(sb, q.Table.Name)
 	values := colValues
 
@@ -99,6 +97,6 @@ func (m PostgreSQLQueryBuilder) Build(sb *strings.Builder, q *structs.Query, num
 	return values
 }
 
-func (m PostgreSQLQueryBuilder) Where(sb *strings.Builder, conditionGroups []structs.WhereGroup) []interface{} {
+func (m PostgreSQLQueryBuilder) Where(sb *[]byte, conditionGroups []structs.WhereGroup) []interface{} {
 	return m.whereBuilderStrategy.Where(sb, conditionGroups)
 }
