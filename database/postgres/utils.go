@@ -87,3 +87,41 @@ func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {
 func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 	return NewPostgreSQLQueryBuilder()
 }
+
+func (s *SQLUtils) EscapeIdentifier2(sb []byte, v string) []byte {
+	if v != "*" {
+		if eoc := strings.Index(v, "."); eoc != -1 {
+			sb = append(sb, "`"...)
+			if eo := strings.Index(v, "`"); eo != -1 {
+				sb = append(sb, strings.ReplaceAll(v[:eo], "`", "``")...)
+				sb = append(sb, "`.`"...)
+				sb = append(sb, strings.ReplaceAll(v[eo+1:eoc], "`", "``")...)
+			} else {
+				sb = append(sb, v[:eoc]...)
+				sb = append(sb, "`.`"...)
+				sb = append(sb, v[eoc+1:]...)
+			}
+			sb = append(sb, "`"...)
+			/*
+				sb = append(sb, strings.ReplaceAll(v[:eoc], "`", "``")...)
+				sb = append(sb, "`.`"...)
+				sb = append(sb, strings.ReplaceAll(v[eoc+1:], "`", "``")...)
+				sb = append(sb, "`"...)
+			*/
+			return sb
+		} else {
+			sb = append(sb, "`"...)
+			if eo := strings.Index(v, "`"); eo != -1 {
+				sb = append(sb, strings.ReplaceAll(v[:eo], "`", "``")...)
+				sb = append(sb, "`.`"...)
+				sb = append(sb, strings.ReplaceAll(v[eo+1:], "`", "``")...)
+			} else {
+				sb = append(sb, v...)
+			}
+			sb = append(sb, "`"...)
+			return sb
+		}
+	}
+	sb = append(sb, v...)
+	return sb
+}

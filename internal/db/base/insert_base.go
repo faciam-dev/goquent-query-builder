@@ -2,7 +2,6 @@ package base
 
 import (
 	"sort"
-	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -23,13 +22,14 @@ func NewInsertBaseBuilder(util interfaces.SQLUtils, iq *structs.InsertQuery) *In
 
 // Insert builds the INSERT query.
 func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}, error) {
-	sb := &strings.Builder{}
-	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
+	//sb := &strings.Builder{}
+	//sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
+	sb := make([]byte, 0, consts.StringBuffer_Middle_Query_Grow)
 
 	// INSERT INTO
-	sb.WriteString("INSERT INTO ")
-	m.u.EscapeIdentifier(sb, q.Table)
-	sb.WriteString(" ")
+	sb = append(sb, "INSERT INTO "...)
+	sb = m.u.EscapeIdentifier2(sb, q.Table)
+	sb = append(sb, " "...)
 
 	columns := make([]string, 0, len(q.Values))
 	for column := range q.Values {
@@ -42,39 +42,43 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 		values = append(values, q.Values[column])
 	}
 
-	sb.WriteString("(")
+	sb = append(sb, "("...)
 	for i, column := range columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
-		m.u.EscapeIdentifier(sb, column)
+		sb = m.u.EscapeIdentifier2(sb, column)
 	}
-	sb.WriteString(") ")
+	sb = append(sb, ") "...)
 
-	sb.WriteString("VALUES (")
+	sb = append(sb, "VALUES ("...)
 	for i := range columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
-		sb.WriteString(m.u.GetPlaceholder())
+		sb = append(sb, m.u.GetPlaceholder()...)
 	}
-	sb.WriteString(")")
+	sb = append(sb, ")"...)
 
-	query := sb.String()
-	sb.Reset()
+	query := string(sb)
+	//query := sb.String()
+	//sb.Reset()
 
 	return query, values, nil
 }
 
 // InsertBatch builds the INSERT query for batch insert.
 func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interface{}, error) {
-	sb := &strings.Builder{}
-	sb.Grow(consts.StringBuffer_Long_Query_Grow) // todo: check if this is necessary
+	//sb := &strings.Builder{}
+	//sb.Grow(consts.StringBuffer_Long_Query_Grow) // todo: check if this is necessary
+
+	sb := make([]byte, 0, consts.StringBuffer_Long_Query_Grow)
 
 	// INSERT INTO
-	sb.WriteString("INSERT INTO ")
-	m.u.EscapeIdentifier(sb, q.Table)
-	sb.WriteString(" ")
+
+	sb = append(sb, "INSERT INTO "...)
+	sb = m.u.EscapeIdentifier2(sb, q.Table)
+	sb = append(sb, " "...)
 
 	// get all columns from all values
 	columnSet := make(map[string]struct{}, len(q.ValuesBatch))
@@ -92,14 +96,14 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	sort.Strings(columns)
 
 	// COLUMNS
-	sb.WriteString("(")
+	sb = append(sb, "("...)
 	for i, column := range columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
-		m.u.EscapeIdentifier(sb, column)
+		sb = m.u.EscapeIdentifier2(sb, column)
 	}
-	sb.WriteString(") VALUES ")
+	sb = append(sb, ") VALUES "...)
 
 	// VALUES
 	allValues := make([]interface{}, 0, len(q.ValuesBatch)*len(columns))
@@ -113,55 +117,59 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 			}
 		}
 
-		sb.WriteString("(")
+		sb = append(sb, "("...)
 		for i := range columns {
 			if i > 0 {
-				sb.WriteString(", ")
+				sb = append(sb, ", "...)
 			}
-			sb.WriteString(m.u.GetPlaceholder())
+			sb = append(sb, m.u.GetPlaceholder()...)
 		}
-		sb.WriteString(")")
+		sb = append(sb, ")"...)
 
 		if i < len(q.ValuesBatch)-1 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
 
 		allValues = append(allValues, rowValues...)
 	}
+	query := string(sb)
 
-	query := sb.String()
-	sb.Reset()
+	//query := sb.String()
+	//sb.Reset()
 
 	return query, allValues, nil
 }
 
 func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}, error) {
-	sb := &strings.Builder{}
-	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
+	//sb := &strings.Builder{}
+	//sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
+	sb := make([]byte, 0, consts.StringBuffer_Middle_Query_Grow)
 
 	// INSERT INTO
-	sb.WriteString("INSERT INTO ")
-	m.u.EscapeIdentifier(sb, q.Table)
+	sb = append(sb, "INSERT INTO "...)
+	sb = m.u.EscapeIdentifier2(sb, q.Table)
 
 	// COLUMNS
 	columns := make([]string, 0, len(q.Columns))
 	columns = append(columns, q.Columns...)
-	sb.WriteString(" (")
+	sb = append(sb, " ("...)
 	for i, column := range columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
-		m.u.EscapeIdentifier(sb, column)
+		sb = m.u.EscapeIdentifier2(sb, column)
 	}
-	sb.WriteString(") ")
+	sb = append(sb, ") "...)
 
 	// SELECT
-	b := m.u.GetQueryBuilderStrategy()
-	selectValues := b.Build(sb, q.Query, 0, nil)
-	//sb.WriteString(selectQuery)
+	//b := m.u.GetQueryBuilderStrategy()
+	selectValues := []interface{}{}
+	//selectValues := b.Build(sb, q.Query, 0, nil)
+	//sb = append(sb, selectQuery...)
 
-	query := sb.String()
-	sb.Reset()
+	query := string(sb)
+	//query := sb.String()
+	//sb.Reset()
 
 	return query, selectValues, nil
 }
