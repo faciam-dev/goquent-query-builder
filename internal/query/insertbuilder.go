@@ -1,7 +1,6 @@
 package query
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -10,14 +9,12 @@ import (
 type InsertBuilder struct {
 	BaseBuilder
 	dbBuilder interfaces.QueryBuilderStrategy
-	cache     cache.Cache
 	query     *structs.InsertQuery
 }
 
-func NewInsertBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *InsertBuilder {
+func NewInsertBuilder(dbBuilder interfaces.QueryBuilderStrategy) *InsertBuilder {
 	return &InsertBuilder{
 		dbBuilder: dbBuilder,
-		cache:     cache,
 		query:     &structs.InsertQuery{},
 	}
 }

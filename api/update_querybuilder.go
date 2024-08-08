@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -14,20 +13,20 @@ type UpdateQueryBuilder struct {
 	QueryBuilderStrategy[UpdateQueryBuilder, query.UpdateBuilder]
 }
 
-func NewUpdateQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *UpdateQueryBuilder {
+func NewUpdateQueryBuilder(strategy interfaces.QueryBuilderStrategy) *UpdateQueryBuilder {
 	ub := &UpdateQueryBuilder{
-		builder: query.NewUpdateBuilder(strategy, cache),
+		builder: query.NewUpdateBuilder(strategy),
 	}
 
-	whereQueryBuilder := NewWhereQueryBuilder[*UpdateQueryBuilder, query.UpdateBuilder](strategy, cache)
+	whereQueryBuilder := NewWhereQueryBuilder[*UpdateQueryBuilder, query.UpdateBuilder](strategy)
 	whereQueryBuilder.SetParent(&ub)
 	ub.WhereQueryBuilder = *whereQueryBuilder
 
-	joinQueryBuilder := NewJoinQueryBuilder[*UpdateQueryBuilder, query.UpdateBuilder](strategy, cache)
+	joinQueryBuilder := NewJoinQueryBuilder[*UpdateQueryBuilder, query.UpdateBuilder](strategy)
 	joinQueryBuilder.SetParent(&ub)
 	ub.JoinQueryBuilder = *joinQueryBuilder
 
-	orderByQueryBuilder := NewOrderByQueryBuilder[*UpdateQueryBuilder, query.UpdateBuilder](strategy, cache)
+	orderByQueryBuilder := NewOrderByQueryBuilder[*UpdateQueryBuilder, query.UpdateBuilder](strategy)
 	orderByQueryBuilder.SetParent(&ub)
 	ub.OrderByQueryBuilder = *orderByQueryBuilder
 

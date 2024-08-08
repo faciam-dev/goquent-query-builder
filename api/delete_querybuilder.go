@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -14,20 +13,20 @@ type DeleteQueryBuilder struct {
 	QueryBuilderStrategy[DeleteQueryBuilder, query.DeleteBuilder]
 }
 
-func NewDeleteQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *DeleteQueryBuilder {
+func NewDeleteQueryBuilder(strategy interfaces.QueryBuilderStrategy) *DeleteQueryBuilder {
 	db := &DeleteQueryBuilder{
-		builder: query.NewDeleteBuilder(strategy, cache),
+		builder: query.NewDeleteBuilder(strategy),
 	}
 
-	whereBuilder := NewWhereQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy, cache)
+	whereBuilder := NewWhereQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy)
 	whereBuilder.SetParent(&db)
 	db.WhereQueryBuilder = *whereBuilder
 
-	joinBuilder := NewJoinQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy, cache)
+	joinBuilder := NewJoinQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy)
 	joinBuilder.SetParent(&db)
 	db.JoinQueryBuilder = *joinBuilder
 
-	orderByBuilder := NewOrderByQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy, cache)
+	orderByBuilder := NewOrderByQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy)
 	orderByBuilder.SetParent(&db)
 	db.OrderByQueryBuilder = *orderByBuilder
 

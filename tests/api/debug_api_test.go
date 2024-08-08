@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 )
@@ -21,15 +20,13 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				usq := api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				usq := api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("profiles.age", ">", 18)
 
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -41,7 +38,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 					HavingRaw("COUNT(`profiles`.`id`) > 1").
 					WhereIn("users.id", usq).
 					Union(
-						api.NewSelectQueryBuilder(dbStrategy, blankCache).
+						api.NewSelectQueryBuilder(dbStrategy).
 							Table("users").
 							Select("id", "users.name as name").
 							Join("profiles", "users.id", "=", "profiles.user_id").
@@ -63,9 +60,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -89,9 +84,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -115,15 +108,13 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				usq := api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				usq := api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("profiles.age", ">", 18)
 
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -143,9 +134,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -160,9 +149,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -177,9 +164,7 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name")
 
@@ -214,9 +199,7 @@ func TestInsertDebugApiRawSqlTest(t *testing.T) {
 			func() *api.InsertQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewInsertQueryBuilder(dbStrategy, blankCache).
+				return api.NewInsertQueryBuilder(dbStrategy).
 					Table("users").
 					Insert(map[string]interface{}{
 						"name": "Joe",
@@ -230,11 +213,9 @@ func TestInsertDebugApiRawSqlTest(t *testing.T) {
 			func() *api.InsertQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewInsertQueryBuilder(dbStrategy, blankCache).
+				return api.NewInsertQueryBuilder(dbStrategy).
 					Table("users").
-					InsertUsing([]string{"name", "age"}, api.NewSelectQueryBuilder(dbStrategy, blankCache).
+					InsertUsing([]string{"name", "age"}, api.NewSelectQueryBuilder(dbStrategy).
 						Table("profiles").
 						Select("name", "age").
 						Where("age", ">", 18)).
@@ -273,9 +254,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 			func() *api.UpdateQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewUpdateQueryBuilder(dbStrategy, blankCache).
+				return api.NewUpdateQueryBuilder(dbStrategy).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
@@ -291,9 +270,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 			func() *api.UpdateQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewUpdateQueryBuilder(dbStrategy, blankCache).
+				return api.NewUpdateQueryBuilder(dbStrategy).
 					Table("users").
 					OrderBy("name", "ASC").
 					Update(map[string]interface{}{
@@ -308,9 +285,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 			func() *api.UpdateQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewUpdateQueryBuilder(dbStrategy, blankCache).
+				return api.NewUpdateQueryBuilder(dbStrategy).
 					Table("users").
 					WhereDate("created_at", "=", "2021-01-01").
 					Update(map[string]interface{}{
@@ -325,9 +300,7 @@ func TestUpdateDebugApiRawSqlTest(t *testing.T) {
 			func() *api.UpdateQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewUpdateQueryBuilder(dbStrategy, blankCache).
+				return api.NewUpdateQueryBuilder(dbStrategy).
 					Table("users").
 					WhereBetweenColumns([]string{"age", "min_age", "max_age"}, "age", "min_age", "max_age").
 					Update(map[string]interface{}{
@@ -365,9 +338,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 			func() *api.DeleteQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewDeleteQueryBuilder(dbStrategy, blankCache).
+				return api.NewDeleteQueryBuilder(dbStrategy).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
@@ -380,9 +351,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 			func() *api.DeleteQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewDeleteQueryBuilder(dbStrategy, blankCache).
+				return api.NewDeleteQueryBuilder(dbStrategy).
 					Table("users").
 					WhereNotBetween("age", 18, 30).
 					Delete()
@@ -394,9 +363,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 			func() *api.DeleteQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewDeleteQueryBuilder(dbStrategy, blankCache).
+				return api.NewDeleteQueryBuilder(dbStrategy).
 					Table("users").
 					WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at").
 					Delete()
@@ -408,9 +375,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 			func() *api.DeleteQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewDeleteQueryBuilder(dbStrategy, blankCache).
+				return api.NewDeleteQueryBuilder(dbStrategy).
 					Table("users").
 					WhereColumns([]string{"name", "age"},
 						[][]string{
@@ -425,9 +390,7 @@ func TestDeleteDebugApiRawSqlTest(t *testing.T) {
 			func() *api.DeleteQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewDeleteQueryBuilder(dbStrategy, blankCache).
+				return api.NewDeleteQueryBuilder(dbStrategy).
 					Table("users").
 					WhereGroup(func(w *api.WhereDeleteQueryBuilder) {
 						w.Where("name", "=", "Joe").Where("age", "=", 31)
@@ -465,15 +428,13 @@ func TestDebugDumpTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				usq := api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				usq := api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("profiles.age", ">", 18)
 
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -485,7 +446,7 @@ func TestDebugDumpTest(t *testing.T) {
 					HavingRaw("COUNT(`profiles`.`id`) > 1").
 					WhereIn("users.id", usq).
 					Union(
-						api.NewSelectQueryBuilder(dbStrategy, blankCache).
+						api.NewSelectQueryBuilder(dbStrategy).
 							Table("users").
 							Select("id", "users.name as name").
 							Join("profiles", "users.id", "=", "profiles.user_id").
@@ -509,15 +470,13 @@ func TestDebugDumpTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				usq := api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				usq := api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("profiles.age", ">", 18)
 
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -540,9 +499,7 @@ func TestDebugDumpTest(t *testing.T) {
 			func() *api.SelectQueryBuilder {
 				dbStrategy := mysql.NewMySQLQueryBuilder()
 
-				blankCache := cache.NewBlankQueryCache()
-
-				return api.NewSelectQueryBuilder(dbStrategy, blankCache).
+				return api.NewSelectQueryBuilder(dbStrategy).
 					Table("users").
 					Select("id", "users.name as name")
 

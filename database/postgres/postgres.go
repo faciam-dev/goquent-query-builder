@@ -57,18 +57,7 @@ func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
 }
 
 // Build builds the query.
-func (m PostgreSQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
-	/*
-		// grow the string builder based on the length of the cache key
-		if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
-			sb.Grow(consts.StringBuffer_Short_Query_Grow)
-		} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
-			sb.Grow(consts.StringBuffer_Middle_Query_Grow)
-		} else {
-			sb.Grow(consts.StringBuffer_Long_Query_Grow)
-		}
-	*/
-
+func (m PostgreSQLQueryBuilder) Build(sb *strings.Builder, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
 	// SELECT
 	sb.WriteString("SELECT ")
 	colValues := m.selectBuilderStrategy.Select(sb, q.Columns, q.Table.Name, q.Joins)
@@ -107,9 +96,7 @@ func (m PostgreSQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *s
 	//query := sb.String()
 	//sb.Reset()
 
-	query := ""
-
-	return query, values
+	return values
 }
 
 func (m PostgreSQLQueryBuilder) Where(sb *strings.Builder, conditionGroups []structs.WhereGroup) []interface{} {

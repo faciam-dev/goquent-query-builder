@@ -3,7 +3,6 @@ package query
 import (
 	"strings"
 
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -14,7 +13,7 @@ type OrderByBuilder[T any] struct {
 	parent *T
 }
 
-func NewOrderByBuilder[T any](strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *OrderByBuilder[T] {
+func NewOrderByBuilder[T any](strategy interfaces.QueryBuilderStrategy) *OrderByBuilder[T] {
 	return &OrderByBuilder[T]{
 		Order: &[]structs.Order{},
 	}

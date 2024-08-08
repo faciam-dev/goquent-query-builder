@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
@@ -12,9 +11,9 @@ type WhereQueryBuilder[T QueryBuilderStrategy[T, C], C any] struct {
 	parent  *T
 }
 
-func NewWhereQueryBuilder[T QueryBuilderStrategy[T, C], C any](strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *WhereQueryBuilder[T, C] {
+func NewWhereQueryBuilder[T QueryBuilderStrategy[T, C], C any](strategy interfaces.QueryBuilderStrategy) *WhereQueryBuilder[T, C] {
 	return &WhereQueryBuilder[T, C]{
-		builder: query.NewWhereBuilder[C](strategy, cache),
+		builder: query.NewWhereBuilder[C](strategy),
 	}
 }
 
@@ -313,7 +312,7 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereNotBetweenColumns(allColumns []string,
 
 func (wb *WhereQueryBuilder[T, C]) WhereExists(fn func(q *SelectQueryBuilder)) T {
 	(*wb.parent).GetWhereBuilder().WhereExists(func(b *query.SelectBuilder) {
-		sqb := NewSelectQueryBuilder(b.GetStrategy(), b.GetCache())
+		sqb := NewSelectQueryBuilder(b.GetStrategy())
 		sqb.builder = b
 		fn(sqb)
 	})
@@ -329,7 +328,7 @@ func (wb *WhereQueryBuilder[T, C]) WhereExistsSubQuery(qb *SelectQueryBuilder) T
 // OrWhereExists is a function that allows you to add a or where exists condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereExists(fn func(q *SelectQueryBuilder)) T {
 	(*wb.parent).GetWhereBuilder().OrWhereExists(func(b *query.SelectBuilder) {
-		sqb := NewSelectQueryBuilder(b.GetStrategy(), b.GetCache())
+		sqb := NewSelectQueryBuilder(b.GetStrategy())
 		sqb.builder = b
 		fn(sqb)
 	})
@@ -345,7 +344,7 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereExistsSubQuery(qb *SelectQueryBuilder)
 // WhereNotExists is a function that allows you to add a where not exists condition
 func (wb *WhereQueryBuilder[T, C]) WhereNotExists(fn func(q *SelectQueryBuilder)) T {
 	(*wb.parent).GetWhereBuilder().WhereNotExists(func(b *query.SelectBuilder) {
-		sqb := NewSelectQueryBuilder(b.GetStrategy(), b.GetCache())
+		sqb := NewSelectQueryBuilder(b.GetStrategy())
 		sqb.builder = b
 		fn(sqb)
 	})
@@ -361,7 +360,7 @@ func (wb *WhereQueryBuilder[T, C]) WhereNotExistsQuery(qb *SelectQueryBuilder) T
 // OrWhereNotExists is a function that allows you to add a or where not exists condition
 func (wb *WhereQueryBuilder[T, C]) OrWhereNotExists(fn func(q *SelectQueryBuilder)) T {
 	(*wb.parent).GetWhereBuilder().OrWhereNotExists(func(b *query.SelectBuilder) {
-		sqb := NewSelectQueryBuilder(b.GetStrategy(), b.GetCache())
+		sqb := NewSelectQueryBuilder(b.GetStrategy())
 		sqb.builder = b
 		fn(sqb)
 	})

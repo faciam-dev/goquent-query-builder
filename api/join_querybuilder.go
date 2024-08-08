@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -11,9 +10,9 @@ type JoinQueryBuilder[T QueryBuilderStrategy[T, C], C any] struct {
 	parent  *T
 }
 
-func NewJoinQueryBuilder[T QueryBuilderStrategy[T, C], C any](strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *JoinQueryBuilder[T, C] {
+func NewJoinQueryBuilder[T QueryBuilderStrategy[T, C], C any](strategy interfaces.QueryBuilderStrategy) *JoinQueryBuilder[T, C] {
 	return &JoinQueryBuilder[T, C]{
-		builder: query.NewJoinBuilder[C](strategy, cache),
+		builder: query.NewJoinBuilder[C](strategy),
 	}
 }
 

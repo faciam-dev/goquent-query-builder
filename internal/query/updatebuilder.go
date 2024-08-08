@@ -1,7 +1,6 @@
 package query
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -9,31 +8,29 @@ import (
 
 type UpdateBuilder struct {
 	dbBuilder interfaces.QueryBuilderStrategy
-	cache     cache.Cache
 	query     *structs.UpdateQuery
 	OrderByBuilder[UpdateBuilder]
 	JoinBuilder[UpdateBuilder]
 	WhereBuilder[UpdateBuilder]
 }
 
-func NewUpdateBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *UpdateBuilder {
+func NewUpdateBuilder(strategy interfaces.QueryBuilderStrategy) *UpdateBuilder {
 	ub := &UpdateBuilder{
 		dbBuilder: strategy,
-		cache:     cache,
 		query: &structs.UpdateQuery{
 			Query: &structs.Query{},
 		},
 	}
 
-	whereBuilder := NewWhereBuilder[UpdateBuilder](strategy, cache)
+	whereBuilder := NewWhereBuilder[UpdateBuilder](strategy)
 	whereBuilder.SetParent(ub)
 	ub.WhereBuilder = *whereBuilder
 
-	joinBuilder := NewJoinBuilder[UpdateBuilder](strategy, cache)
+	joinBuilder := NewJoinBuilder[UpdateBuilder](strategy)
 	joinBuilder.SetParent(ub)
 	ub.JoinBuilder = *joinBuilder
 
-	orderByBuilder := NewOrderByBuilder[UpdateBuilder](strategy, cache)
+	orderByBuilder := NewOrderByBuilder[UpdateBuilder](strategy)
 	orderByBuilder.SetParent(ub)
 	ub.OrderByBuilder = *orderByBuilder
 

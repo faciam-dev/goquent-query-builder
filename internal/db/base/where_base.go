@@ -134,7 +134,7 @@ func (wb *WhereBaseBuilder) ProcessSubQuery(sb *strings.Builder, c structs.Where
 	sb.WriteString(" (")
 
 	b := wb.u.GetQueryBuilderStrategy()
-	_, sqValues := b.Build(sb, "", c.Query, 0, nil)
+	sqValues := b.Build(sb, c.Query, 0, nil)
 
 	//sb.WriteString(sqQuery)
 	sb.WriteString(")")
@@ -147,7 +147,7 @@ func (wb *WhereBaseBuilder) ProcessExistsQuery(sb *strings.Builder, c structs.Wh
 	//condQuery := c.Condition
 	sb.WriteString(" (")
 	b := wb.u.GetQueryBuilderStrategy()
-	_, sqValues := b.Build(sb, "", c.Exists.Query, 0, nil)
+	sqValues := b.Build(sb, c.Exists.Query, 0, nil)
 	sb.WriteString(")")
 
 	//sb.WriteString(condQuery + " (" + sqQuery + ")")

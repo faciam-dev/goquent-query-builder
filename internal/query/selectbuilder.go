@@ -4,7 +4,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -20,7 +19,6 @@ type QueryBuilder struct {
 
 type SelectBuilder struct {
 	dbBuilder     interfaces.QueryBuilderStrategy
-	cache         cache.Cache
 	query         *structs.Query
 	selectQuery   *structs.SelectQuery
 	selectValues  []interface{}
@@ -31,10 +29,9 @@ type SelectBuilder struct {
 	BaseBuilder
 }
 
-func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *SelectBuilder {
+func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy) *SelectBuilder {
 	b := &SelectBuilder{
 		dbBuilder: dbBuilder,
-		cache:     cache,
 		query: &structs.Query{
 			Table:           structs.Table{},
 			Columns:         &[]structs.Column{},
@@ -57,18 +54,18 @@ func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *S
 		},
 		selectValues:  []interface{}{},
 		groupByValues: []interface{}{},
-		//joinBuilder:    NewJoinBuilder(dbBuilder, cache),
+		//joinBuilder:    NewJoinBuilder(dbBuilder),
 	}
 
-	whereBuilder := NewWhereBuilder[SelectBuilder](dbBuilder, cache)
+	whereBuilder := NewWhereBuilder[SelectBuilder](dbBuilder)
 	whereBuilder.SetParent(b)
 	b.WhereBuilder = whereBuilder
 
-	joinBuilder := NewJoinBuilder[SelectBuilder](dbBuilder, cache)
+	joinBuilder := NewJoinBuilder[SelectBuilder](dbBuilder)
 	joinBuilder.SetParent(b)
 	b.JoinBuilder = joinBuilder
 
-	orderByBuilder := NewOrderByBuilder[SelectBuilder](dbBuilder, cache)
+	orderByBuilder := NewOrderByBuilder[SelectBuilder](dbBuilder)
 	orderByBuilder.SetParent(b)
 	b.OrderByBuilder = orderByBuilder
 
@@ -333,40 +330,30 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 	//query := ""
 	values := make([]interface{}, 0)
 
-	cacheKey := ""
+	estimatedSize := consts.StringBuffer_Short_Query_Grow
 	for i := range *b.selectQuery.Union {
-		cacheKey += generateCacheKey(&(*b.selectQuery.Union)[i])
-	}
-
-	// grow the string builder based on the length of the cache key
-	if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
-		sb.Grow(consts.StringBuffer_Short_Query_Grow)
-	} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
-		sb.Grow(consts.StringBuffer_Middle_Query_Grow)
-	} else {
-		sb.Grow(consts.StringBuffer_Long_Query_Grow)
-	}
-
-	for i := range *b.selectQuery.Union {
-		if cachedQuery, found := b.cache.Get(cacheKey); found {
-			vals := make([]interface{}, 0, len(b.selectValues)+len(b.JoinBuilder.joinValues)+len(b.WhereBuilder.whereValues)+len(b.groupByValues))
-			vals = append(vals, b.selectValues...)
-			vals = append(vals, b.JoinBuilder.joinValues...)
-			vals = append(vals, b.WhereBuilder.whereValues...)
-			vals = append(vals, b.groupByValues...)
-			sb.WriteString(cachedQuery)
-			values = append(values, vals...)
-			continue
-		} else {
-			_, v := b.dbBuilder.Build(sb, cacheKey, (*b.selectQuery.Union)[i].Query, i, b.selectQuery.Union)
-
-			//sb.WriteString(q)
-			values = append(values, v...)
+		if len((*b.selectQuery.Union)[i].Query.ConditionGroups) > 1 {
+			estimatedSize += len((*b.selectQuery.Union)[i].Query.ConditionGroups) * consts.StringBuffer_Where_Grow
 		}
+		if len(*(*b.selectQuery.Union)[i].Query.Columns) > 1 {
+			estimatedSize += len(*(*b.selectQuery.Union)[i].Query.Columns) * consts.StringBuffer_Column_Grow
+		}
+		if len(*(*b.selectQuery.Union)[i].Query.Joins.Joins) > 1 || len(*(*b.selectQuery.Union)[i].Query.Joins.JoinClauses) > 1 {
+			estimatedSize += len(*(*b.selectQuery.Union)[i].Query.Joins.Joins) * consts.StringBuffer_Join_Grow
+		}
+	}
+	// grow the string builder based on the length of the cache key
+	sb.Grow(estimatedSize)
+
+	for i := range *b.selectQuery.Union {
+		//sb.Grow(consts.StringBuffer_Middle_Query_Grow)
+		//log.Default().Println(unsafe.Sizeof((*b.selectQuery.Union)[i].Query))
+		v := b.dbBuilder.Build(sb, (*b.selectQuery.Union)[i].Query, i, b.selectQuery.Union)
+
+		values = append(values, v...)
 	}
 
 	query := sb.String()
-	b.cache.Set(cacheKey, query)
 
 	// remove the last UNION
 	*b.selectQuery.Union = (*b.selectQuery.Union)[:len(*b.selectQuery.Union)-1]
@@ -405,109 +392,6 @@ func (b *SelectBuilder) buildQuery() {
 
 }
 
-func generateCacheKey(u *structs.Union) string {
-	sb := stringbufPool.Get().(*strings.Builder)
-	sb.Reset()
-	sb.Grow(consts.StringBuffer_CacheKey_Grow)
-
-	q := u.Query
-	// Union key
-	//sb.WriteString(fmt.Sprintf("%d", i))
-	if u.IsAll {
-		sb.WriteString("ALL")
-	} else {
-		sb.WriteString("UNION")
-	}
-	sb.WriteString("|")
-
-	// Table key
-	sb.WriteString(q.Table.Name)
-
-	// Column key
-	for _, c := range *q.Columns {
-		sb.WriteString(c.Name)
-		sb.WriteString(",")
-	}
-	sb.WriteString("|")
-
-	// Order key
-	for _, o := range *q.Order {
-		sb.WriteString(o.Column)
-		sb.WriteString(",")
-		sb.WriteString(o.Raw)
-		sb.WriteString(",")
-		if o.IsAsc {
-			sb.WriteString("ASC")
-		} else {
-			sb.WriteString("DESC")
-		}
-	}
-	sb.WriteString("|")
-
-	// Join key
-	if q.Joins.Joins != nil {
-		for j := range *q.Joins.Joins {
-			sb.WriteString((*q.Joins.Joins)[j].Name)
-			sb.WriteString(",")
-			sb.WriteString((*q.Joins.Joins)[j].SearchColumn)
-			sb.WriteString(",")
-			sb.WriteString((*q.Joins.Joins)[j].SearchCondition)
-			sb.WriteString(",")
-			sb.WriteString((*q.Joins.Joins)[j].SearchTargetColumn)
-			sb.WriteString(",")
-		}
-	}
-	if q.Joins.JoinClauses != nil {
-		for _, jc := range *q.Joins.JoinClauses {
-			for _, on := range *jc.On {
-				sb.WriteString(on.Column)
-				sb.WriteString(",")
-				sb.WriteString(on.Condition)
-				sb.WriteString(",")
-				sb.WriteString(on.Value.(string))
-				sb.WriteString(",")
-				if on.Operator == consts.LogicalOperator_OR {
-					sb.WriteString("OR")
-				} else {
-					sb.WriteString("AND")
-				}
-				sb.WriteString(",")
-			}
-		}
-	}
-	sb.WriteString("|")
-
-	// Condition key
-	for c := range q.ConditionGroups {
-		if (q.ConditionGroups)[c].Operator == consts.LogicalOperator_AND {
-			sb.WriteString("AND")
-		} else {
-			sb.WriteString("OR")
-		}
-		sb.WriteString(",")
-		for _, w := range (q.ConditionGroups)[c].Conditions {
-			if w.Operator == consts.LogicalOperator_AND {
-				sb.WriteString("AND")
-			} else {
-				sb.WriteString("OR")
-			}
-			sb.WriteString(w.Column)
-			sb.WriteString(",")
-			sb.WriteString(w.Condition)
-			sb.WriteString(",")
-			if w.Query != nil {
-				sb.WriteString(generateCacheKey(&structs.Union{Query: w.Query}))
-				sb.WriteString(",")
-			}
-		}
-	}
-
-	key := sb.String()
-	stringbufPool.Put(sb)
-
-	return key
-}
-
 func (b *SelectBuilder) GetQuery() *structs.Query {
 	b.buildQuery()
 	return b.query
@@ -527,8 +411,4 @@ func (b *SelectBuilder) GetJoinBuilder() *JoinBuilder[SelectBuilder] {
 
 func (b *SelectBuilder) GetOrderByBuilder() *OrderByBuilder[SelectBuilder] {
 	return b.OrderByBuilder
-}
-
-func (b *SelectBuilder) GetCache() cache.Cache {
-	return b.cache
 }

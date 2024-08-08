@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
@@ -23,22 +22,22 @@ type SelectQueryBuilder struct {
 	QueryBuilderStrategy[SelectQueryBuilder, query.SelectBuilder]
 }
 
-func NewSelectQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *SelectQueryBuilder {
+func NewSelectQueryBuilder(strategy interfaces.QueryBuilderStrategy) *SelectQueryBuilder {
 	sb := &SelectQueryBuilder{
-		//WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy, cache),
-		builder: query.NewBuilder(strategy, cache),
+		//WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy),
+		builder: query.NewBuilder(strategy),
 	}
 	sb.Queries = &[]structs.Query{}
 
-	whereBuilder := NewWhereQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy, cache)
+	whereBuilder := NewWhereQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy)
 	whereBuilder.SetParent(&sb)
 	sb.WhereQueryBuilder = *whereBuilder
 
-	joinBuilder := NewJoinQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy, cache)
+	joinBuilder := NewJoinQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy)
 	joinBuilder.SetParent(&sb)
 	sb.JoinQueryBuilder = *joinBuilder
 
-	orderByBuilder := NewOrderByQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy, cache)
+	orderByBuilder := NewOrderByQueryBuilder[*SelectQueryBuilder, query.SelectBuilder](strategy)
 	orderByBuilder.SetParent(&sb)
 	sb.OrderByQueryBuilder = *orderByBuilder
 

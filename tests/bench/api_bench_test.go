@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
@@ -12,11 +11,31 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 
 	dbStrategy := mysql.NewMySQLQueryBuilder()
 
-	blankCache := cache.NewBlankQueryCache()
-
-	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "users.name as name")
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		qb.Build()
+		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
+	}
+
+	// go test -benchmem -run=^$ -bench BenchmarkSimpleSelectQuery -benchtime=1s
+	// before refactor
+	// 2335863               509.9 ns/op           528 B/op        18 allocs/op
+	// after refactor
+	// 9414712               123.5 ns/op         416 B/op           3 allocs/op
+}
+
+func BenchmarkSimple2SelectQuery(b *testing.B) {
+
+	dbStrategy := mysql.NewMySQLQueryBuilder()
+
+	qb := api.NewSelectQueryBuilder(dbStrategy).
+		Table("models").
+		Where("id", ">", 0).
+		Limit(100)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -34,9 +53,7 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 func BenchmarkNormalSelectQuery(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
 
-	blankCache := cache.NewBlankQueryCache()
-
-	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -60,9 +77,7 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 
 	dbStrategy := mysql.NewMySQLQueryBuilder()
 
-	blankCache := cache.NewBlankQueryCache()
-
-	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -87,9 +102,8 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 
 func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewSelectQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -115,9 +129,8 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 
 func BenchmarkSimpleInsert(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertQueryBuilder(dbStrategy).
 		Table("users").
 		Insert(map[string]interface{}{
 			"name": "John",
@@ -138,9 +151,8 @@ func BenchmarkSimpleInsert(b *testing.B) {
 
 func BenchmarkInsertBatch(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertQueryBuilder(dbStrategy).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -167,9 +179,8 @@ func BenchmarkInsertBatch(b *testing.B) {
 
 func BenchmarkInsertUsing(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewInsertQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewInsertQueryBuilder(dbStrategy).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -181,7 +192,7 @@ func BenchmarkInsertUsing(b *testing.B) {
 				"age":  25,
 			},
 		}).
-		InsertUsing([]string{"name", "age"}, api.NewSelectQueryBuilder(dbStrategy, blankCache).
+		InsertUsing([]string{"name", "age"}, api.NewSelectQueryBuilder(dbStrategy).
 			Table("users").
 			Select("id").
 			Join("profiles", "users.id", "=", "profiles.user_id").
@@ -202,9 +213,8 @@ func BenchmarkInsertUsing(b *testing.B) {
 
 func BenchmarkSimpleUpdate(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewUpdateQueryBuilder(dbStrategy).
 		Table("users").
 		Update(map[string]interface{}{
 			"name": "Joe",
@@ -225,9 +235,8 @@ func BenchmarkSimpleUpdate(b *testing.B) {
 
 func BenchmarkUpdateWhere(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewUpdateQueryBuilder(dbStrategy).
 		Table("users").
 		Where("id", "=", 1).
 		Update(map[string]interface{}{
@@ -249,9 +258,8 @@ func BenchmarkUpdateWhere(b *testing.B) {
 
 func BenchmarkJoinUpdate(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewUpdateQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewUpdateQueryBuilder(dbStrategy).
 		Table("users").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18).
@@ -274,9 +282,8 @@ func BenchmarkJoinUpdate(b *testing.B) {
 
 func BenchmarkDelete(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewDeleteQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewDeleteQueryBuilder(dbStrategy).
 		Table("users").
 		Where("id", "=", 1)
 
@@ -294,9 +301,8 @@ func BenchmarkDelete(b *testing.B) {
 
 func BenchmarkDeleteJoin(b *testing.B) {
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	blankCache := cache.NewBlankQueryCache()
 
-	qb := api.NewDeleteQueryBuilder(dbStrategy, blankCache).
+	qb := api.NewDeleteQueryBuilder(dbStrategy).
 		Table("users").
 		Join("profiles", "users.id", "=", "profiles.user_id").
 		Where("profiles.age", ">", 18)

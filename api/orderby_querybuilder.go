@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -11,9 +10,9 @@ type OrderByQueryBuilder[T QueryBuilderStrategy[T, C], C any] struct {
 	parent  *T
 }
 
-func NewOrderByQueryBuilder[T QueryBuilderStrategy[T, C], C any](strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *OrderByQueryBuilder[T, C] {
+func NewOrderByQueryBuilder[T QueryBuilderStrategy[T, C], C any](strategy interfaces.QueryBuilderStrategy) *OrderByQueryBuilder[T, C] {
 	return &OrderByQueryBuilder[T, C]{
-		builder: query.NewOrderByBuilder[C](strategy, cache),
+		builder: query.NewOrderByBuilder[C](strategy),
 	}
 }
 

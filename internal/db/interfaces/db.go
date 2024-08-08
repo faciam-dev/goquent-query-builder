@@ -13,7 +13,7 @@ type QueryBuilderStrategy interface {
 	Join(sb *strings.Builder, joins *structs.Joins) []interface{}
 	Union(sb *strings.Builder, unions *[]structs.Union, number int)
 	OrderBy(sb *strings.Builder, order *[]structs.Order)
-	Build(sb *strings.Builder, cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{})
+	Build(sb *strings.Builder, q *structs.Query, number int, unions *[]structs.Union) []interface{}
 
 	Insert(q *structs.InsertQuery) (string, []interface{}, error)
 	InsertBatch(q *structs.InsertQuery) (string, []interface{}, error)

@@ -105,18 +105,7 @@ func (BaseQueryBuilder) Lock(sb *strings.Builder, lock *structs.Lock) {
 }
 
 // Build builds the query.
-func (m BaseQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
-	/*
-		// grow the string builder based on the length of the cache key
-		if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
-			sb.Grow(consts.StringBuffer_Short_Query_Grow)
-		} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
-			sb.Grow(consts.StringBuffer_Middle_Query_Grow)
-		} else {
-			sb.Grow(consts.StringBuffer_Long_Query_Grow)
-		}
-	*/
-
+func (m BaseQueryBuilder) Build(sb *strings.Builder, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
 	values := make([]interface{}, 0)
 
 	// SELECT
@@ -155,8 +144,8 @@ func (m BaseQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *structs
 	// UNION
 	m.Union(sb, unions, number)
 
-	query := sb.String()
-	sb.Reset()
+	//query := sb.String()
+	//sb.Reset()
 
-	return query, values
+	return values
 }

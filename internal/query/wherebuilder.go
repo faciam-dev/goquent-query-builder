@@ -1,10 +1,8 @@
 package query
 
 import (
-	"strings"
 	"time"
 
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -13,16 +11,14 @@ import (
 
 type WhereBuilder[T any] struct {
 	dbBuilder   interfaces.QueryBuilderStrategy
-	cache       cache.Cache
 	query       *structs.Query
 	whereValues []interface{}
 	parent      *T
 }
 
-func NewWhereBuilder[T any](strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *WhereBuilder[T] {
+func NewWhereBuilder[T any](strategy interfaces.QueryBuilderStrategy) *WhereBuilder[T] {
 	return &WhereBuilder[T]{
 		dbBuilder: strategy,
-		cache:     cache,
 		query: &structs.Query{
 			Conditions:      &[]structs.Where{},
 			ConditionGroups: []structs.WhereGroup{},
@@ -117,10 +113,10 @@ func (b *WhereBuilder[T]) whereOrOrWhereQuery(column string, condition string, q
 		Operator:  operator,
 	}
 
-	_, value := b.BuildSq(sq)
+	//_, value := b.BuildSq(sq)
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
-	b.whereValues = append(b.whereValues, value...)
+	//b.whereValues = append(b.whereValues, value...)
 	return b.parent
 }
 
@@ -316,10 +312,10 @@ func (b *WhereBuilder[T]) addWhereInSubQuery(column string, operator int, condit
 		Operator:  operator,
 	}
 
-	_, value := b.BuildSq(sq)
+	//_, value := b.BuildSq(sq)
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
-	b.whereValues = append(b.whereValues, value...)
+	//b.whereValues = append(b.whereValues, value...)
 	return b.parent
 }
 
@@ -500,8 +496,8 @@ func (b *WhereBuilder[T]) OrWhereNotExists(fn func(b *SelectBuilder)) *T {
 }
 
 func (b *WhereBuilder[T]) addWhereExists(fn func(aq *SelectBuilder), condition string, operator int, isNot bool) *T {
-	nb := NewBuilder(b.dbBuilder, b.cache)
-	//nb.SetJoinBuilder(NewJoinBuilder[Builder](b.dbBuilder, b.cache))
+	nb := NewBuilder(b.dbBuilder)
+	//nb.SetJoinBuilder(NewJoinBuilder[Builder](b.dbBuilder))
 	//log.Default().Printf("nb: %+v\n", *&nb.selectQuery.Table)
 
 	fn(nb)
@@ -529,10 +525,10 @@ func (b *WhereBuilder[T]) addWhereExists(fn func(aq *SelectBuilder), condition s
 		Exists:    &structs.Exists{IsNot: isNot, Query: sq},
 	}
 
-	_, value := b.BuildSq(sq)
+	//_, value := b.BuildSq(sq)
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
-	b.whereValues = append(b.whereValues, value...)
+	//b.whereValues = append(b.whereValues, value...)
 	return b.parent
 }
 
@@ -580,10 +576,10 @@ func (b *WhereBuilder[T]) addWhereExistsQuery(q *SelectBuilder, condition string
 		Exists:    &structs.Exists{IsNot: isNot, Query: sq},
 	}
 
-	_, value := b.BuildSq(sq)
+	//
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
-	b.whereValues = append(b.whereValues, value...)
+	//b.whereValues = append(b.whereValues, value...)
 	return b.parent
 }
 
@@ -724,31 +720,6 @@ func (b *WhereBuilder[T]) addWhereTime(column string, condition string, value st
 	b.whereValues = append(b.whereValues, value)
 
 	return b.parent
-}
-
-// WhereRawGroup adds a raw where group with AND operator
-// BuildSq builds the query and returns the query string and values
-func (b *WhereBuilder[T]) BuildSq(sq *structs.Query) (string, []interface{}) {
-
-	cacheKey := generateCacheKey(&structs.Union{Query: sq})
-
-	if cachedQuery, found := b.cache.Get(cacheKey); found {
-		values := []interface{}{}
-		values = append(values, b.whereValues...)
-		return cachedQuery, values
-	}
-
-	sb := strings.Builder{}
-	sb.Grow(consts.StringBuffer_Where_Grow)
-
-	_, values := b.dbBuilder.Build(&sb, cacheKey, sq, 0, nil)
-
-	query := sb.String()
-	b.cache.Set(cacheKey, query)
-
-	sb.Reset()
-
-	return query, values
 }
 
 func (b *WhereBuilder[T]) GetQuery() *structs.Query {

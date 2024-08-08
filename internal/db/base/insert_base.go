@@ -157,7 +157,7 @@ func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []inter
 
 	// SELECT
 	b := m.u.GetQueryBuilderStrategy()
-	_, selectValues := b.Build(sb, "", q.Query, 0, nil)
+	selectValues := b.Build(sb, q.Query, 0, nil)
 	//sb.WriteString(selectQuery)
 
 	query := sb.String()
