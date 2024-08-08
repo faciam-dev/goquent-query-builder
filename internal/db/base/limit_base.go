@@ -14,8 +14,8 @@ func NewLimitBaseBuilder() *LimitBaseBuilder {
 	return &LimitBaseBuilder{}
 }
 
-func (LimitBaseBuilder) Limit(sb *strings.Builder, limit *structs.Limit) {
-	if limit == nil || limit.Limit == 0 {
+func (LimitBaseBuilder) Limit(sb *strings.Builder, limit structs.Limit) {
+	if limit.Limit == 0 {
 		return
 	}
 

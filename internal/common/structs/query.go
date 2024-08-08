@@ -64,8 +64,8 @@ type Query struct {
 	Joins           *Joins
 	ConditionGroups []WhereGroup
 	Conditions      *[]Where
-	Limit           *Limit
-	Offset          *Offset
+	Limit           Limit
+	Offset          Offset
 	Order           *[]Order
 	Group           *GroupBy
 	Lock            *Lock
@@ -79,8 +79,8 @@ type Union struct {
 type SelectQuery struct {
 	Table   string
 	Columns *[]Column
-	Limit   *Limit
-	Offset  *Offset
+	Limit   Limit
+	Offset  Offset
 	Union   *[]Union
 	Group   *GroupBy
 	Lock    *Lock

@@ -858,7 +858,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"Limit",
 			"Limit",
 			structs.Query{
-				Limit: &structs.Limit{
+				Limit: structs.Limit{
 					Limit: 10,
 				},
 			},
@@ -871,7 +871,7 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"Offset",
 			"Offset",
 			structs.Query{
-				Offset: &structs.Offset{
+				Offset: structs.Offset{
 					Offset: 10,
 				},
 			},
@@ -884,10 +884,10 @@ func TestBaseQueryBuilder(t *testing.T) {
 			"Limit_And_Offset",
 			"Limit_And_Offset",
 			structs.Query{
-				Limit: &structs.Limit{
+				Limit: structs.Limit{
 					Limit: 10,
 				},
-				Offset: &structs.Offset{
+				Offset: structs.Offset{
 					Offset: 10,
 				},
 			},

@@ -14,8 +14,8 @@ func NewOffsetBaseBuilder() *OffsetBaseBuilder {
 	return &OffsetBaseBuilder{}
 }
 
-func (OffsetBaseBuilder) Offset(sb *strings.Builder, offset *structs.Offset) {
-	if offset == nil || offset.Offset == 0 {
+func (OffsetBaseBuilder) Offset(sb *strings.Builder, offset structs.Offset) {
+	if offset.Offset == 0 {
 		return
 	}
 

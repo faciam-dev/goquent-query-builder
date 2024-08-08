@@ -37,11 +37,11 @@ type UnionBuilderStrategy interface {
 }
 
 type LimitBuilderStrategy interface {
-	Limit(sb *strings.Builder, limit *structs.Limit)
+	Limit(sb *strings.Builder, limit structs.Limit)
 }
 
 type OffsetBuilderStrategy interface {
-	Offset(sb *strings.Builder, offset *structs.Offset)
+	Offset(sb *strings.Builder, offset structs.Offset)
 }
 
 type InsertBuilderStrategy interface {

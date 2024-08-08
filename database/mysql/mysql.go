@@ -90,12 +90,12 @@ func (m MySQLQueryBuilder) Build(sb *strings.Builder, cacheKey string, q *struct
 	}
 
 	// LIMIT
-	if q.Limit != nil && q.Limit.Limit > 0 {
+	if q.Limit.Limit > 0 {
 		m.limitBuilderStrategy.Limit(sb, q.Limit)
 	}
 
 	// OFFSET
-	if q.Offset != nil && q.Offset.Offset > 0 {
+	if q.Offset.Offset > 0 {
 		m.OffsetBuilderStrategy.Offset(sb, q.Offset)
 	}
 

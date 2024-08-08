@@ -21,7 +21,7 @@ func NewWhereBaseBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup) *Whe
 }
 
 func (wb *WhereBaseBuilder) Where(sb *strings.Builder, wg []structs.WhereGroup) []interface{} {
-	if wg == nil || len(wg) == 0 {
+	if len(wg) == 0 {
 		return []interface{}{}
 	}
 
