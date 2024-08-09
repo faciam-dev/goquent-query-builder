@@ -5,6 +5,7 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
+/*
 type SelectBuilderStrategy interface {
 	Select(sb *[]byte, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{}
 }
@@ -56,6 +57,7 @@ type DeleteBuilderStrategy interface {
 	Delete(q *structs.DeleteQuery) *DeleteBaseBuilder
 	BuildDelete(q *structs.DeleteQuery) (string, []interface{}, error)
 }
+*/
 
 type BaseQueryBuilder struct {
 	UnionBaseBuilder

@@ -12,17 +12,19 @@ type MySQLQueryBuilder struct {
 	base.InsertBaseBuilder
 	base.UpdateBaseBuilder
 
-	selectBuilderStrategy  base.SelectBuilderStrategy
-	FromBuilderStrategy    base.FromBuilderStrategy
-	joinBuilderStrategy    base.JoinBuilderStrategy
-	whereBuilderStrategy   base.WhereBuilderStrategy
-	orderByBuilderStrategy base.OrderByBuilderStrategy
-	groupByBuilderStrategy base.GroupByBuilderStrategy
-	limitBuilderStrategy   base.LimitBuilderStrategy
-	OffsetBuilderStrategy  base.OffsetBuilderStrategy
-	insertBuilderStrategy  base.InsertBuilderStrategy
-	updateBuilderStrategy  base.UpdateBuilderStrategy
-	deleteBuilderStrategy  base.DeleteBuilderStrategy
+	//selectBuilderStrategy base.SelectBuilderStrategy
+	//FromBuilderStrategy   base.FromBuilderStrategy
+	//joinBuilderStrategy   base.JoinBuilderStrategy
+	//whereBuilderStrategy   base.WhereBuilderStrategy
+	//orderByBuilderStrategy base.OrderByBuilderStrategy
+	//groupByBuilderStrategy base.GroupByBuilderStrategy
+	//limitBuilderStrategy   base.LimitBuilderStrategy
+	//OffsetBuilderStrategy  base.OffsetBuilderStrategy
+	//insertBuilderStrategy  base.InsertBuilderStrategy
+	//updateBuilderStrategy  base.UpdateBuilderStrategy
+	//deleteBuilderStrategy  base.DeleteBuilderStrategy
+
+	WhereMySQLBuilder
 
 	util interfaces.SQLUtils
 }
@@ -37,19 +39,26 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	queryBuilder.FromBaseBuilder = *base.NewFromBaseBuilder(u)
 	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
 	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-	queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
-	queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
-	queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
-	queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-	queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
-	queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
-	queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
-	queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
+	queryBuilder.WhereMySQLBuilder = *NewWhereMySQLBuilder(u, []structs.WhereGroup{})
+	/*
+		queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
+		queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
+		queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
+	*/
+	//queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
+	/*
+		queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
+			queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
+			queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
+			queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
+			queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
+	*/
 	queryBuilder.UpdateBaseBuilder = *base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
 	queryBuilder.InsertBaseBuilder = *base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
-	queryBuilder.insertBuilderStrategy = base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
-	queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
+	/*
+		queryBuilder.insertBuilderStrategy = base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
+		queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
+	*/
 	queryBuilder.DeleteBaseBuilder = *base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
 	return queryBuilder
 }
@@ -65,15 +74,19 @@ func NewMySQLInsertQueryBuilder() *MySQLQueryBuilder {
 	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
 	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
 	queryBuilder.InsertBaseBuilder = *base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
-	queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
-	queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
-	queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
-	queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-	queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
-	queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
-	queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
-	queryBuilder.insertBuilderStrategy = base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
+	/*
+		queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
+		queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
+		queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
+	*/
+	//queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
+	/*
+		queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
+		queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
+		queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
+		queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
+		queryBuilder.insertBuilderStrategy = base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
+	*/
 	return queryBuilder
 }
 
@@ -88,15 +101,19 @@ func NewMySQLQueryUpdateBuilder() *MySQLQueryBuilder {
 	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
 	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
 	queryBuilder.UpdateBaseBuilder = *base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
-	queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
-	queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
-	queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
-	queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-	queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
-	queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
-	queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
-	queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
+	/*
+		queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
+		queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
+		queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
+	*/
+	//queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
+	/*
+		queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
+		queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
+		queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
+		queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
+		queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
+	*/
 	return queryBuilder
 }
 
@@ -111,15 +128,19 @@ func NewMySQLQueryDeleteBuilder() *MySQLQueryBuilder {
 	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
 	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
 	queryBuilder.DeleteBaseBuilder = *base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
-	queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
-	queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
-	queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
-	queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-	queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
-	queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
-	queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
-	queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
+	/*
+		queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
+		queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
+		queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
+	*/
+	//queryBuilder.whereBuilderStrategy = NewWhereMySQLBuilder(u, []structs.WhereGroup{})
+	/*
+		queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
+		queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
+		queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
+		queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
+		queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
+	*/
 	return queryBuilder
 }
 
@@ -127,43 +148,43 @@ func NewMySQLQueryDeleteBuilder() *MySQLQueryBuilder {
 func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
 	// SELECT
 	*sb = append(*sb, "SELECT "...)
-	colValues := m.selectBuilderStrategy.Select(sb, q.Columns, q.Table.Name, q.Joins)
+	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
 
 	*sb = append(*sb, " "...)
-	m.FromBuilderStrategy.From(sb, q.Table.Name)
+	m.From(sb, q.Table.Name)
 	values := colValues
 
 	// JOIN
 	if q.Joins.JoinClauses != nil && (len(*q.Joins.JoinClauses) > 0 || len(*q.Joins.LateralJoins) > 0 || len(*q.Joins.Joins) > 0) {
-		joinValues := m.joinBuilderStrategy.Join(sb, q.Joins)
+		joinValues := m.Join(sb, q.Joins)
 		values = append(values, joinValues...)
 	}
 
 	// WHERE
 	if len(q.ConditionGroups) > 0 {
-		whereValues := m.whereBuilderStrategy.Where(sb, q.ConditionGroups)
+		whereValues := m.Where(sb, q.ConditionGroups)
 		values = append(values, whereValues...)
 	}
 
 	// GROUP BY / HAVING
 	if q.Group != nil && len(q.Group.Columns) > 0 {
-		groupByValues := m.groupByBuilderStrategy.GroupBy(sb, q.Group)
+		groupByValues := m.GroupBy(sb, q.Group)
 		values = append(values, groupByValues...)
 	}
 
 	// ORDER BY
 	if len(*q.Order) > 0 {
-		m.orderByBuilderStrategy.OrderBy(sb, q.Order)
+		m.OrderBy(sb, q.Order)
 	}
 
 	// LIMIT
 	if q.Limit.Limit > 0 {
-		m.limitBuilderStrategy.Limit(sb, q.Limit)
+		m.Limit(sb, q.Limit)
 	}
 
 	// OFFSET
 	if q.Offset.Offset > 0 {
-		m.OffsetBuilderStrategy.Offset(sb, q.Offset)
+		m.Offset(sb, q.Offset)
 	}
 
 	// LOCK
@@ -183,5 +204,5 @@ func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, union
 }
 
 func (m MySQLQueryBuilder) Where(sb *[]byte, c []structs.WhereGroup) []interface{} {
-	return m.whereBuilderStrategy.Where(sb, c)
+	return m.WhereMySQLBuilder.Where(sb, c)
 }
