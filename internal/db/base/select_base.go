@@ -53,10 +53,21 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 		return []interface{}{}
 	}
 
-	colValues := make([]interface{}, 0, len(*columns))
-	firstDistinct := false
+	// if there are columns has values
+	var colValues []interface{}
+	hasValues := false
+	for i := 0; i < len(*columns); i++ {
+		if (*columns)[i].Values != nil && len((*columns)[i].Values) > 0 {
+			hasValues = true
+			break
+		}
+	}
+	if hasValues {
+		colValues = make([]interface{}, 0, len(*columns))
+	}
 
 	// if there are columns to select
+	firstDistinct := false
 	for i := 0; i < len(*columns); i++ {
 		//	for i := range *columns {
 		if (*columns)[i].Distinct && !(*columns)[i].Count && !firstDistinct {

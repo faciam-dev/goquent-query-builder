@@ -1,24 +1,32 @@
 package stringutils
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 // EscapeString escapes a string for use in a SQL query
 func EscapeString(str string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(str, "'", "''"), "\\", "\\\\")
 }
 
-func ManualSplit(s, sep string) []string {
-	var res []string
-	start := 0
-	for i := 0; i+len(sep) <= len(s); i++ {
-		if s[i:i+len(sep)] == sep {
-			res = append(res, s[start:i])
-			i += len(sep) - 1
-			start = i + 1
-		}
+func ToString(value interface{}) string {
+	var str string
+	switch v := value.(type) {
+	case int, int8, int16, int32, int64:
+		str = strconv.FormatInt(v.(int64), 10)
+	case uint, uint8, uint16, uint32, uint64:
+		str = strconv.FormatUint(v.(uint64), 10)
+	case float32, float64:
+		str = strconv.FormatFloat(v.(float64), 'f', -1, 64)
+	case bool:
+		str = strconv.FormatBool(v)
+	case string:
+		str = v
+	case []byte:
+		str = string(v)
+	case nil:
+		str = "NULL"
 	}
-	if start < len(s) {
-		res = append(res, s[start:])
-	}
-	return res
+	return str
 }

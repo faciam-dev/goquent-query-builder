@@ -78,6 +78,13 @@ var bytebufPool = sync.Pool{
 	},
 }
 
+var interfaceSlicePool = sync.Pool{
+	New: func() interface{} {
+		s := make([]interface{}, 0)
+		return &s
+	},
+}
+
 /*
 func (qb *SelectBuilder) SetBuilders(where *WhereBuilder[SelectBuilder], join *JoinBuilder[SelectBuilder], orderBy *OrderByBuilder[SelectBuilder]) {
 	qb.WhereBuilder = where
@@ -333,9 +340,6 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 
 	//sb.Grow(consts.StringBuffer_Short_Query_Grow)
 
-	//query := ""
-	values := make([]interface{}, 0)
-
 	estimatedSize := consts.StringBuffer_Short_Query_Grow
 	for i := range *b.selectQuery.Union {
 		if len((*b.selectQuery.Union)[i].Query.ConditionGroups) > 1 {
@@ -350,6 +354,11 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 	}
 	// grow the string builder based on the length of the cache key
 	//sb.Grow(estimatedSize)
+
+	//query := ""
+	vPtr := interfaceSlicePool.Get().(*[]interface{})
+	values := *vPtr
+	values = values[0:0]
 
 	for i := range *b.selectQuery.Union {
 		//sb.Grow(consts.StringBuffer_Middle_Query_Grow)
@@ -367,6 +376,9 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 	*ptr = sb
 
 	bytebufPool.Put(ptr)
+
+	*vPtr = values
+	interfaceSlicePool.Put(vPtr)
 
 	//stringbufPool.Put(sb)
 

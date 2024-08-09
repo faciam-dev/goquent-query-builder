@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -19,44 +18,24 @@ func (s *SQLUtils) GetPlaceholder() string {
 }
 
 func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte {
-	eoc := strings.Index(strings.ToLower(value), " as ")
+	eoc := strings.Index(value, " as ")
 	if eoc != -1 {
-		eoc := strings.Index(value, " as ")
-		var pa, pb string
-		pa = value[:eoc]
-		pb = value[eoc+4:]
-		if eoc == -1 {
-			eoc = strings.Index(value, " AS ")
-			pa = value[:eoc]
-			pb = value[eoc+4:]
-		}
-		//split := strings.Split(v, " as ")
-		//if len(split) != 2 {
-		//	split = strings.Split(v, " AS ")
-		//}
-		if eoc != -1 {
-			sb = s.EscapeIdentifier2(sb, pa)
-			sb = append(sb, " as "...)
-			sb = s.EscapeIdentifier2(sb, pb)
-			return sb
-			//return s.EscapeIdentifier(sb, split[0]) + " as " + s.EscapeIdentifier(sb, split[1])
-		}
-	} else {
-		sb = s.EscapeIdentifier2(sb, value)
-		return sb
-	}
-
-	target := regexp.MustCompile(`(?i)\s+as\s+`)
-	if target.MatchString(value) {
-		parts := target.Split(value, -1)
-		sb = s.EscapeIdentifier2(sb, parts[0])
+		sb = s.EscapeIdentifier2(sb, value[:eoc])
 		sb = append(sb, " as "...)
-		sb = s.EscapeIdentifier2(sb, parts[1])
+		sb = s.EscapeIdentifier2(sb, value[eoc+4:])
 		return sb
-		//return s.EscapeIdentifier(sb, parts[0]) + " as " + s.EscapeIdentifier(sb, parts[1])
+	} else {
+		eoc = strings.Index(value, " AS ")
+		if eoc != -1 {
+			sb = s.EscapeIdentifier2(sb, value[:eoc])
+			sb = append(sb, " as "...)
+			sb = s.EscapeIdentifier2(sb, value[eoc+4:])
+			return sb
+		} else {
+			sb = s.EscapeIdentifier2(sb, value)
+			return sb
+		}
 	}
-
-	return append(sb, value...)
 }
 
 func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {
