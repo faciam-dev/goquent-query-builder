@@ -17,18 +17,16 @@ type QueryBuilder struct {
 */
 
 type SelectBuilder struct {
-	dbBuilder     interfaces.QueryBuilderStrategy
-	query         *structs.Query
-	selectQuery   *structs.SelectQuery
-	selectValues  []interface{}
-	groupByValues []interface{}
+	dbBuilder   interfaces.QueryBuilderStrategy
+	query       *structs.Query
+	selectQuery *structs.SelectQuery
 	*WhereBuilder[SelectBuilder]
 	*JoinBuilder[SelectBuilder]
 	*OrderByBuilder[SelectBuilder]
 	BaseBuilder
 }
 
-func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy) *SelectBuilder {
+func NewSelectBuilder(dbBuilder interfaces.QueryBuilderStrategy) *SelectBuilder {
 	b := &SelectBuilder{
 		dbBuilder: dbBuilder,
 		query: &structs.Query{
@@ -51,8 +49,6 @@ func NewBuilder(dbBuilder interfaces.QueryBuilderStrategy) *SelectBuilder {
 			Lock:    &structs.Lock{},
 			Union:   &[]structs.Union{},
 		},
-		selectValues:  []interface{}{},
-		groupByValues: []interface{}{},
 		//joinBuilder:    NewJoinBuilder(dbBuilder),
 	}
 
@@ -85,26 +81,6 @@ var interfaceSlicePool = sync.Pool{
 	},
 }
 
-/*
-func (qb *SelectBuilder) SetBuilders(where *WhereBuilder[SelectBuilder], join *JoinBuilder[SelectBuilder], orderBy *OrderByBuilder[SelectBuilder]) {
-	qb.WhereBuilder = where
-	qb.JoinBuilder = join
-	qb.OrderByBuilder = orderBy
-}
-
-func (b *SelectBuilder) SetWhereBuilder(whereBuilder *WhereBuilder[SelectBuilder]) {
-	b.WhereBuilder = whereBuilder
-}
-
-func (b *SelectBuilder) SetJoinBuilder(joinBuilder *JoinBuilder[SelectBuilder]) {
-	b.JoinBuilder = joinBuilder
-}
-
-func (b *SelectBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder[SelectBuilder]) {
-	b.OrderByBuilder = orderByBuilder
-}
-*/
-
 func (b *SelectBuilder) Table(table string) *SelectBuilder {
 	b.selectQuery.Table = table
 	return b
@@ -118,7 +94,6 @@ func (b *SelectBuilder) Select(columns ...string) *SelectBuilder {
 }
 
 func (b *SelectBuilder) SelectRaw(raw string, value ...interface{}) *SelectBuilder {
-	b.selectValues = append(b.selectValues, value...)
 	*b.selectQuery.Columns = append(*b.selectQuery.Columns, structs.Column{Raw: raw, Values: value})
 	return b
 }
@@ -225,27 +200,6 @@ func (b *SelectBuilder) UnionAll(sb *SelectBuilder) *SelectBuilder {
 	return b
 }
 
-/*
-// OrderBy adds an ORDER BY clause.
-func (b *Builder) OrderBy(column string, ascDesc string) *Builder {
-	b.OrderByBuilder.OrderBy(column, ascDesc)
-
-	return b
-}
-
-// ReOrder removes all ORDER BY clauses.
-func (b *Builder) ReOrder() *Builder {
-	b.OrderByBuilder.ReOrder()
-	return b
-}
-
-// OrderByRaw adds a raw ORDER BY clause.
-func (b *Builder) OrderByRaw(raw string) *Builder {
-	b.OrderByBuilder.OrderByRaw(raw)
-	return b
-}
-*/
-
 // GroupBy adds a GROUP BY clause.
 func (b *SelectBuilder) GroupBy(columns ...string) *SelectBuilder {
 	*b.selectQuery.Group = structs.GroupBy{
@@ -334,7 +288,9 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 	//sb.Reset()
 	ptr := bytebufPool.Get().(*[]byte)
 	sb := *ptr
-	sb = sb[0:0]
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
 	//sb = sb[:0]
 	//sb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
 
@@ -353,12 +309,20 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 		}
 	}
 	// grow the string builder based on the length of the cache key
+	if cap(sb) < estimatedSize {
+		newsb := make([]byte, 0, estimatedSize)
+		copy(newsb, sb)
+		sb = newsb
+	}
+
 	//sb.Grow(estimatedSize)
 
 	//query := ""
 	vPtr := interfaceSlicePool.Get().(*[]interface{})
 	values := *vPtr
-	values = values[0:0]
+	if len(values) > 0 {
+		values = values[0:0]
+	}
 
 	for i := range *b.selectQuery.Union {
 		//sb.Grow(consts.StringBuffer_Middle_Query_Grow)

@@ -51,7 +51,7 @@ func TestInsertBuilder(t *testing.T) {
 			func() *query.InsertBuilder {
 				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
-					InsertUsing([]string{"name", "age"}, query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+					InsertUsing([]string{"name", "age"}, query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 						Table("profiles").
 						Select("name", "age").
 						Where("age", ">", 18))

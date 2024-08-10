@@ -57,7 +57,7 @@ const (
 )
 
 const (
-	StringBuffer_Short_Query_Grow  = 128
+	StringBuffer_Short_Query_Grow  = 96
 	StringBuffer_Middle_Query_Grow = 512
 	StringBuffer_Long_Query_Grow   = 1024
 

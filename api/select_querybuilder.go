@@ -25,7 +25,7 @@ type SelectQueryBuilder struct {
 func NewSelectQueryBuilder(strategy interfaces.QueryBuilderStrategy) *SelectQueryBuilder {
 	sb := &SelectQueryBuilder{
 		//WhereQueryBuilder: *NewWhereQueryBuilder[SelectBuilder, query.Builder](strategy),
-		builder: query.NewBuilder(strategy),
+		builder: query.NewSelectBuilder(strategy),
 	}
 	sb.Queries = &[]structs.Query{}
 

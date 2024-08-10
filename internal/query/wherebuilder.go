@@ -10,10 +10,9 @@ import (
 )
 
 type WhereBuilder[T any] struct {
-	dbBuilder   interfaces.QueryBuilderStrategy
-	query       *structs.Query
-	whereValues []interface{}
-	parent      *T
+	dbBuilder interfaces.QueryBuilderStrategy
+	query     *structs.Query
+	parent    *T
 }
 
 func NewWhereBuilder[T any](strategy interfaces.QueryBuilderStrategy) *WhereBuilder[T] {
@@ -23,7 +22,6 @@ func NewWhereBuilder[T any](strategy interfaces.QueryBuilderStrategy) *WhereBuil
 			Conditions:      &[]structs.Where{},
 			ConditionGroups: []structs.WhereGroup{},
 		},
-		whereValues: []interface{}{},
 	}
 }
 
@@ -41,7 +39,6 @@ func (b *WhereBuilder[T]) Where(column string, condition string, value ...interf
 		Value:     value,
 		Operator:  consts.LogicalOperator_AND,
 	})
-	b.whereValues = append(b.whereValues, value...)
 	return b.parent
 }
 
@@ -53,7 +50,6 @@ func (b *WhereBuilder[T]) OrWhere(column string, condition string, value ...inte
 		Value:     value,
 		Operator:  consts.LogicalOperator_OR,
 	})
-	b.whereValues = append(b.whereValues, value...)
 	return b.parent
 }
 
@@ -64,7 +60,6 @@ func (b *WhereBuilder[T]) WhereRaw(column string, value ...interface{}) *T {
 		Raw:      column,
 		Operator: consts.LogicalOperator_AND,
 	})
-	b.whereValues = append(b.whereValues, value...)
 	return b.parent
 }
 
@@ -75,7 +70,7 @@ func (b *WhereBuilder[T]) OrWhereRaw(column string, value ...interface{}) *T {
 		Raw:      column,
 		Operator: consts.LogicalOperator_OR,
 	})
-	b.whereValues = append(b.whereValues, value...)
+
 	return b.parent
 }
 
@@ -116,7 +111,7 @@ func (b *WhereBuilder[T]) whereOrOrWhereQuery(column string, condition string, q
 	//_, value := b.BuildSq(sq)
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
-	//b.whereValues = append(b.whereValues, value...)
+	//
 	return b.parent
 }
 
@@ -203,7 +198,6 @@ func (b *WhereBuilder[T]) addWhereConditions(columns []string, condition string,
 			Value:     []interface{}{value},
 			Operator:  operator,
 		})
-		b.whereValues = append(b.whereValues, value)
 	}
 
 	b.query.ConditionGroups = append(b.query.ConditionGroups, structs.WhereGroup{
@@ -254,8 +248,6 @@ func (b *WhereBuilder[T]) addWhereIn(column string, operator int, condition stri
 			Column:    column,
 			Condition: condition,
 		})
-
-		b.whereValues = append(b.whereValues, nValues...)
 
 	case *SelectBuilder:
 		return b.addWhereInSubQuery(column, operator, condition, casted)
@@ -315,7 +307,7 @@ func (b *WhereBuilder[T]) addWhereInSubQuery(column string, operator int, condit
 	//_, value := b.BuildSq(sq)
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
-	//b.whereValues = append(b.whereValues, value...)
+	//
 	return b.parent
 }
 
@@ -368,7 +360,6 @@ func (b *WhereBuilder[T]) addWhereCondition(allColumns []string, column string, 
 		ValueColumn: valueColumn,
 		Operator:    operator,
 	})
-	b.whereValues = append(b.whereValues, valueColumn)
 
 	return b.parent
 }
@@ -434,7 +425,6 @@ func (b *WhereBuilder[T]) addWhereBetween(column string, from interface{}, to in
 		Operator:  operator,
 		Condition: condition,
 	})
-	b.whereValues = append(b.whereValues, from, to)
 
 	return b.parent
 }
@@ -470,7 +460,6 @@ func (b *WhereBuilder[T]) addWhereBetweenColumns(allColumns []string, column str
 		Operator:  operator,
 		Condition: condition,
 	})
-	b.whereValues = append(b.whereValues, min, max)
 
 	return b.parent
 }
@@ -496,7 +485,7 @@ func (b *WhereBuilder[T]) OrWhereNotExists(fn func(b *SelectBuilder)) *T {
 }
 
 func (b *WhereBuilder[T]) addWhereExists(fn func(aq *SelectBuilder), condition string, operator int, isNot bool) *T {
-	nb := NewBuilder(b.dbBuilder)
+	nb := NewSelectBuilder(b.dbBuilder)
 	//nb.SetJoinBuilder(NewJoinBuilder[Builder](b.dbBuilder))
 	//log.Default().Printf("nb: %+v\n", *&nb.selectQuery.Table)
 
@@ -528,7 +517,7 @@ func (b *WhereBuilder[T]) addWhereExists(fn func(aq *SelectBuilder), condition s
 	//_, value := b.BuildSq(sq)
 
 	*b.query.Conditions = append(*b.query.Conditions, *args)
-	//b.whereValues = append(b.whereValues, value...)
+	//
 	return b.parent
 }
 
@@ -621,8 +610,6 @@ func (b *WhereBuilder[T]) addWhereDate(column string, condition string, value st
 		Operator:  operator,
 	})
 
-	b.whereValues = append(b.whereValues, value)
-
 	return b.parent
 }
 
@@ -644,8 +631,6 @@ func (b *WhereBuilder[T]) addWhereMonth(column string, condition string, value s
 		Value:     []interface{}{value},
 		Operator:  operator,
 	})
-
-	b.whereValues = append(b.whereValues, value)
 
 	return b.parent
 }
@@ -669,8 +654,6 @@ func (b *WhereBuilder[T]) addWhereDay(column string, condition string, value str
 		Operator:  operator,
 	})
 
-	b.whereValues = append(b.whereValues, value)
-
 	return b.parent
 }
 
@@ -693,8 +676,6 @@ func (b *WhereBuilder[T]) addWhereYear(column string, condition string, value st
 		Operator:  operator,
 	})
 
-	b.whereValues = append(b.whereValues, value)
-
 	return b.parent
 }
 
@@ -716,8 +697,6 @@ func (b *WhereBuilder[T]) addWhereTime(column string, condition string, value st
 		Value:     []interface{}{value},
 		Operator:  operator,
 	})
-
-	b.whereValues = append(b.whereValues, value)
 
 	return b.parent
 }

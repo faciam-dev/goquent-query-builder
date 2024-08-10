@@ -19,7 +19,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Select",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id", "name")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id", "name")
 			},
 			"SELECT `id`, `name` FROM ``",
 			nil,
@@ -27,7 +27,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"SelectRaw",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).SelectRaw("COUNT(*) as `total`")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).SelectRaw("COUNT(*) as `total`")
 			},
 			"SELECT COUNT(*) as `total` FROM ``",
 			nil,
@@ -35,7 +35,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Count",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Count()
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Count()
 			},
 			"SELECT COUNT(*) FROM ``",
 			nil,
@@ -43,7 +43,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Count_Columns",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Count("id")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Count("id")
 			},
 			"SELECT COUNT(`id`) FROM ``",
 			nil,
@@ -51,7 +51,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Count_Distinct",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Count("id").Distinct("id")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Count("id").Distinct("id")
 			},
 			"SELECT COUNT(DISTINCT `id`) FROM ``",
 			nil,
@@ -59,7 +59,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Count_Distinct_Columns",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Distinct("id", "name").Count("id", "name")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Distinct("id", "name").Count("id", "name")
 			},
 			"SELECT COUNT(DISTINCT `id`), COUNT(DISTINCT `name`) FROM ``",
 			nil,
@@ -67,7 +67,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Distincts",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Distinct("id", "name")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Distinct("id", "name")
 			},
 			"SELECT DISTINCT `id`, `name` FROM ``",
 			nil,
@@ -75,7 +75,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Max",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Max("price")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Max("price")
 			},
 			"SELECT MAX(`price`) FROM ``",
 			nil,
@@ -83,7 +83,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Min",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Min("price")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Min("price")
 			},
 			"SELECT MIN(`price`) FROM ``",
 			nil,
@@ -91,7 +91,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Sum",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Sum("price")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Sum("price")
 			},
 			"SELECT SUM(`price`) FROM ``",
 			nil,
@@ -99,7 +99,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Avg",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Avg("price")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Avg("price")
 			},
 			"SELECT AVG(`price`) FROM ``",
 			nil,
@@ -107,7 +107,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"SelectRaw_With_Value",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).SelectRaw("`price` * ? as `price_with_tax`", 1.0825)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).SelectRaw("`price` * ? as `price_with_tax`", 1.0825)
 			},
 			"SELECT `price` * ? as `price_with_tax` FROM ``",
 			[]interface{}{1.0825},
@@ -115,7 +115,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"From",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Table("users")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Table("users")
 			},
 			"SELECT * FROM `users`",
 			nil,
@@ -123,7 +123,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Inner_Join",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Join("orders", "users.id", "=", "orders.user_id")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Join("orders", "users.id", "=", "orders.user_id")
 			},
 			"SELECT `orders`.*, ``.* FROM `` INNER JOIN `orders` ON `users`.`id` = `orders`.`user_id`",
 			nil,
@@ -131,7 +131,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Left_Join",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).LeftJoin("orders", "users.id", "=", "orders.user_id")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).LeftJoin("orders", "users.id", "=", "orders.user_id")
 			},
 			"SELECT `orders`.*, ``.* FROM `` LEFT JOIN `orders` ON `users`.`id` = `orders`.`user_id`",
 			nil,
@@ -139,7 +139,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Right_Join",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).RightJoin("orders", "users.id", "=", "orders.user_id")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).RightJoin("orders", "users.id", "=", "orders.user_id")
 			},
 			"SELECT `orders`.*, ``.* FROM `` RIGHT JOIN `orders` ON `users`.`id` = `orders`.`user_id`",
 			nil,
@@ -147,7 +147,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Cross_Join",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).CrossJoin("orders")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).CrossJoin("orders")
 			},
 			"SELECT `orders`.*, ``.* FROM `` CROSS JOIN `orders`",
 			nil,
@@ -155,7 +155,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Join_and_Join",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Join("orders", "users.id", "=", "orders.user_id").Join("products", "orders.product_id", "=", "products.id")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Join("orders", "users.id", "=", "orders.user_id").Join("products", "orders.product_id", "=", "products.id")
 			},
 			"SELECT `orders`.*, ``.*, `products`.* FROM `` INNER JOIN `orders` ON `users`.`id` = `orders`.`user_id` INNER JOIN `products` ON `orders`.`product_id` = `products`.`id`",
 			nil,
@@ -163,7 +163,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"JoinQuery",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).JoinQuery("users", func(b *query.JoinClauseBuilder) {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).JoinQuery("users", func(b *query.JoinClauseBuilder) {
 					b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
 				})
 			},
@@ -173,7 +173,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"LeftJoinQuery",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).LeftJoinQuery("users", func(b *query.JoinClauseBuilder) {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).LeftJoinQuery("users", func(b *query.JoinClauseBuilder) {
 					b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
 				})
 			},
@@ -183,7 +183,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"RightJoinQuery",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).RightJoinQuery("users", func(b *query.JoinClauseBuilder) {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).RightJoinQuery("users", func(b *query.JoinClauseBuilder) {
 					b.On("users.id", "=", "profiles.user_id").OrOn("users.id", "=", "profiles.alter_user_id").Where("profiles.age", ">", 18)
 				})
 			},
@@ -193,7 +193,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"JoinSub",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).JoinSub(query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("profiles").Where("age", ">", 18), "profiles", "users.id", "=", "profiles.user_id")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).JoinSub(query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("profiles").Where("age", ">", 18), "profiles", "users.id", "=", "profiles.user_id")
 			},
 			"SELECT `profiles`.*, ``.* FROM `` INNER JOIN (SELECT `id` FROM `profiles` WHERE `age` > ?) as `profiles` ON `users`.`id` = `profiles`.`user_id`",
 			[]interface{}{18},
@@ -201,7 +201,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Lateral_Join",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).JoinLateral(query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("profiles").Where("age", ">", 18), "profiles")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).JoinLateral(query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("profiles").Where("age", ">", 18), "profiles")
 			},
 			"SELECT `profiles`.*, ``.* FROM `` ,LATERAL(SELECT `id` FROM `profiles` WHERE `age` > ?) as `profiles`",
 			[]interface{}{18},
@@ -209,7 +209,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"LeftLateral_Join",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).LeftJoinLateral(query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("profiles").Where("age", ">", 18), "profiles")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).LeftJoinLateral(query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("profiles").Where("age", ">", 18), "profiles")
 			},
 			"SELECT `profiles`.*, ``.* FROM `` ,LEFT LATERAL(SELECT `id` FROM `profiles` WHERE `age` > ?) as `profiles`",
 			[]interface{}{18},
@@ -217,7 +217,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrderBy",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).OrderBy("name", "asc")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).OrderBy("name", "asc")
 			},
 			"SELECT * FROM `` ORDER BY `name` ASC",
 			nil,
@@ -225,7 +225,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrderByDesc_And_ReOrder",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).OrderBy("name", "asc").ReOrder().OrderBy("name", "desc")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).OrderBy("name", "asc").ReOrder().OrderBy("name", "desc")
 			},
 			"SELECT * FROM `` ORDER BY `name` DESC",
 			nil,
@@ -233,7 +233,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"OrderByRaw",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).OrderByRaw("RAND()")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).OrderByRaw("RAND()")
 			},
 			"SELECT * FROM `` ORDER BY RAND()",
 			nil,
@@ -241,7 +241,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age")
 			},
 			"SELECT * FROM `` GROUP BY `name`, `age`",
 			nil,
@@ -249,7 +249,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy_Having",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age").Having("age", ">", 18)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age").Having("age", ">", 18)
 			},
 			"SELECT * FROM `` GROUP BY `name`, `age` HAVING `age` > ?",
 			[]interface{}{18},
@@ -257,7 +257,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy_Having_OR",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age").Having("age", ">", 18).OrHaving("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age").Having("age", ">", 18).OrHaving("name", "=", "John")
 			},
 			"SELECT * FROM `` GROUP BY `name`, `age` HAVING `age` > ? OR `name` = ?",
 			[]interface{}{18, "John"},
@@ -265,7 +265,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy_Having_Raw",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age").HavingRaw("`age` > 18")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age").HavingRaw("`age` > 18")
 			},
 			"SELECT * FROM `` GROUP BY `name`, `age` HAVING `age` > 18",
 			nil,
@@ -273,7 +273,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"GroupBy_HavingRaw_OR",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age").HavingRaw("`age` > 18").OrHavingRaw("`name` = 'John'")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).GroupBy("name", "age").HavingRaw("`age` > 18").OrHavingRaw("`name` = 'John'")
 			},
 			"SELECT * FROM `` GROUP BY `name`, `age` HAVING `age` > 18 OR `name` = 'John'",
 			nil,
@@ -281,7 +281,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Limit",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Limit(10)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Limit(10)
 			},
 			"SELECT * FROM `` LIMIT 10",
 			nil,
@@ -289,7 +289,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Offset",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Offset(10)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Offset(10)
 			},
 			"SELECT * FROM `` OFFSET 10",
 			nil,
@@ -297,7 +297,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Limit_And_Offset",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Limit(10).Offset(5)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Limit(10).Offset(5)
 			},
 			"SELECT * FROM `` LIMIT 10 OFFSET 5",
 			nil,
@@ -305,7 +305,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Lock FOR UPDATE",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).LockForUpdate()
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).LockForUpdate()
 			},
 			"SELECT * FROM `` FOR UPDATE",
 			nil,
@@ -313,7 +313,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Lock_Shared",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).SharedLock()
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).SharedLock()
 			},
 			"SELECT * FROM `` LOCK IN SHARE MODE",
 			nil,
@@ -321,7 +321,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Union",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Union(query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")).Where("age", ">", 18)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Union(query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")).Where("age", ">", 18)
 			},
 			"SELECT `id` FROM `users` WHERE `name` = ? UNION SELECT * FROM `` WHERE `age` > ?",
 			[]interface{}{"John", 18},
@@ -329,7 +329,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Union_All",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).UnionAll(query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")).Where("age", ">", 18)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).UnionAll(query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")).Where("age", ">", 18)
 			},
 			"SELECT `id` FROM `users` WHERE `name` = ? UNION ALL SELECT * FROM `` WHERE `age` > ?",
 			[]interface{}{"John", 18},
@@ -337,7 +337,7 @@ func TestBuilder(t *testing.T) {
 		{
 			"Complex_Query",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					Select("id", "name").
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -350,8 +350,8 @@ func TestBuilder(t *testing.T) {
 		{
 			"Complex_Query_With_Subquery",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					SelectRaw("`id`, `name`, `profiles`.`point` * ? as `profiles_point`", 1.05).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
@@ -399,7 +399,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"Where",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18)
 			},
 			"SELECT * FROM `` WHERE `age` > ?",
 			[]interface{}{18},
@@ -407,7 +407,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhere",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("email", "LIKE", "%@gmail.com%").OrWhere("email", "LIKE", "%@yahoo.com%").OrWhere("age", ">", 18)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("email", "LIKE", "%@gmail.com%").OrWhere("email", "LIKE", "%@yahoo.com%").OrWhere("age", ">", 18)
 			},
 			"SELECT * FROM `` WHERE `email` LIKE ? OR `email` LIKE ? OR `age` > ?",
 			[]interface{}{"%@gmail.com%", "%@yahoo.com%", 18},
@@ -415,7 +415,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereRaw",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereRaw("`age` > ?", 18)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereRaw("`age` > ?", 18)
 			},
 			"SELECT * FROM `` WHERE `age` > ?",
 			[]interface{}{18},
@@ -423,7 +423,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereRaw",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereRaw("`age` > ?", 18).OrWhereRaw("`name`= ?", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereRaw("`age` > ?", 18).OrWhereRaw("`name`= ?", "John")
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `name`= ?",
 			[]interface{}{18, "John"},
@@ -431,8 +431,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereQuery",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereSubQuery("user_id", "IN", sq).Where("city", "=", "New York")
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereSubQuery("user_id", "IN", sq).Where("city", "=", "New York")
 			},
 			"SELECT * FROM `` WHERE `user_id` IN (SELECT `id` FROM `users` WHERE `name` = ?) AND `city` = ?",
 			[]interface{}{"John", "New York"},
@@ -440,8 +440,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereQuery",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereSubQuery("user_id", "IN", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereSubQuery("user_id", "IN", sq)
 			},
 			"SELECT * FROM `` WHERE `city` = ? OR `user_id` IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"New York", "John"},
@@ -449,7 +449,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereGroup",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					WhereGroup(func(b *query.WhereBuilder[query.SelectBuilder]) {
 						b.Where("age", ">", 18).Where("name", "=", "John")
 					})
@@ -460,7 +460,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereGroup_And",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					WhereGroup(func(b *query.WhereBuilder[query.SelectBuilder]) {
 						b.Where("age", ">", 18).Where("name", "=", "John")
 					}).Where("city", "=", "New York")
@@ -471,7 +471,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereGroup_And_2",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					Where("city", "=", "New York").
 					WhereGroup(func(b *query.WhereBuilder[query.SelectBuilder]) {
 						b.Where("age", ">", 18).Where("name", "=", "John")
@@ -483,7 +483,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereGroup_Or",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					WhereGroup(func(b *query.WhereBuilder[query.SelectBuilder]) {
 						b.Where("age", ">", 18).Where("name", "=", "John")
 					}).OrWhere("city", "=", "New York")
@@ -494,7 +494,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereGroup_Or_2",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					Where("city", "=", "New York").
 					OrWhereGroup(func(b *query.WhereBuilder[query.SelectBuilder]) {
 						b.Where("age", ">", 18).Where("name", "=", "John")
@@ -506,7 +506,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNot",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					WhereNot(func(b *query.WhereBuilder[query.SelectBuilder]) {
 						b.Where("age", ">", 18).Where("name", "=", "John")
 					})
@@ -517,7 +517,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNot",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					Where("city", "=", "New York").
 					OrWhereNot(func(b *query.WhereBuilder[query.SelectBuilder]) {
 						b.Where("age", ">", 18).Where("name", "=", "John")
@@ -529,7 +529,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereAll",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					Where("age", ">", 18).
 					WhereAll([]string{"name", "city"}, "LIKE", "%test%")
 			},
@@ -539,7 +539,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereAny",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 					Where("age", ">", 18).
 					WhereAny([]string{"name", "city"}, "LIKE", "%test%")
 			},
@@ -549,7 +549,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereIn",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereIn("id", []int64{1, 2, 3})
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereIn("id", []int64{1, 2, 3})
 			},
 			"SELECT * FROM `` WHERE `id` IN (?, ?, ?)",
 			[]interface{}{1, 2, 3},
@@ -557,8 +557,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereIn (Subquery)",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereIn("id", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereIn("id", sq)
 			},
 			"SELECT * FROM `` WHERE `id` IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"John"},
@@ -566,7 +566,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNotIn",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNotIn("id", []int64{1, 2, 3})
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNotIn("id", []int64{1, 2, 3})
 			},
 			"SELECT * FROM `` WHERE `id` NOT IN (?, ?, ?)",
 			[]interface{}{1, 2, 3},
@@ -574,8 +574,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNotIn (Subquery)",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNotIn("id", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNotIn("id", sq)
 			},
 			"SELECT * FROM `` WHERE `id` NOT IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"John"},
@@ -583,7 +583,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereIn",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereIn("id", []int64{1, 2, 3})
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereIn("id", []int64{1, 2, 3})
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `id` IN (?, ?, ?)",
 			[]interface{}{19, 1, 2, 3},
@@ -591,8 +591,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereIn (Subquery)",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereIn("id", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereIn("id", sq)
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `id` IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{19, "John"},
@@ -600,7 +600,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNotIn",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereNotIn("id", []int64{1, 2, 3})
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereNotIn("id", []int64{1, 2, 3})
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `id` NOT IN (?, ?, ?)",
 			[]interface{}{19, 1, 2, 3},
@@ -608,8 +608,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNotIn (Subquery)",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereNotIn("id", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereNotIn("id", sq)
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `id` NOT IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{19, "John"},
@@ -617,8 +617,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereInSubquery",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereInSubQuery("id", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereInSubQuery("id", sq)
 			},
 			"SELECT * FROM `` WHERE `id` IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"John"},
@@ -626,8 +626,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNotInSubquery",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNotInSubQuery("id", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNotInSubQuery("id", sq)
 			},
 			"SELECT * FROM `` WHERE `id` NOT IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"John"},
@@ -635,8 +635,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereInSubquery",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereInSubQuery("id", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereInSubQuery("id", sq)
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `id` IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{19, "John"},
@@ -644,8 +644,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNotInSubquery",
 			func() *query.SelectBuilder {
-				sq := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereNotInSubQuery("id", sq)
+				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereNotInSubQuery("id", sq)
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `id` NOT IN (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{19, "John"},
@@ -653,7 +653,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNull",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNull("deleted_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNull("deleted_at")
 			},
 			"SELECT * FROM `` WHERE `deleted_at` IS NULL",
 			nil,
@@ -661,7 +661,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNotNull",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNotNull("deleted_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNotNull("deleted_at")
 			},
 			"SELECT * FROM `` WHERE `deleted_at` IS NOT NULL",
 			nil,
@@ -669,7 +669,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNull",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18).OrWhereNull("deleted_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18).OrWhereNull("deleted_at")
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `deleted_at` IS NULL",
 			[]interface{}{18},
@@ -677,7 +677,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNotNull",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18).OrWhereNotNull("deleted_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18).OrWhereNotNull("deleted_at")
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `deleted_at` IS NOT NULL",
 			[]interface{}{18},
@@ -685,7 +685,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereColumn",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "=", "updated_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "=", "updated_at")
 			},
 			"SELECT * FROM `` WHERE `created_at` = `updated_at`",
 			nil,
@@ -693,7 +693,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereColumn_With_Operator",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", ">", "updated_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", ">", "updated_at")
 			},
 			"SELECT * FROM `` WHERE `created_at` > `updated_at`",
 			nil,
@@ -701,7 +701,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereColumn",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18).OrWhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "=", "updated_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18).OrWhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "=", "updated_at")
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `created_at` = `updated_at`",
 			[]interface{}{18},
@@ -709,7 +709,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereColumn_With_Operator",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18).OrWhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", ">", "updated_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 18).OrWhereColumn([]string{"created_at", "updated_at", "deleted_at"}, "created_at", ">", "updated_at")
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `created_at` > `updated_at`",
 			[]interface{}{18},
@@ -717,7 +717,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereColumns",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereColumns([]string{"created_at", "updated_at", "deleted_at"}, [][]string{{"created_at", "=", "updated_at"}, {"deleted_at", "=", "updated_at"}})
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereColumns([]string{"created_at", "updated_at", "deleted_at"}, [][]string{{"created_at", "=", "updated_at"}, {"deleted_at", "=", "updated_at"}})
 			},
 			"SELECT * FROM `` WHERE `created_at` = `updated_at` AND `deleted_at` = `updated_at`",
 			nil,
@@ -725,7 +725,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereColumns",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).OrWhereColumns([]string{"created_at", "updated_at", "deleted_at"}, [][]string{{"created_at", "=", "updated_at"}, {"deleted_at", "=", "updated_at"}})
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).OrWhereColumns([]string{"created_at", "updated_at", "deleted_at"}, [][]string{{"created_at", "=", "updated_at"}, {"deleted_at", "=", "updated_at"}})
 			},
 			"SELECT * FROM `` WHERE `created_at` = `updated_at` OR `deleted_at` = `updated_at`",
 			nil,
@@ -733,7 +733,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereBetween",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereBetween("age", 18, 30)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereBetween("age", 18, 30)
 			},
 			"SELECT * FROM `` WHERE `age` BETWEEN ? AND ?",
 			[]interface{}{18, 30},
@@ -741,7 +741,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereBetween",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereBetween("age", 18, 30)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereBetween("age", 18, 30)
 			},
 			"SELECT * FROM `` WHERE `city` = ? OR `age` BETWEEN ? AND ?",
 			[]interface{}{"New York", 18, 30},
@@ -749,7 +749,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNotBetween",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNotBetween("age", 18, 30)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNotBetween("age", 18, 30)
 			},
 			"SELECT * FROM `` WHERE `age` NOT BETWEEN ? AND ?",
 			[]interface{}{18, 30},
@@ -757,7 +757,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNotBetween",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereNotBetween("age", 18, 30)
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereNotBetween("age", 18, 30)
 			},
 			"SELECT * FROM `` WHERE `city` = ? OR `age` NOT BETWEEN ? AND ?",
 			[]interface{}{"New York", 18, 30},
@@ -765,7 +765,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereBetweenColumns",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
 			},
 			"SELECT * FROM `` WHERE `created_at` BETWEEN `updated_at` AND `deleted_at`",
 			nil,
@@ -773,7 +773,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereBetweenColumns",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).OrWhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).OrWhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
 			},
 			"SELECT * FROM `` WHERE `created_at` BETWEEN `updated_at` AND `deleted_at`",
 			nil,
@@ -781,7 +781,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNotBetweenColumns",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNotBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNotBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
 			},
 			"SELECT * FROM `` WHERE `created_at` NOT BETWEEN `updated_at` AND `deleted_at`",
 			nil,
@@ -789,7 +789,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNotBetweenColumns",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).OrWhereNotBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).OrWhereNotBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at")
 			},
 			"SELECT * FROM `` WHERE `created_at` NOT BETWEEN `updated_at` AND `deleted_at`",
 			nil,
@@ -797,7 +797,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereExists",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereExists(func(b *query.SelectBuilder) {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereExists(func(b *query.SelectBuilder) {
 					b.Select("id").Table("users").Where("name", "=", "John")
 				})
 			},
@@ -807,7 +807,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereExists",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereExists(func(b *query.SelectBuilder) {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereExists(func(b *query.SelectBuilder) {
 					b.Select("id").Table("users").Where("name", "=", "John")
 				})
 			},
@@ -817,7 +817,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNotExists",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNotExists(func(b *query.SelectBuilder) {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNotExists(func(b *query.SelectBuilder) {
 					b.Select("id").Table("users").Where("name", "=", "John")
 				})
 			},
@@ -827,7 +827,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNotExists",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereNotExists(func(b *query.SelectBuilder) {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereNotExists(func(b *query.SelectBuilder) {
 					b.Select("id").Table("users").Where("name", "=", "John")
 				})
 			},
@@ -837,8 +837,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereExistsQuery",
 			func() *query.SelectBuilder {
-				q := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereExistsQuery(q)
+				q := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereExistsQuery(q)
 			},
 			"SELECT * FROM `` WHERE EXISTS (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"John"},
@@ -846,8 +846,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereExistsQuery",
 			func() *query.SelectBuilder {
-				q := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereExistsQuery(q)
+				q := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereExistsQuery(q)
 			},
 			"SELECT * FROM `` WHERE `city` = ? OR EXISTS (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"New York", "John"},
@@ -855,8 +855,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereNotExistsQuery",
 			func() *query.SelectBuilder {
-				q := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereNotExistsQuery(q)
+				q := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereNotExistsQuery(q)
 			},
 			"SELECT * FROM `` WHERE NOT EXISTS (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"John"},
@@ -864,8 +864,8 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereNotExistsQuery",
 			func() *query.SelectBuilder {
-				q := query.NewBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereNotExistsQuery(q)
+				q := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereNotExistsQuery(q)
 			},
 			"SELECT * FROM `` WHERE `city` = ? OR NOT EXISTS (SELECT `id` FROM `users` WHERE `name` = ?)",
 			[]interface{}{"New York", "John"},
@@ -873,7 +873,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereFullText_MySQL",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"mode": "boolean"})
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"mode": "boolean"})
 			},
 			"SELECT * FROM `` WHERE MATCH (`name`, `note`) AGAINST (? IN BOOLEAN MODE)",
 			[]interface{}{"John Doe"},
@@ -881,7 +881,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereFullText_PostgreSQL",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(postgres.NewPostgreSQLQueryBuilder()).WhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"language": "english"})
+				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).WhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"language": "english"})
 			},
 			`SELECT * FROM "" WHERE (to_tsvector($1, "name") || to_tsvector($1, "note")) @@ plainto_tsquery($1, $1)`,
 			[]interface{}{"english", "english", "english", "John Doe"},
@@ -889,7 +889,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereFullText_MySQL",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"mode": "boolean"})
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"mode": "boolean"})
 			},
 			"SELECT * FROM `` WHERE `city` = ? OR MATCH (`name`, `note`) AGAINST (? IN BOOLEAN MODE)",
 			[]interface{}{"New York", "John Doe"},
@@ -897,7 +897,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereFullText_PostgreSQL",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(postgres.NewPostgreSQLQueryBuilder()).Where("city", "=", "New York").OrWhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"language": "english"})
+				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).Where("city", "=", "New York").OrWhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"language": "english"})
 			},
 			`SELECT * FROM "" WHERE "city" = $1 OR (to_tsvector($1, "name") || to_tsvector($1, "note")) @@ plainto_tsquery($1, $1)`,
 			[]interface{}{"New York", "english", "english", "english", "John Doe"},
@@ -905,7 +905,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereDate",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereDate("created_at", "=", "2021-01-01")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereDate("created_at", "=", "2021-01-01")
 			},
 			"SELECT * FROM `` WHERE DATE(`created_at`) = ?",
 			[]interface{}{"2021-01-01"},
@@ -913,7 +913,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereTime",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereTime("created_at", "=", "12:00:00")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereTime("created_at", "=", "12:00:00")
 			},
 			"SELECT * FROM `` WHERE TIME(`created_at`) = ?",
 			[]interface{}{"12:00:00"},
@@ -921,7 +921,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereDay",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereDay("created_at", "=", "1")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereDay("created_at", "=", "1")
 			},
 			"SELECT * FROM `` WHERE DAY(`created_at`) = ?",
 			[]interface{}{1},
@@ -929,7 +929,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereMonth",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereMonth("created_at", "=", "1")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereMonth("created_at", "=", "1")
 			},
 			"SELECT * FROM `` WHERE MONTH(`created_at`) = ?",
 			[]interface{}{1},
@@ -937,7 +937,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereYear",
 			func() *query.SelectBuilder {
-				return query.NewBuilder(mysql.NewMySQLQueryBuilder()).WhereYear("created_at", "=", "2021")
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereYear("created_at", "=", "2021")
 			},
 			"SELECT * FROM `` WHERE YEAR(`created_at`) = ?",
 			[]interface{}{2021},
