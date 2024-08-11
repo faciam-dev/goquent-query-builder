@@ -37,20 +37,6 @@ func NewUpdateBuilder(strategy interfaces.QueryBuilderStrategy) *UpdateBuilder {
 	return ub
 }
 
-/*
-func (b *UpdateBuilder) SetWhereBuilder(whereBuilder WhereBuilder[UpdateBuilder]) {
-	b.WhereBuilder = whereBuilder
-}
-
-func (b *UpdateBuilder) SetJoinBuilder(joinBuilder JoinBuilder[UpdateBuilder]) {
-	b.JoinBuilder = joinBuilder
-}
-
-func (b *UpdateBuilder) SetOrderByBuilder(orderByBuilder OrderByBuilder[UpdateBuilder]) {
-	b.OrderByBuilder = orderByBuilder
-}
-*/
-
 func (b *UpdateBuilder) Table(table string) *UpdateBuilder {
 	b.query.Table = table
 	b.JoinBuilder.Table.Name = table

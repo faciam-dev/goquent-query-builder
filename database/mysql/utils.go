@@ -52,12 +52,6 @@ func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {
 				sb.WriteString(v[eoc+1:])
 			}
 			sb.WriteString("`")
-			/*
-				sb.WriteString(strings.ReplaceAll(v[:eoc], "`", "``"))
-				sb.WriteString("`.`")
-				sb.WriteString(strings.ReplaceAll(v[eoc+1:], "`", "``"))
-				sb.WriteString("`")
-			*/
 			return
 		} else {
 			sb.WriteString("`")

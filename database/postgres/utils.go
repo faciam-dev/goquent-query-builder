@@ -2,20 +2,26 @@ package postgres
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type SQLUtils struct {
+	placeholderNumber int
 }
 
 func NewSQLUtils() *SQLUtils {
-	return &SQLUtils{}
+	return &SQLUtils{
+		placeholderNumber: 0,
+	}
 }
 
 func (s *SQLUtils) GetPlaceholder() string {
-	return "$1"
+	s.placeholderNumber++
+	phn := strconv.Itoa(s.placeholderNumber)
+	return strings.Join([]string{"$", phn}, "")
 }
 
 func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte {
@@ -104,12 +110,6 @@ func (s *SQLUtils) EscapeIdentifier2(sb []byte, v string) []byte {
 				sb = append(sb, v[eoc+1:]...)
 			}
 			sb = append(sb, `"`...)
-			/*
-				sb = append(sb, strings.ReplaceAll(v[:eoc], "`", "``")...)
-				sb = append(sb, "`.`"...)
-				sb = append(sb, strings.ReplaceAll(v[eoc+1:], "`", "``")...)
-				sb = append(sb, "`"...)
-			*/
 			return sb
 		} else {
 			sb = append(sb, `"`...)

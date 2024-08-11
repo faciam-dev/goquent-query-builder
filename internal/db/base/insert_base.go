@@ -2,6 +2,7 @@ package base
 
 import (
 	"sort"
+	"sync"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -20,11 +21,27 @@ func NewInsertBaseBuilder(util interfaces.SQLUtils, iq *structs.InsertQuery) *In
 	}
 }
 
+var poolBytes = sync.Pool{
+	New: func() interface{} {
+		b := make([]byte, 0, consts.StringBuffer_Long_Query_Grow)
+		return &b
+	},
+}
+
+var poolValues = sync.Pool{
+	New: func() interface{} {
+		i := make([]interface{}, 0)
+		return &i
+	},
+}
+
 // Insert builds the INSERT query.
 func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}, error) {
-	//sb := &strings.Builder{}
-	//sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
-	sb := make([]byte, 0, consts.StringBuffer_Middle_Query_Grow)
+	ptr := poolBytes.Get().(*[]byte)
+	sb := *ptr
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
 
 	// INSERT INTO
 	sb = append(sb, "INSERT INTO "...)
@@ -61,29 +78,36 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 	sb = append(sb, ")"...)
 
 	query := string(sb)
-	//query := sb.String()
-	//sb.Reset()
+
+	*ptr = sb
+	poolBytes.Put(ptr)
 
 	return query, values, nil
 }
 
 // InsertBatch builds the INSERT query for batch insert.
 func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interface{}, error) {
-	//sb := &strings.Builder{}
-	//sb.Grow(consts.StringBuffer_Long_Query_Grow) // todo: check if this is necessary
+	ptr := poolBytes.Get().(*[]byte)
+	sb := *ptr
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
 
-	sb := make([]byte, 0, consts.StringBuffer_Long_Query_Grow)
+	vPtr := poolValues.Get().(*[]interface{})
+	allValues := *vPtr
+	if len(allValues) > 0 {
+		allValues = allValues[0:0]
+	}
 
 	// INSERT INTO
-
 	sb = append(sb, "INSERT INTO "...)
 	sb = m.u.EscapeIdentifier2(sb, q.Table)
 	sb = append(sb, " "...)
 
 	// get all columns from all values
 	columnSet := make(map[string]struct{}, len(q.ValuesBatch))
-	for _, values := range q.ValuesBatch {
-		for column := range values {
+	for i := range q.ValuesBatch {
+		for column := range q.ValuesBatch[i] {
 			columnSet[column] = struct{}{}
 		}
 	}
@@ -106,14 +130,21 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	sb = append(sb, ") VALUES "...)
 
 	// VALUES
-	allValues := make([]interface{}, 0, len(q.ValuesBatch)*len(columns))
+	estimatedSize := len(q.ValuesBatch) * len(columns)
+	if cap(allValues) < estimatedSize {
+		newAllValue := make([]interface{}, 0, estimatedSize)
+		copy(newAllValue, allValues)
+		allValues = newAllValue
+	}
 	for i, values := range q.ValuesBatch {
 		rowValues := make([]interface{}, 0, len(columns))
-		for _, column := range columns {
-			if value, ok := values[column]; ok {
-				rowValues = append(rowValues, value)
+		for j := range columns {
+			if value, ok := values[columns[j]]; ok {
+				rowValues = rowValues[:len(rowValues)+1]
+				rowValues[j] = value
 			} else {
-				rowValues = append(rowValues, nil)
+				rowValues = rowValues[:len(rowValues)+1]
+				rowValues[j] = nil
 			}
 		}
 
@@ -134,16 +165,21 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	}
 	query := string(sb)
 
-	//query := sb.String()
-	//sb.Reset()
+	*ptr = sb
+	poolBytes.Put(ptr)
+
+	*vPtr = allValues
+	poolValues.Put(vPtr)
 
 	return query, allValues, nil
 }
 
 func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}, error) {
-	//sb := &strings.Builder{}
-	//sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
-	sb := make([]byte, 0, consts.StringBuffer_Middle_Query_Grow)
+	ptr := poolBytes.Get().(*[]byte)
+	sb := *ptr
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
 
 	// INSERT INTO
 	sb = append(sb, "INSERT INTO "...)
@@ -163,13 +199,12 @@ func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []inter
 
 	// SELECT
 	b := m.u.GetQueryBuilderStrategy()
-	//selectValues := []interface{}{}
 	selectValues := b.Build(&sb, q.Query, 0, nil)
-	//sb = append(sb, selectQuery...)
 
 	query := string(sb)
-	//query := sb.String()
-	//sb.Reset()
+
+	*ptr = sb
+	poolBytes.Put(ptr)
 
 	return query, selectValues, nil
 }

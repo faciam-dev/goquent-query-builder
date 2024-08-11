@@ -1,7 +1,6 @@
 package base
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -22,10 +21,19 @@ func (m *DeleteBaseBuilder) Delete(q *structs.DeleteQuery) *DeleteBaseBuilder {
 
 // DeleteBatch builds the Delete query for Delete.
 func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []interface{}, error) {
-	values := make([]interface{}, 0)
-	//sb := &strings.Builder{}
-	//sb.Grow(consts.StringBuffer_Delete_Grow)
-	sb := make([]byte, 0, consts.StringBuffer_Delete_Grow)
+	//values := make([]interface{}, 0)
+
+	ptr := poolBytes.Get().(*[]byte)
+	sb := *ptr
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
+
+	vPtr := poolValues.Get().(*[]interface{})
+	values := *vPtr
+	if len(values) > 0 {
+		values = values[0:0]
+	}
 
 	// DELETE
 	sb = append(sb, "DELETE"...)
@@ -60,7 +68,12 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 	// LIMIT
 
 	query := string(sb)
-	//sb.Reset()
+
+	*ptr = sb
+	poolBytes.Put(ptr)
+
+	*vPtr = values
+	poolValues.Put(vPtr)
 
 	return query, values, nil
 }

@@ -37,19 +37,6 @@ func NewDeleteBuilder(strategy interfaces.QueryBuilderStrategy) *DeleteBuilder {
 	return db
 }
 
-/*
-	func (b *DeleteBuilder) SetWhereBuilder(whereBuilder *WhereBuilder[DeleteBuilder]) {
-		b.WhereBuilder = *whereBuilder
-	}
-
-	func (b *DeleteBuilder) SetJoinBuilder(joinBuilder *JoinBuilder[DeleteBuilder]) {
-		b.JoinBuilder = *joinBuilder
-	}
-
-	func (b *DeleteBuilder) SetOrderByBuilder(orderByBuilder *OrderByBuilder[DeleteBuilder]) {
-		b.OrderByBuilder = *orderByBuilder
-	}
-*/
 func (b *DeleteBuilder) Table(table string) *DeleteBuilder {
 	b.query.Table = table
 	b.JoinBuilder.Table.Name = table

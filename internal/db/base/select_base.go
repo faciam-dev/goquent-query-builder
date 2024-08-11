@@ -24,12 +24,10 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 		*sb = append(*sb, "*"...)
 		return []interface{}{}
 	}
-	//colNames := make([]string, 0, len(*columns))
 
 	outputed := false
 	// if there are no columns to select, select all columns
 	if len(*columns) == 0 && (joins.Joins != nil || joins.LateralJoins != nil) {
-		//joined := append(*joins.LateralJoins, *joins.Joins)
 		for i, join := range append(*joins.LateralJoins, *joins.Joins...) {
 			b.processJoin(sb, &join, tableName, i)
 			outputed = true
@@ -69,7 +67,6 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 	// if there are columns to select
 	firstDistinct := false
 	for i := 0; i < len(*columns); i++ {
-		//	for i := range *columns {
 		if (*columns)[i].Distinct && !(*columns)[i].Count && !firstDistinct {
 			*sb = append(*sb, "DISTINCT "...)
 			firstDistinct = true
@@ -116,14 +113,12 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 				*sb = append(*sb, ", "...)
 			}
 			*sb = append(*sb, (*columns)[i].Raw...) // or colNames = column.Raw
-			//colNames = append(colNames, column.Raw)
 		} else if (*columns)[i].Name != "" {
 			if i > 0 {
 				*sb = append(*sb, ", "...)
 			}
 
 			*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
-			//colNames = append(colNames, column.Name)
 		}
 	}
 
@@ -163,19 +158,10 @@ func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableNam
 	}
 
 	wsb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
-	//wsb := strings.Builder{}
-	//wsb.Grow(consts.StringBuffer_Short_Query_Grow)
 	wsb = j.u.EscapeIdentifier2(wsb, targetName)
 	wsb = append(wsb, ".*"...)
 	targetNameForSelect := string(wsb)
 	wsb = wsb[:0]
-	//wsb.Reset()
-
-	//targetNameForSelect := j.u.EscapeIdentifier2(&wsb, targetName) + ".*"
-
-	//targetNameForSelect := j.u.EscapeIdentifier2(&wsb, targetName) + ".*"
-
-	//sb.Grow(consts.StringBuffer_Select_Grow)
 
 	outputed := false
 	if !sliceutils.Contains(*j.columnNames, targetNameForSelect) {
@@ -187,13 +173,10 @@ func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableNam
 		outputed = true
 	}
 
-	//wsb.Grow(consts.StringBuffer_Short_Query_Grow)
 	wsb = j.u.EscapeIdentifier2(wsb, name)
 	wsb = append(wsb, ".*"...)
 	nameForSelect := string(wsb)
-	//wsb.Reset()
 
-	//nameForSelect := j.u.EscapeIdentifier2(sb, name) + ".*"
 	if !sliceutils.Contains(*j.columnNames, nameForSelect) {
 		if idx > 0 || outputed {
 			*sb = append(*sb, ", "...)

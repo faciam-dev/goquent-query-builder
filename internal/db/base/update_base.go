@@ -3,7 +3,6 @@ package base
 import (
 	"sort"
 
-	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -24,10 +23,17 @@ func (m *UpdateBaseBuilder) Update(q *structs.UpdateQuery) *UpdateBaseBuilder {
 
 // UpdateBatch builds the Update query for Update.
 func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []interface{}, error) {
-	//sb := &strings.Builder{}
-	//sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
+	ptr := poolBytes.Get().(*[]byte)
+	sb := *ptr
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
 
-	sb := make([]byte, 0, consts.StringBuffer_Middle_Query_Grow)
+	vPtr := poolValues.Get().(*[]interface{})
+	values := *vPtr
+	if len(values) > 0 {
+		values = values[0:0]
+	}
 
 	// UPDATE
 	sb = append(sb, "UPDATE "...)
@@ -36,8 +42,6 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	// JOIN
 	b := NewJoinBaseBuilder(m.u, q.Query.Joins)
 	joinValues := b.Join(&sb, q.Query.Joins)
-	values := make([]interface{}, 0, len(q.Values)+len(joinValues))
-
 	values = append(values, joinValues...)
 
 	// SET
@@ -68,11 +72,13 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 		ob.OrderBy(&sb, q.Query.Order)
 	}
 
-	/*
-		query := sb.String()
-		sb.Reset()
-	*/
 	query := string(sb)
+
+	*ptr = sb
+	poolBytes.Put(ptr)
+
+	*vPtr = values
+	poolValues.Put(vPtr)
 
 	return query, values, nil
 }

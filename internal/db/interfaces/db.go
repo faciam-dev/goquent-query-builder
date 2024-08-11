@@ -5,14 +5,6 @@ import (
 )
 
 type QueryBuilderStrategy interface {
-	/*
-		Select(sb *[]byte, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{}
-		From(sb *[]byte, table string)
-		Where(sb *[]byte, WhereGroups []structs.WhereGroup) []interface{}
-		Join(sb *[]byte, joins *structs.Joins) []interface{}
-		Union(sb *[]byte, unions *[]structs.Union, number int)
-		OrderBy(sb *[]byte, order *[]structs.Order)
-	*/
 	Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{}
 
 	Insert(q *structs.InsertQuery) (string, []interface{}, error)

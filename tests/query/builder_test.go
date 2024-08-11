@@ -883,7 +883,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 			func() *query.SelectBuilder {
 				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).WhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"language": "english"})
 			},
-			`SELECT * FROM "" WHERE (to_tsvector($1, "name") || to_tsvector($1, "note")) @@ plainto_tsquery($1, $1)`,
+			`SELECT * FROM "" WHERE (to_tsvector($1, "name") || to_tsvector($2, "note")) @@ plainto_tsquery($3, $4)`,
 			[]interface{}{"english", "english", "english", "John Doe"},
 		},
 		{
@@ -899,7 +899,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 			func() *query.SelectBuilder {
 				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).Where("city", "=", "New York").OrWhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"language": "english"})
 			},
-			`SELECT * FROM "" WHERE "city" = $1 OR (to_tsvector($1, "name") || to_tsvector($1, "note")) @@ plainto_tsquery($1, $1)`,
+			`SELECT * FROM "" WHERE "city" = $1 OR (to_tsvector($2, "name") || to_tsvector($3, "note")) @@ plainto_tsquery($4, $5)`,
 			[]interface{}{"New York", "english", "english", "english", "John Doe"},
 		},
 		{

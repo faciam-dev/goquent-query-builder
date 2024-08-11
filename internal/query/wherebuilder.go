@@ -163,7 +163,6 @@ func (b *WhereBuilder[T]) addWhereGroup(fn func(b *WhereBuilder[T]), operator in
 		IsNot:      isNot,
 	})
 	*b.query.Conditions = []structs.Where{}
-	//*cQ.query.Conditions = []structs.Where{}
 
 	return b.parent
 }
