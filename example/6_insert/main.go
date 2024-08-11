@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
@@ -12,13 +11,11 @@ func main() {
 	// Initialize database strategy
 	dbStrategy := mysql.NewMySQLQueryBuilder()
 
-	asyncCache := cache.NewAsyncQueryCache(100)
-
 	// Simple Insert query
 	// INSERT INTO users (age, name) VALUES (30, 'John Doe')
 	//
 	// INSERT INTO `users` (`age`, `name`) VALUES (?, ?) with values: [30 John Doe]
-	qb := api.NewInsertQueryBuilder(dbStrategy, asyncCache).
+	qb := api.NewInsertQueryBuilder(dbStrategy).
 		Table("users").
 		Insert(map[string]interface{}{"name": "John Doe", "age": 30})
 
@@ -36,7 +33,7 @@ func main() {
 	// INSERT INTO users (age, name) VALUES (30, 'John Doe'), (25, 'Jane Doe'), (20, 'Alice')
 	//
 	// Executing query: INSERT INTO `users` (`age`, `name`) VALUES (?, ?), (?, ?), (?, ?) with values: [30 John Doe 25 Jane Doe 20 Alice]
-	qb = api.NewInsertQueryBuilder(dbStrategy, asyncCache).
+	qb = api.NewInsertQueryBuilder(dbStrategy).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{"name": "John Doe", "age": 30},
@@ -58,10 +55,10 @@ func main() {
 	// INSERT INTO users (age, name) SELECT age, name FROM profiles WHERE age > 18
 
 	// Executing query: INSERT INTO `users` (`age`, `name`) SELECT `age`, `name` FROM `profiles` WHERE `age` > ? with values: [18]
-	qb = api.NewInsertQueryBuilder(dbStrategy, asyncCache).
+	qb = api.NewInsertQueryBuilder(dbStrategy).
 		Table("users").
 		InsertUsing([]string{"age", "name"},
-			api.NewSelectQueryBuilder(dbStrategy, asyncCache).
+			api.NewSelectQueryBuilder(dbStrategy).
 				Table("profiles").
 				Select("age", "name").
 				Where("age", ">", 18),

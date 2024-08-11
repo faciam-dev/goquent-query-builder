@@ -12,7 +12,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
@@ -45,10 +44,9 @@ func main() {
 
 	// Initialize database strategy
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
-	iqb := api.NewInsertQueryBuilder(dbStrategy, asyncCache).
+	iqb := api.NewInsertQueryBuilder(dbStrategy).
 		Table("users").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -71,7 +69,7 @@ func main() {
 	fmt.Println(result)
 
 	// INSERT INTO profiles (user_id, age) VALUES (?, ?)
-	iqb = api.NewInsertQueryBuilder(dbStrategy, asyncCache).
+	iqb = api.NewInsertQueryBuilder(dbStrategy).
 		Table("profiles").
 		InsertBatch([]map[string]interface{}{
 			{
@@ -96,7 +94,7 @@ func main() {
 	fmt.Println(result)
 
 	// SELECT `users`.`id` as `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ? ORDER BY `users`.`name` ASC
-	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("users.id as id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").

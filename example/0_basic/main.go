@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/profiling"
 )
@@ -14,13 +13,11 @@ func main() {
 	// Initialize database strategy
 	dbStrategy := mysql.NewMySQLQueryBuilder()
 
-	asyncCache := cache.NewAsyncQueryCache(100)
-
 	// if you dont want to use cache, you can use cache.NewBlankQueryCache()
 	// asyncCache := cache.NewBlankQueryCache()
 
 	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ? ORDER BY `users`.`name` ASC with values: [18]
-	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -53,7 +50,7 @@ func main() {
 	})
 
 	// INSERT INTO users (age, name) VALUES (?, ?)
-	iqb := api.NewInsertQueryBuilder(dbStrategy, asyncCache).
+	iqb := api.NewInsertQueryBuilder(dbStrategy).
 		Table("users").
 		Insert(map[string]interface{}{
 			"name": "John Doe",
@@ -68,7 +65,7 @@ func main() {
 	})
 
 	// UPDATE users SET age = ? WHERE id = ?
-	uqb := api.NewUpdateQueryBuilder(dbStrategy, asyncCache).
+	uqb := api.NewUpdateQueryBuilder(dbStrategy).
 		Table("users").
 		Update(map[string]interface{}{
 			"age": 40,
@@ -83,7 +80,7 @@ func main() {
 	})
 
 	// DELETE FROM users WHERE id = ?
-	dqb := api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
+	dqb := api.NewDeleteQueryBuilder(dbStrategy).
 		Table("users").
 		Where("id", "=", 1).
 		Delete()

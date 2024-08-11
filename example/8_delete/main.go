@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
@@ -12,13 +11,11 @@ func main() {
 	// Initialize database strategy
 	dbStrategy := mysql.NewMySQLQueryBuilder()
 
-	asyncCache := cache.NewAsyncQueryCache(100)
-
 	// Simple Delete query
 	// DELETE FROM users
 	//
 	// Executing query: DELETE FROM `users` with values: []
-	qb := api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
+	qb := api.NewDeleteQueryBuilder(dbStrategy).
 		Table("users")
 
 	query, values, err := qb.Build()
@@ -36,7 +33,7 @@ func main() {
 	// WHERE users.id = 1
 	//
 	// Executing query: DELETE FROM `users` WHERE `users`.`id` = ? with values: [1]
-	qb = api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
+	qb = api.NewDeleteQueryBuilder(dbStrategy).
 		Table("users").
 		Where("users.id", "=", 1)
 
@@ -56,7 +53,7 @@ func main() {
 	// WHERE users.id = 1
 	//
 	// Executing query: DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `users`.`id` = ? with values: [1]
-	qb = api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
+	qb = api.NewDeleteQueryBuilder(dbStrategy).
 		Table("users").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
 			b.On("users.id", "=", "profiles.user_id")
@@ -79,7 +76,7 @@ func main() {
 	// WHERE users.id = 1 AND profiles.age > 18
 	//
 	// DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `users`.`id` = ? AND `profiles`.`age` > ? with values: [1 18]
-	qb = api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
+	qb = api.NewDeleteQueryBuilder(dbStrategy).
 		Table("users").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
 			b.On("users.id", "=", "profiles.user_id")
@@ -105,7 +102,7 @@ func main() {
 	//
 
 	// DELETE `users` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `users`.`id` = ? AND `profiles`.`age` > ? ORDER BY `users`.`name` ASC with values: [1 18]
-	qb = api.NewDeleteQueryBuilder(dbStrategy, asyncCache).
+	qb = api.NewDeleteQueryBuilder(dbStrategy).
 		Table("users").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
 

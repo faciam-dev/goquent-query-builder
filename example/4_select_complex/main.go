@@ -4,15 +4,12 @@ import (
 	"fmt"
 
 	"github.com/faciam-dev/goquent-query-builder/api"
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 )
 
 func main() {
 	// Initialize database strategy
 	dbStrategy := mysql.NewMySQLQueryBuilder()
-
-	asyncCache := cache.NewAsyncQueryCache(100)
 
 	// Complex query with WhereGroup and having
 	//
@@ -26,7 +23,7 @@ func main() {
 	//
 
 	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE (`profiles`.`age` > ?) GROUP BY `users`.`id` HAVING `COUNT(profiles`.`id)` > ? ORDER BY `users`.`name` ASC with values: [18 1]
-	qb := api.NewSelectQueryBuilder(dbStrategy, asyncCache).
+	qb := api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "users.name as name").
 		Join("profiles", "users.id", "=", "profiles.user_id").
@@ -59,7 +56,7 @@ func main() {
 
 	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` AND `profiles`.`age` > ? WHERE (`profiles`.`age` > ?) GROUP BY `users`.`id` HAVING `COUNT(profiles`.`id)` > ? ORDER BY `users`.`name` ASC with values: [18 18 1]
 
-	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
+	qb = api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "users.name as name").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
@@ -97,7 +94,7 @@ func main() {
 
 	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` AND `profiles`.`age` > ? WHERE (`profiles`.`age` > ?) GROUP BY `users`.`id` HAVING `COUNT(profiles`.`id)` > ? ORDER BY `users`.`name` ASC LIMIT 1 with values: [18 18 1]
 
-	qb = api.NewSelectQueryBuilder(dbStrategy, asyncCache).
+	qb = api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
 		Select("id", "users.name as name").
 		JoinQuery("profiles", func(b *api.JoinClauseQueryBuilder) {
