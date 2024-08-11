@@ -34,7 +34,7 @@ func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
 }
 
 // Build builds the query.
-func (m PostgreSQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
+func (m PostgreSQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error) {
 	// SELECT
 	*sb = append(*sb, "SELECT "...)
 	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
@@ -48,7 +48,11 @@ func (m PostgreSQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, 
 	values = append(values, joinValues...)
 
 	// WHERE
-	whereValues := m.Where(sb, q.ConditionGroups)
+	whereValues, err := m.Where(sb, q.ConditionGroups)
+
+	if err != nil {
+		return []interface{}{}, err
+	}
 	values = append(values, whereValues...)
 
 	// GROUP BY / HAVING
@@ -73,9 +77,9 @@ func (m PostgreSQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, 
 	//query := sb.String()
 	//sb.Reset()
 
-	return values
+	return values, nil
 }
 
-func (m PostgreSQLQueryBuilder) Where(sb *[]byte, conditionGroups []structs.WhereGroup) []interface{} {
+func (m PostgreSQLQueryBuilder) Where(sb *[]byte, conditionGroups []structs.WhereGroup) ([]interface{}, error) {
 	return m.WherePostgreSQLBuilder.Where(sb, conditionGroups)
 }

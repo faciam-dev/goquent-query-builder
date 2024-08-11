@@ -55,7 +55,10 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 	// WHERE
 	if len(q.Query.ConditionGroups) > 0 {
 		wb := NewWhereBaseBuilder(m.u, q.Query.ConditionGroups)
-		whereValues := wb.Where(&sb, q.Query.ConditionGroups)
+		whereValues, err := wb.Where(&sb, q.Query.ConditionGroups)
+		if err != nil {
+			return "", nil, err
+		}
 		values = append(values, whereValues...)
 	}
 

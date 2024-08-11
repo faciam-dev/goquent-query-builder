@@ -51,7 +51,7 @@ func (BaseQueryBuilder) Lock(sb *[]byte, lock *structs.Lock) {
 }
 
 // Build builds the query.
-func (m BaseQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
+func (m BaseQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error) {
 	values := make([]interface{}, 0)
 
 	// SELECT
@@ -68,7 +68,10 @@ func (m BaseQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions
 	values = append(values, joinValues...)
 
 	// WHERE
-	whereValues := m.Where(sb, q.ConditionGroups)
+	whereValues, err := m.Where(sb, q.ConditionGroups)
+	if err != nil {
+		return []interface{}{}, err
+	}
 	values = append(values, whereValues...)
 
 	// GROUP BY / HAVING
@@ -90,5 +93,5 @@ func (m BaseQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions
 	// UNION
 	m.Union(sb, unions, number)
 
-	return values
+	return values, nil
 }

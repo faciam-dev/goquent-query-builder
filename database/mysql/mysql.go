@@ -34,7 +34,7 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 }
 
 // Build builds the query.
-func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
+func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error) {
 	// SELECT
 	*sb = append(*sb, "SELECT "...)
 	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
@@ -51,7 +51,10 @@ func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, union
 
 	// WHERE
 	if len(q.ConditionGroups) > 0 {
-		whereValues := m.Where(sb, q.ConditionGroups)
+		whereValues, err := m.Where(sb, q.ConditionGroups)
+		if err != nil {
+			return nil, err
+		}
 		values = append(values, whereValues...)
 	}
 
@@ -86,9 +89,9 @@ func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, union
 		m.Union(sb, unions, number)
 	}
 
-	return values
+	return values, nil
 }
 
-func (m MySQLQueryBuilder) Where(sb *[]byte, c []structs.WhereGroup) []interface{} {
+func (m MySQLQueryBuilder) Where(sb *[]byte, c []structs.WhereGroup) ([]interface{}, error) {
 	return m.WhereMySQLBuilder.Where(sb, c)
 }

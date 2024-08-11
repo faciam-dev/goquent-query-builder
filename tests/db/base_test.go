@@ -943,11 +943,11 @@ func TestBaseQueryBuilder(t *testing.T) {
 				builder.From(&sb, tt.input.Table.Name)
 				got = string(sb)
 			case "Where":
-				values := builder.Where(&sb, tt.input.ConditionGroups)
+				values, _ := builder.Where(&sb, tt.input.ConditionGroups)
 				got = string(sb)
 				gotValues = values
 			case "WhereGroup":
-				values := builder.Where(&sb, tt.input.ConditionGroups)
+				values, _ := builder.Where(&sb, tt.input.ConditionGroups)
 				got = string(sb)
 				gotValues = values
 			case "Join":

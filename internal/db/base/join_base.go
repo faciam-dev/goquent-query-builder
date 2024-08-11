@@ -75,7 +75,8 @@ func (jb *JoinBaseBuilder) appendJoinClause(sb *[]byte, joinClause structs.JoinC
 	if joinClause.Query != nil {
 		*sb = append(*sb, "("...)
 		b := jb.u.GetQueryBuilderStrategy()
-		*values = append(*values, b.Build(sb, joinClause.Query, 0, nil)...)
+		v, _ := b.Build(sb, joinClause.Query, 0, nil)
+		*values = append(*values, v...)
 		*sb = append(*sb, ") as "...)
 		*sb = jb.u.EscapeIdentifier(*sb, targetName)
 	} else {
@@ -122,7 +123,8 @@ func (jb *JoinBaseBuilder) appendSortedJoin(sb *[]byte, join structs.Join, value
 	if join.Query != nil {
 		*sb = append(*sb, "("...)
 		b := jb.u.GetQueryBuilderStrategy()
-		*values = append(*values, b.Build(sb, join.Query, 0, nil)...)
+		v, _ := b.Build(sb, join.Query, 0, nil)
+		*values = append(*values, v...)
 		*sb = append(*sb, ") as "...)
 		*sb = jb.u.EscapeIdentifier(*sb, targetName)
 	} else {

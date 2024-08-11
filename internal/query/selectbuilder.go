@@ -308,8 +308,10 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 	}
 
 	for i := range *b.selectQuery.Union {
-		v := b.dbBuilder.Build(&sb, (*b.selectQuery.Union)[i].Query, i, b.selectQuery.Union)
-
+		v, err := b.dbBuilder.Build(&sb, (*b.selectQuery.Union)[i].Query, i, b.selectQuery.Union)
+		if err != nil {
+			return "", nil, err
+		}
 		values = append(values, v...)
 	}
 
