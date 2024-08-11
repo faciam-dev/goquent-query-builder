@@ -20,60 +20,29 @@ func (s *SQLUtils) GetPlaceholder() string {
 func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte {
 	eoc := strings.Index(value, " as ")
 	if eoc != -1 {
-		sb = s.EscapeIdentifier2(sb, value[:eoc])
+		sb = s.EscapeIdentifier(sb, value[:eoc])
 		sb = append(sb, " as "...)
-		sb = s.EscapeIdentifier2(sb, value[eoc+4:])
+		sb = s.EscapeIdentifier(sb, value[eoc+4:])
 		return sb
 	} else {
 		eoc = strings.Index(value, " AS ")
 		if eoc != -1 {
-			sb = s.EscapeIdentifier2(sb, value[:eoc])
+			sb = s.EscapeIdentifier(sb, value[:eoc])
 			sb = append(sb, " as "...)
-			sb = s.EscapeIdentifier2(sb, value[eoc+4:])
+			sb = s.EscapeIdentifier(sb, value[eoc+4:])
 			return sb
 		} else {
-			sb = s.EscapeIdentifier2(sb, value)
+			sb = s.EscapeIdentifier(sb, value)
 			return sb
 		}
 	}
-}
-
-func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {
-	if v != "*" {
-		if eoc := strings.Index(v, "."); eoc != -1 {
-			sb.WriteString("`")
-			if eo := strings.Index(v, "`"); eo != -1 {
-				sb.WriteString(strings.ReplaceAll(v[:eo], "`", "``"))
-				sb.WriteString("`.`")
-				sb.WriteString(strings.ReplaceAll(v[eo+1:eoc], "`", "``"))
-			} else {
-				sb.WriteString(v[:eoc])
-				sb.WriteString("`.`")
-				sb.WriteString(v[eoc+1:])
-			}
-			sb.WriteString("`")
-			return
-		} else {
-			sb.WriteString("`")
-			if eo := strings.Index(v, "`"); eo != -1 {
-				sb.WriteString(strings.ReplaceAll(v[:eo], "`", "``"))
-				sb.WriteString("`.`")
-				sb.WriteString(strings.ReplaceAll(v[eo+1:], "`", "``"))
-			} else {
-				sb.WriteString(v)
-			}
-			sb.WriteString("`")
-			return
-		}
-	}
-	sb.WriteString(v)
 }
 
 func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 	return NewMySQLQueryBuilder()
 }
 
-func (s *SQLUtils) EscapeIdentifier2(sb []byte, v string) []byte {
+func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {
 	if v != "*" {
 		if eoc := strings.IndexByte(v, '.'); eoc != -1 {
 			sb = append(sb, "`"...)

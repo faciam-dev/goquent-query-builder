@@ -40,7 +40,7 @@ func (o OrderByBaseBuilder) OrderBy(sb *[]byte, order *[]structs.Order) {
 		if (*order)[i].IsAsc {
 			desc = "ASC"
 		}
-		*sb = o.u.EscapeIdentifier2(*sb, (*order)[i].Column)
+		*sb = o.u.EscapeIdentifier(*sb, (*order)[i].Column)
 		*sb = append(*sb, " "...)
 		*sb = append(*sb, desc...)
 	}

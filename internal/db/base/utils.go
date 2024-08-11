@@ -31,55 +31,33 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte 
 			pb = value[eoc+4:]
 		}
 		if eoc != -1 {
-			sb = s.EscapeIdentifier2(sb, pa)
+			sb = s.EscapeIdentifier(sb, pa)
 			sb = append(sb, " as "...)
-			sb = s.EscapeIdentifier2(sb, pb)
+			sb = s.EscapeIdentifier(sb, pb)
 			return sb
 		}
 	} else {
-		sb = s.EscapeIdentifier2(sb, value)
+		sb = s.EscapeIdentifier(sb, value)
 		return sb
 	}
 
 	target := regexp.MustCompile(`(?i)\s+as\s+`)
 	if target.MatchString(value) {
 		parts := target.Split(value, -1)
-		sb = s.EscapeIdentifier2(sb, parts[0])
+		sb = s.EscapeIdentifier(sb, parts[0])
 		sb = append(sb, " as "...)
-		sb = s.EscapeIdentifier2(sb, parts[1])
+		sb = s.EscapeIdentifier(sb, parts[1])
 		return sb
 	}
 
 	return append(sb, value...)
 }
 
-func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {
-	if v != "*" {
-		if strings.Contains(v, ".") {
-			eoc := strings.Index(v, ".")
-			var pa, pb string
-			pa = v[:eoc]
-			pb = v[eoc+1:]
-			sb.WriteString(`"`)
-			sb.WriteString(strings.ReplaceAll(pa, `"`, `""`))
-			sb.WriteString(`"."`)
-			sb.WriteString(strings.ReplaceAll(pb, "`", "``"))
-			sb.WriteString(`"`)
-			return
-		}
-		sb.WriteString(`"`)
-		sb.WriteString(strings.ReplaceAll(v, `"`, `""`))
-		sb.WriteString(`"`)
-		return
-	}
-	sb.WriteString(v)
-}
-
 func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 	return NewBaseQueryBuilder()
 }
 
-func (s *SQLUtils) EscapeIdentifier2(sb []byte, v string) []byte {
+func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {
 	if v != "*" {
 		if eoc := strings.Index(v, "."); eoc != -1 {
 			sb = append(sb, `"`...)

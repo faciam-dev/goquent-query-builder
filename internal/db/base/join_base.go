@@ -77,9 +77,9 @@ func (jb *JoinBaseBuilder) appendJoinClause(sb *[]byte, joinClause structs.JoinC
 		b := jb.u.GetQueryBuilderStrategy()
 		*values = append(*values, b.Build(sb, joinClause.Query, 0, nil)...)
 		*sb = append(*sb, ") as "...)
-		*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+		*sb = jb.u.EscapeIdentifier(*sb, targetName)
 	} else {
-		*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+		*sb = jb.u.EscapeIdentifier(*sb, targetName)
 	}
 
 	*sb = append(*sb, " ON "...)
@@ -124,20 +124,20 @@ func (jb *JoinBaseBuilder) appendSortedJoin(sb *[]byte, join structs.Join, value
 		b := jb.u.GetQueryBuilderStrategy()
 		*values = append(*values, b.Build(sb, join.Query, 0, nil)...)
 		*sb = append(*sb, ") as "...)
-		*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+		*sb = jb.u.EscapeIdentifier(*sb, targetName)
 	} else {
-		*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+		*sb = jb.u.EscapeIdentifier(*sb, targetName)
 	}
 
 	if _, ok := join.TargetNameMap[consts.Join_CROSS]; !ok {
 		if _, ok := join.TargetNameMap[consts.Join_LATERAL]; !ok {
 			if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; !ok {
 				*sb = append(*sb, " ON "...)
-				*sb = jb.u.EscapeIdentifier2(*sb, join.SearchColumn)
+				*sb = jb.u.EscapeIdentifier(*sb, join.SearchColumn)
 				*sb = append(*sb, " "...)
 				*sb = append(*sb, join.SearchCondition...)
 				*sb = append(*sb, " "...)
-				*sb = jb.u.EscapeIdentifier2(*sb, join.SearchTargetColumn)
+				*sb = jb.u.EscapeIdentifier(*sb, join.SearchTargetColumn)
 			}
 		}
 	}
@@ -147,14 +147,14 @@ func (jb *JoinBaseBuilder) appendCondition(sb *[]byte, column, condition string,
 	if *op != "" {
 		*sb = append(*sb, *op...)
 	}
-	*sb = jb.u.EscapeIdentifier2(*sb, column)
+	*sb = jb.u.EscapeIdentifier(*sb, column)
 	*sb = append(*sb, " "...)
 	*sb = append(*sb, condition...)
 	if value != nil {
 		switch castedValue := value.(type) {
 		case string:
 			*sb = append(*sb, " "...)
-			*sb = jb.u.EscapeIdentifier2(*sb, castedValue) // TODO: validate this cast
+			*sb = jb.u.EscapeIdentifier(*sb, castedValue) // TODO: validate this cast
 		default:
 			*sb = append(*sb, " "+jb.u.GetPlaceholder()...)
 		}

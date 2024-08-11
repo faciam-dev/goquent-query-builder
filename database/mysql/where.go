@@ -91,7 +91,7 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inte
 		if i > 0 {
 			*sb = append(*sb, ", "...)
 		}
-		*sb = wb.u.EscapeIdentifier2(*sb, column)
+		*sb = wb.u.EscapeIdentifier(*sb, column)
 	}
 	*sb = append(*sb, ") AGAINST ("+wb.u.GetPlaceholder()+" "+mode+expand+")"...)
 	values := []interface{}{c.Value}

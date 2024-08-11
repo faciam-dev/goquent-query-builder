@@ -294,7 +294,7 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 			estimatedSize += len(*(*b.selectQuery.Union)[i].Query.Joins.Joins) * consts.StringBuffer_Join_Grow
 		}
 	}
-	// grow the string builder based on the length of the cache key
+	// grow the buffer if necessary
 	if cap(sb) < estimatedSize {
 		newsb := make([]byte, 0, estimatedSize)
 		copy(newsb, sb)

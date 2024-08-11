@@ -160,7 +160,7 @@ func (wb *WhereBaseBuilder) GetConditionOperator(c structs.Where) string {
 }
 
 func (wb *WhereBaseBuilder) ProcessSubQuery(sb *[]byte, c structs.Where) []interface{} {
-	*sb = wb.u.EscapeIdentifier2(*sb, c.Column)
+	*sb = wb.u.EscapeIdentifier(*sb, c.Column)
 	*sb = append(*sb, " "...)
 	*sb = append(*sb, c.Condition...)
 
@@ -187,15 +187,15 @@ func (wb *WhereBaseBuilder) ProcessExistsQuery(sb *[]byte, c structs.Where) []in
 func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *[]byte, c structs.Where) []interface{} {
 	values := make([]interface{}, 0, 2)
 	if c.Between.IsColumn {
-		*sb = wb.u.EscapeIdentifier2(*sb, c.Column)
+		*sb = wb.u.EscapeIdentifier(*sb, c.Column)
 		*sb = append(*sb, " "...)
 		*sb = append(*sb, c.Condition...)
 		*sb = append(*sb, " "...)
-		*sb = wb.u.EscapeIdentifier2(*sb, c.Between.From.(string))
+		*sb = wb.u.EscapeIdentifier(*sb, c.Between.From.(string))
 		*sb = append(*sb, " AND "...)
-		*sb = wb.u.EscapeIdentifier2(*sb, c.Between.To.(string))
+		*sb = wb.u.EscapeIdentifier(*sb, c.Between.To.(string))
 	} else {
-		*sb = wb.u.EscapeIdentifier2(*sb, c.Column)
+		*sb = wb.u.EscapeIdentifier(*sb, c.Column)
 		*sb = append(*sb, " "...)
 		*sb = append(*sb, c.Condition...)
 		*sb = append(*sb, " "...)
@@ -212,12 +212,12 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []i
 	if c.Raw != "" {
 		*sb = append(*sb, c.Raw...)
 	} else {
-		*sb = wb.u.EscapeIdentifier2(*sb, c.Column)
+		*sb = wb.u.EscapeIdentifier(*sb, c.Column)
 		*sb = append(*sb, " "...)
 		*sb = append(*sb, c.Condition...)
 		if c.ValueColumn != "" {
 			*sb = append(*sb, " "...)
-			*sb = wb.u.EscapeIdentifier2(*sb, c.ValueColumn)
+			*sb = wb.u.EscapeIdentifier(*sb, c.ValueColumn)
 		} else if c.Value != nil {
 			if len(c.Value) > 1 {
 				*sb = append(*sb, " ("...)
@@ -251,12 +251,12 @@ func (wb *WhereBaseBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inter
 func (wb *WhereBaseBuilder) ProcessFunction(sb *[]byte, c structs.Where) []interface{} {
 	*sb = append(*sb, c.Function...)
 	*sb = append(*sb, "("...)
-	*sb = wb.u.EscapeIdentifier2(*sb, c.Column)
+	*sb = wb.u.EscapeIdentifier(*sb, c.Column)
 	*sb = append(*sb, ") "...)
 	*sb = append(*sb, c.Condition...)
 	if c.ValueColumn != "" {
 		*sb = append(*sb, " "...)
-		*sb = wb.u.EscapeIdentifier2(*sb, c.ValueColumn)
+		*sb = wb.u.EscapeIdentifier(*sb, c.ValueColumn)
 	} else if c.Value != nil {
 		if len(c.Value) > 1 {
 			*sb = append(*sb, " ("...)
