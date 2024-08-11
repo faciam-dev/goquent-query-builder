@@ -33,45 +33,6 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	return queryBuilder
 }
 
-func NewMySQLInsertQueryBuilder() *MySQLQueryBuilder {
-	queryBuilder := &MySQLQueryBuilder{}
-	u := NewSQLUtils()
-	queryBuilder.util = u
-	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
-	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.FromBaseBuilder = *base.NewFromBaseBuilder(u)
-	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
-	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-	queryBuilder.InsertBaseBuilder = *base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
-	return queryBuilder
-}
-
-func NewMySQLQueryUpdateBuilder() *MySQLQueryBuilder {
-	queryBuilder := &MySQLQueryBuilder{}
-	u := NewSQLUtils()
-	queryBuilder.util = u
-	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
-	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.FromBaseBuilder = *base.NewFromBaseBuilder(u)
-	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
-	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-	queryBuilder.UpdateBaseBuilder = *base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
-	return queryBuilder
-}
-
-func NewMySQLQueryDeleteBuilder() *MySQLQueryBuilder {
-	queryBuilder := &MySQLQueryBuilder{}
-	u := NewSQLUtils()
-	queryBuilder.util = u
-	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
-	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.FromBaseBuilder = *base.NewFromBaseBuilder(u)
-	queryBuilder.GroupByBaseBuilder = *base.NewGroupByBaseBuilder(u)
-	queryBuilder.OrderByBaseBuilder = *base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-	queryBuilder.DeleteBaseBuilder = *base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
-	return queryBuilder
-}
-
 // Build builds the query.
 func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
 	// SELECT

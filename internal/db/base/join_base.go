@@ -33,150 +33,139 @@ func (jb *JoinBaseBuilder) Join(sb *[]byte, joins *structs.Joins) []interface{} 
 
 // buildJoinStatement builds the JOIN statement.
 func (jb *JoinBaseBuilder) buildJoinStatement(sb *[]byte, joins *structs.Joins) []interface{} {
-	values := make([]interface{}, 0) //  length is unknown
 	if joins == nil {
-		return []interface{}{}
+		return nil
 	}
+
+	var values []interface{}
 	if joins.JoinClauses != nil {
-		for i := range *joins.JoinClauses {
-			vals := []interface{}{}
-			j := &structs.Join{
-				TargetNameMap: (*joins.JoinClauses)[i].TargetNameMap,
-				Name:          (*joins.JoinClauses)[i].Name,
-			}
-
-			joinType, targetName := jb.processJoin(j)
-
-			*sb = append(*sb, " "...)
-			*sb = append(*sb, joinType...)
-			*sb = append(*sb, " JOIN "...)
-			if (*joins.JoinClauses)[i].Query != nil {
-				*sb = append(*sb, "("...)
-				b := jb.u.GetQueryBuilderStrategy()
-				sqValues := b.Build(sb, (*joins.JoinClauses)[i].Query, 0, nil)
-				values = append(values, sqValues...)
-				*sb = append(*sb, ") as "...)
-				*sb = jb.u.EscapeIdentifier2(*sb, targetName)
-			} else {
-				*sb = jb.u.EscapeIdentifier2(*sb, targetName)
-			}
-			*sb = append(*sb, " ON "...)
-
-			op := ""
-			for i, on := range *(*joins.JoinClauses)[i].On {
-				if i > 0 {
-					if on.Operator == consts.LogicalOperator_OR {
-						op = " OR "
-					} else {
-						op = " AND "
-					}
-				}
-
-				*sb = append(*sb, op...)
-				*sb = jb.u.EscapeIdentifier2(*sb, on.Column)
-				*sb = append(*sb, " "...)
-				*sb = append(*sb, on.Condition...)
-				if on.Value != "" {
-					*sb = append(*sb, " "...)
-					*sb = jb.u.EscapeIdentifier2(*sb, on.Value.(string)) // TODO: check if this is correct
-				}
-			}
-
-			op = ""
-			for i, condition := range *(*joins.JoinClauses)[i].Conditions {
-				if i > 0 || len(*(*joins.JoinClauses)[i].On) > 0 {
-					if condition.Operator == consts.LogicalOperator_OR {
-						op = " OR "
-					} else {
-						op = " AND "
-					}
-				}
-				*sb = append(*sb, op...)
-				*sb = jb.u.EscapeIdentifier2(*sb, condition.Column)
-				*sb = append(*sb, " "...)
-				*sb = append(*sb, condition.Condition...)
-				*sb = append(*sb, " "+jb.u.GetPlaceholder()...) // TODO: check if this is correct
-				vals = append(vals, condition.Value...)
-			}
-			values = append(values, vals...)
+		for _, joinClause := range *joins.JoinClauses {
+			jb.appendJoinClause(sb, joinClause, &values)
 		}
 	}
 
-	if joins.Joins == nil {
-		return values
-	}
-
-	var sortedJoins []structs.Join
-	if len(*joins.LateralJoins) == 0 {
-		sortedJoins = *joins.Joins
-	} else {
-		sortedJoins = append(*joins.LateralJoins, *joins.Joins...)
-	}
-	for i := range sortedJoins {
-		joinType, targetName := jb.processJoin(&sortedJoins[i])
-		if targetName == "" {
-			continue
-		}
-
-		if joinType == "" {
-			continue
-		}
-
-		if _, ok := sortedJoins[i].TargetNameMap[consts.Join_LATERAL]; ok {
-			*sb = append(*sb, " ,"...)
-			*sb = append(*sb, joinType...)
-			if sortedJoins[i].Query != nil {
-				*sb = append(*sb, "("...)
-				b := jb.u.GetQueryBuilderStrategy()
-				sqValues := b.Build(sb, sortedJoins[i].Query, 0, nil)
-				*sb = append(*sb, ") as "...)
-				*sb = jb.u.EscapeIdentifier2(*sb, targetName)
-				values = append(values, sqValues...)
-			} else {
-				*sb = jb.u.EscapeIdentifier2(*sb, targetName)
-			}
-		} else if _, ok := sortedJoins[i].TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
-			*sb = append(*sb, " ,"...)
-			*sb = append(*sb, joinType...)
-			if sortedJoins[i].Query != nil {
-				*sb = append(*sb, "("...)
-				b := jb.u.GetQueryBuilderStrategy()
-				sqValues := b.Build(sb, sortedJoins[i].Query, 0, nil)
-				*sb = append(*sb, ") as "...)
-				*sb = jb.u.EscapeIdentifier2(*sb, targetName)
-				values = append(values, sqValues...)
-			} else {
-				*sb = jb.u.EscapeIdentifier2(*sb, targetName)
-			}
-		} else if _, ok := sortedJoins[i].TargetNameMap[consts.Join_CROSS]; ok {
-			*sb = append(*sb, " "...)
-			*sb = append(*sb, joinType...)
-			*sb = append(*sb, " JOIN "...)
-			*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+	if joins.Joins != nil {
+		var sortedJoins []structs.Join
+		if len(*joins.LateralJoins) > 0 {
+			sortedJoins = append(*joins.LateralJoins, *joins.Joins...)
 		} else {
-			*sb = append(*sb, " "...)
-			*sb = append(*sb, joinType...)
-			*sb = append(*sb, " JOIN "...)
-			if sortedJoins[i].Query != nil {
-				*sb = append(*sb, "("...)
-				b := jb.u.GetQueryBuilderStrategy()
-				sqValues := b.Build(sb, sortedJoins[i].Query, 0, nil)
-				*sb = append(*sb, ") as "...)
-				*sb = jb.u.EscapeIdentifier2(*sb, targetName)
-				values = append(values, sqValues...)
-			} else {
-				*sb = jb.u.EscapeIdentifier2(*sb, targetName)
-			}
-			*sb = append(*sb, " ON "...)
-			*sb = jb.u.EscapeIdentifier2(*sb, sortedJoins[i].SearchColumn)
-			*sb = append(*sb, " "...)
-			*sb = append(*sb, sortedJoins[i].SearchCondition...)
-			*sb = append(*sb, " "...)
-			*sb = jb.u.EscapeIdentifier2(*sb, sortedJoins[i].SearchTargetColumn)
+			sortedJoins = *joins.Joins
+		}
+
+		for _, join := range sortedJoins {
+			jb.appendSortedJoin(sb, join, &values)
 		}
 	}
 
 	return values
+}
+
+func (jb *JoinBaseBuilder) appendJoinClause(sb *[]byte, joinClause structs.JoinClause, values *[]interface{}) {
+	j := &structs.Join{
+		TargetNameMap: joinClause.TargetNameMap,
+		Name:          joinClause.Name,
+	}
+
+	joinType, targetName := jb.processJoin(j)
+
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, joinType...)
+	*sb = append(*sb, " JOIN "...)
+
+	if joinClause.Query != nil {
+		*sb = append(*sb, "("...)
+		b := jb.u.GetQueryBuilderStrategy()
+		*values = append(*values, b.Build(sb, joinClause.Query, 0, nil)...)
+		*sb = append(*sb, ") as "...)
+		*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+	} else {
+		*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+	}
+
+	*sb = append(*sb, " ON "...)
+
+	op := ""
+	for i, on := range *joinClause.On {
+		if i > 0 {
+			op = jb.getLogicalOperator(on.Operator)
+		}
+		jb.appendCondition(sb, on.Column, on.Condition, on.Value, &op)
+	}
+
+	for i, condition := range *joinClause.Conditions {
+		if i > 0 || len(*joinClause.On) > 0 {
+			op = jb.getLogicalOperator(condition.Operator)
+		}
+		jb.appendCondition(sb, condition.Column, condition.Condition, condition.Value, &op)
+		*values = append(*values, condition.Value...)
+	}
+}
+
+func (jb *JoinBaseBuilder) appendSortedJoin(sb *[]byte, join structs.Join, values *[]interface{}) {
+	joinType, targetName := jb.processJoin(&join)
+	if joinType == "" || targetName == "" {
+		return
+	}
+
+	if _, ok := join.TargetNameMap[consts.Join_LATERAL]; ok {
+		*sb = append(*sb, " ,"...)
+		*sb = append(*sb, joinType...)
+	} else if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; ok {
+		*sb = append(*sb, " ,"...)
+		*sb = append(*sb, joinType...)
+	} else {
+		*sb = append(*sb, " "...)
+		*sb = append(*sb, joinType...)
+		*sb = append(*sb, " JOIN "...)
+	}
+
+	if join.Query != nil {
+		*sb = append(*sb, "("...)
+		b := jb.u.GetQueryBuilderStrategy()
+		*values = append(*values, b.Build(sb, join.Query, 0, nil)...)
+		*sb = append(*sb, ") as "...)
+		*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+	} else {
+		*sb = jb.u.EscapeIdentifier2(*sb, targetName)
+	}
+
+	if _, ok := join.TargetNameMap[consts.Join_CROSS]; !ok {
+		if _, ok := join.TargetNameMap[consts.Join_LATERAL]; !ok {
+			if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; !ok {
+				*sb = append(*sb, " ON "...)
+				*sb = jb.u.EscapeIdentifier2(*sb, join.SearchColumn)
+				*sb = append(*sb, " "...)
+				*sb = append(*sb, join.SearchCondition...)
+				*sb = append(*sb, " "...)
+				*sb = jb.u.EscapeIdentifier2(*sb, join.SearchTargetColumn)
+			}
+		}
+	}
+}
+
+func (jb *JoinBaseBuilder) appendCondition(sb *[]byte, column, condition string, value interface{}, op *string) {
+	if *op != "" {
+		*sb = append(*sb, *op...)
+	}
+	*sb = jb.u.EscapeIdentifier2(*sb, column)
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, condition...)
+	if value != nil {
+		switch castedValue := value.(type) {
+		case string:
+			*sb = append(*sb, " "...)
+			*sb = jb.u.EscapeIdentifier2(*sb, castedValue) // TODO: validate this cast
+		default:
+			*sb = append(*sb, " "+jb.u.GetPlaceholder()...)
+		}
+	}
+}
+
+func (jb *JoinBaseBuilder) getLogicalOperator(operator int) string {
+	if operator == consts.LogicalOperator_OR {
+		return " OR "
+	}
+	return " AND "
 }
 
 func (j *JoinBaseBuilder) processJoin(join *structs.Join) (string, string) {
