@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -10,9 +9,9 @@ type InsertQueryBuilder struct {
 	builder *query.InsertBuilder
 }
 
-func NewInsertQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *InsertQueryBuilder {
+func NewInsertQueryBuilder(strategy interfaces.QueryBuilderStrategy) *InsertQueryBuilder {
 	return &InsertQueryBuilder{
-		builder: query.NewInsertBuilder(strategy, cache),
+		builder: query.NewInsertBuilder(strategy),
 	}
 }
 
@@ -32,9 +31,6 @@ func (ib *InsertQueryBuilder) InsertBatch(data []map[string]interface{}) *Insert
 }
 
 func (ib *InsertQueryBuilder) InsertUsing(columns []string, qb *SelectQueryBuilder) *InsertQueryBuilder {
-	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
-	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
-	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
 	ib.builder.InsertUsing(columns, qb.builder)
 	return ib
 }

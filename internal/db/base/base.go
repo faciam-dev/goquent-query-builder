@@ -1,64 +1,9 @@
 package base
 
 import (
-	"strings"
-
-	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
-
-type SelectBuilderStrategy interface {
-	Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{}
-}
-
-type FromBuilderStrategy interface {
-	From(sb *strings.Builder, tableName string)
-}
-
-type WhereBuilderStrategy interface {
-	Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{}
-	ProcessFullText(sb *strings.Builder, c structs.Where) []interface{}
-}
-
-type OrderByBuilderStrategy interface {
-	OrderBy(sb *strings.Builder, order *[]structs.Order)
-}
-
-type GroupByBuilderStrategy interface {
-	GroupBy(sb *strings.Builder, groupBy *structs.GroupBy) []interface{}
-}
-
-type JoinBuilderStrategy interface {
-	Join(sb *strings.Builder, joins *structs.Joins) []interface{}
-}
-
-type UnionBuilderStrategy interface {
-	Union(sb *strings.Builder, union *structs.Union, number int) []interface{}
-}
-
-type LimitBuilderStrategy interface {
-	Limit(sb *strings.Builder, limit *structs.Limit)
-}
-
-type OffsetBuilderStrategy interface {
-	Offset(sb *strings.Builder, offset *structs.Offset)
-}
-
-type InsertBuilderStrategy interface {
-	Insert(q *structs.InsertQuery) (string, []interface{}, error)
-	BuildInsert(q *structs.InsertQuery) (string, []interface{}, error)
-}
-
-type UpdateBuilderStrategy interface {
-	Update(q *structs.UpdateQuery) *UpdateBaseBuilder
-	BuildUpdate(q *structs.UpdateQuery) (string, []interface{}, error)
-}
-
-type DeleteBuilderStrategy interface {
-	Delete(q *structs.DeleteQuery) *DeleteBaseBuilder
-	BuildDelete(q *structs.DeleteQuery) (string, []interface{}, error)
-}
 
 type BaseQueryBuilder struct {
 	UnionBaseBuilder
@@ -84,7 +29,7 @@ func NewBaseQueryBuilder() *BaseQueryBuilder {
 	queryBuilder.SelectBaseBuilder = *NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.FromBaseBuilder = *NewFromBaseBuilder(u)
 	queryBuilder.JoinBaseBuilder = *NewJoinBaseBuilder(u, &structs.Joins{})
-	queryBuilder.WhereBaseBuilder = *NewWhereBaseBuilder(u, &[]structs.WhereGroup{})
+	queryBuilder.WhereBaseBuilder = *NewWhereBaseBuilder(u, []structs.WhereGroup{})
 	queryBuilder.OrderByBaseBuilder = *NewOrderByBaseBuilder(u, &[]structs.Order{})
 	queryBuilder.GroupByBaseBuilder = *NewGroupByBaseBuilder(u)
 	queryBuilder.LimitBaseBuilder = *NewLimitBaseBuilder()
@@ -96,35 +41,25 @@ func NewBaseQueryBuilder() *BaseQueryBuilder {
 }
 
 // Lock returns the lock statement.
-func (BaseQueryBuilder) Lock(lock *structs.Lock) string {
+func (BaseQueryBuilder) Lock(sb *[]byte, lock *structs.Lock) {
 	if lock == nil || lock.LockType == "" {
-		return ""
+		return
 	}
 
-	return " " + lock.LockType
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, lock.LockType...)
 }
 
 // Build builds the query.
-func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query, number int, unions *[]structs.Union) (string, []interface{}) {
-	sb := &strings.Builder{}
-
-	// grow the string builder based on the length of the cache key
-	if len(cacheKey) < consts.StringBuffer_Short_Query_Grow {
-		sb.Grow(consts.StringBuffer_Short_Query_Grow)
-	} else if len(cacheKey) < consts.StringBuffer_Middle_Query_Grow {
-		sb.Grow(consts.StringBuffer_Middle_Query_Grow)
-	} else {
-		sb.Grow(consts.StringBuffer_Long_Query_Grow)
-	}
-
+func (m BaseQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{} {
 	values := make([]interface{}, 0)
 
 	// SELECT
-	sb.WriteString("SELECT ")
+	*sb = append(*sb, "SELECT "...)
 	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
 
 	// FROM
-	sb.WriteString(" ")
+	*sb = append(*sb, " "...)
 	m.From(sb, q.Table.Name)
 	values = append(values, colValues...)
 
@@ -150,14 +85,10 @@ func (m BaseQueryBuilder) Build(cacheKey string, q *structs.Query, number int, u
 	m.Offset(sb, q.Offset)
 
 	// LOCK
-	lock := m.Lock(q.Lock)
-	sb.WriteString(lock)
+	m.Lock(sb, q.Lock)
 
 	// UNION
 	m.Union(sb, unions, number)
 
-	query := sb.String()
-	sb.Reset()
-
-	return query, values
+	return values
 }

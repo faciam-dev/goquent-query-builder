@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -18,42 +17,88 @@ func (s *SQLUtils) GetPlaceholder() string {
 	return "?"
 }
 
-func (s *SQLUtils) EscapeIdentifierAliasedValue(value interface{}) string {
-	if value == nil {
-		return "NULL"
+func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte {
+	eoc := strings.Index(value, " as ")
+	if eoc != -1 {
+		sb = s.EscapeIdentifier2(sb, value[:eoc])
+		sb = append(sb, " as "...)
+		sb = s.EscapeIdentifier2(sb, value[eoc+4:])
+		return sb
+	} else {
+		eoc = strings.Index(value, " AS ")
+		if eoc != -1 {
+			sb = s.EscapeIdentifier2(sb, value[:eoc])
+			sb = append(sb, " as "...)
+			sb = s.EscapeIdentifier2(sb, value[eoc+4:])
+			return sb
+		} else {
+			sb = s.EscapeIdentifier2(sb, value)
+			return sb
+		}
 	}
-
-	target := regexp.MustCompile(`(?i)\s+as\s+`)
-	if target.MatchString(value.(string)) {
-		parts := target.Split(value.(string), -1)
-		return s.EscapeIdentifier(parts[0]) + " as " + s.EscapeIdentifier(parts[1])
-	}
-
-	return value.(string)
 }
 
-func (s *SQLUtils) EscapeIdentifier(value interface{}) string {
-	if value == nil {
-		return "NULL"
-	}
-
-	if v, ok := value.(string); ok {
-		if strings.Contains(strings.ToLower(v), " as ") {
-			return s.EscapeIdentifierAliasedValue(value)
-		}
-
-		if v != "*" {
-			if strings.Contains(v, ".") {
-				parts := strings.Split(v, ".")
-				return "`" + strings.ReplaceAll(parts[0], "`", "``") + "`.`" + strings.ReplaceAll(parts[1], "`", "``") + "`"
+func (s *SQLUtils) EscapeIdentifier(sb *strings.Builder, v string) {
+	if v != "*" {
+		if eoc := strings.Index(v, "."); eoc != -1 {
+			sb.WriteString("`")
+			if eo := strings.Index(v, "`"); eo != -1 {
+				sb.WriteString(strings.ReplaceAll(v[:eo], "`", "``"))
+				sb.WriteString("`.`")
+				sb.WriteString(strings.ReplaceAll(v[eo+1:eoc], "`", "``"))
+			} else {
+				sb.WriteString(v[:eoc])
+				sb.WriteString("`.`")
+				sb.WriteString(v[eoc+1:])
 			}
-			return "`" + strings.ReplaceAll(v, "`", "``") + "`"
+			sb.WriteString("`")
+			return
+		} else {
+			sb.WriteString("`")
+			if eo := strings.Index(v, "`"); eo != -1 {
+				sb.WriteString(strings.ReplaceAll(v[:eo], "`", "``"))
+				sb.WriteString("`.`")
+				sb.WriteString(strings.ReplaceAll(v[eo+1:], "`", "``"))
+			} else {
+				sb.WriteString(v)
+			}
+			sb.WriteString("`")
+			return
 		}
 	}
-
-	return value.(string)
+	sb.WriteString(v)
 }
 
 func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 	return NewMySQLQueryBuilder()
+}
+
+func (s *SQLUtils) EscapeIdentifier2(sb []byte, v string) []byte {
+	if v != "*" {
+		if eoc := strings.IndexByte(v, '.'); eoc != -1 {
+			sb = append(sb, "`"...)
+			if eo := strings.IndexByte(v, '`'); eo != -1 {
+				sb = append(sb, strings.ReplaceAll(v[:eo], "`", "``")...)
+				sb = append(sb, "`.`"...)
+				sb = append(sb, strings.ReplaceAll(v[eo+1:eoc], "`", "``")...)
+			} else {
+				sb = append(sb, v[:eoc]...)
+				sb = append(sb, "`.`"...)
+				sb = append(sb, v[eoc+1:]...)
+			}
+			return append(sb, "`"...)
+		} else {
+			sb = append(sb, "`"...)
+			if eo := strings.IndexByte(v, '`'); eo != -1 {
+				sb = append(sb, strings.ReplaceAll(v[:eo], "`", "``")...)
+				sb = append(sb, "`.`"...)
+				sb = append(sb, strings.ReplaceAll(v[eo+1:], "`", "``")...)
+			} else {
+				sb = append(sb, v...)
+			}
+			return append(sb, "`"...)
+		}
+	}
+	sb = append(sb, v...)
+	return sb
 }

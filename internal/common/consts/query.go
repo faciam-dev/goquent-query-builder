@@ -57,13 +57,14 @@ const (
 )
 
 const (
-	StringBuffer_Short_Query_Grow  = 128
+	StringBuffer_Short_Query_Grow  = 96
 	StringBuffer_Middle_Query_Grow = 512
 	StringBuffer_Long_Query_Grow   = 1024
 
-	StringBuffer_Where_Grow    = 128
-	StringBuffer_Join_Grow     = 128
-	StringBuffer_CacheKey_Grow = 512
+	StringBuffer_Column_Grow  = 16
+	StringBuffer_Where_Grow   = 32
+	StringBuffer_Join_Grow    = 32
+	StringBuffer_GroupBy_Grow = 128
 
 	StringBuffer_Update_Grow = 128
 	StringBuffer_Delete_Grow = 128

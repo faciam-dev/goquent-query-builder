@@ -2,7 +2,7 @@ package base
 
 import (
 	"sort"
-	"strings"
+	"sync"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -21,15 +21,32 @@ func NewInsertBaseBuilder(util interfaces.SQLUtils, iq *structs.InsertQuery) *In
 	}
 }
 
+var poolBytes = sync.Pool{
+	New: func() interface{} {
+		b := make([]byte, 0, consts.StringBuffer_Long_Query_Grow)
+		return &b
+	},
+}
+
+var poolValues = sync.Pool{
+	New: func() interface{} {
+		i := make([]interface{}, 0)
+		return &i
+	},
+}
+
 // Insert builds the INSERT query.
 func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}, error) {
-	sb := &strings.Builder{}
-	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
+	ptr := poolBytes.Get().(*[]byte)
+	sb := *ptr
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
 
 	// INSERT INTO
-	sb.WriteString("INSERT INTO ")
-	sb.WriteString(m.u.EscapeIdentifier(q.Table))
-	sb.WriteString(" ")
+	sb = append(sb, "INSERT INTO "...)
+	sb = m.u.EscapeIdentifier2(sb, q.Table)
+	sb = append(sb, " "...)
 
 	columns := make([]string, 0, len(q.Values))
 	for column := range q.Values {
@@ -42,44 +59,55 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 		values = append(values, q.Values[column])
 	}
 
-	sb.WriteString("(")
+	sb = append(sb, "("...)
 	for i, column := range columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
-		sb.WriteString(m.u.EscapeIdentifier(column))
+		sb = m.u.EscapeIdentifier2(sb, column)
 	}
-	sb.WriteString(") ")
+	sb = append(sb, ") "...)
 
-	sb.WriteString("VALUES (")
+	sb = append(sb, "VALUES ("...)
 	for i := range columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
-		sb.WriteString(m.u.GetPlaceholder())
+		sb = append(sb, m.u.GetPlaceholder()...)
 	}
-	sb.WriteString(")")
+	sb = append(sb, ")"...)
 
-	query := sb.String()
-	sb.Reset()
+	query := string(sb)
+
+	*ptr = sb
+	poolBytes.Put(ptr)
 
 	return query, values, nil
 }
 
 // InsertBatch builds the INSERT query for batch insert.
 func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interface{}, error) {
-	sb := &strings.Builder{}
-	sb.Grow(consts.StringBuffer_Long_Query_Grow) // todo: check if this is necessary
+	ptr := poolBytes.Get().(*[]byte)
+	sb := *ptr
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
+
+	vPtr := poolValues.Get().(*[]interface{})
+	allValues := *vPtr
+	if len(allValues) > 0 {
+		allValues = allValues[0:0]
+	}
 
 	// INSERT INTO
-	sb.WriteString("INSERT INTO ")
-	sb.WriteString(m.u.EscapeIdentifier(q.Table))
-	sb.WriteString(" ")
+	sb = append(sb, "INSERT INTO "...)
+	sb = m.u.EscapeIdentifier2(sb, q.Table)
+	sb = append(sb, " "...)
 
 	// get all columns from all values
 	columnSet := make(map[string]struct{}, len(q.ValuesBatch))
-	for _, values := range q.ValuesBatch {
-		for column := range values {
+	for i := range q.ValuesBatch {
+		for column := range q.ValuesBatch[i] {
 			columnSet[column] = struct{}{}
 		}
 	}
@@ -92,76 +120,91 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	sort.Strings(columns)
 
 	// COLUMNS
-	sb.WriteString("(")
+	sb = append(sb, "("...)
 	for i, column := range columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
-		sb.WriteString(m.u.EscapeIdentifier(column))
+		sb = m.u.EscapeIdentifier2(sb, column)
 	}
-	sb.WriteString(") VALUES ")
+	sb = append(sb, ") VALUES "...)
 
 	// VALUES
-	allValues := make([]interface{}, 0, len(q.ValuesBatch)*len(columns))
+	estimatedSize := len(q.ValuesBatch) * len(columns)
+	if cap(allValues) < estimatedSize {
+		newAllValue := make([]interface{}, 0, estimatedSize)
+		copy(newAllValue, allValues)
+		allValues = newAllValue
+	}
 	for i, values := range q.ValuesBatch {
 		rowValues := make([]interface{}, 0, len(columns))
-		for _, column := range columns {
-			if value, ok := values[column]; ok {
-				rowValues = append(rowValues, value)
+		for j := range columns {
+			if value, ok := values[columns[j]]; ok {
+				rowValues = rowValues[:len(rowValues)+1]
+				rowValues[j] = value
 			} else {
-				rowValues = append(rowValues, nil)
+				rowValues = rowValues[:len(rowValues)+1]
+				rowValues[j] = nil
 			}
 		}
 
-		sb.WriteString("(")
+		sb = append(sb, "("...)
 		for i := range columns {
 			if i > 0 {
-				sb.WriteString(", ")
+				sb = append(sb, ", "...)
 			}
-			sb.WriteString(m.u.GetPlaceholder())
+			sb = append(sb, m.u.GetPlaceholder()...)
 		}
-		sb.WriteString(")")
+		sb = append(sb, ")"...)
 
 		if i < len(q.ValuesBatch)-1 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
 
 		allValues = append(allValues, rowValues...)
 	}
+	query := string(sb)
 
-	query := sb.String()
-	sb.Reset()
+	*ptr = sb
+	poolBytes.Put(ptr)
+
+	*vPtr = allValues
+	poolValues.Put(vPtr)
 
 	return query, allValues, nil
 }
 
 func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}, error) {
-	sb := &strings.Builder{}
-	sb.Grow(consts.StringBuffer_Middle_Query_Grow) // todo: check if this is necessary
+	ptr := poolBytes.Get().(*[]byte)
+	sb := *ptr
+	if len(sb) > 0 {
+		sb = sb[:0]
+	}
 
 	// INSERT INTO
-	sb.WriteString("INSERT INTO ")
-	sb.WriteString(m.u.EscapeIdentifier(q.Table))
+	sb = append(sb, "INSERT INTO "...)
+	sb = m.u.EscapeIdentifier2(sb, q.Table)
 
 	// COLUMNS
 	columns := make([]string, 0, len(q.Columns))
 	columns = append(columns, q.Columns...)
-	sb.WriteString(" (")
+	sb = append(sb, " ("...)
 	for i, column := range columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			sb = append(sb, ", "...)
 		}
-		sb.WriteString(m.u.EscapeIdentifier(column))
+		sb = m.u.EscapeIdentifier2(sb, column)
 	}
-	sb.WriteString(") ")
+	sb = append(sb, ") "...)
 
 	// SELECT
 	b := m.u.GetQueryBuilderStrategy()
-	selectQuery, selectValues := b.Build("", q.Query, 0, nil)
-	sb.WriteString(selectQuery)
+	selectValues := b.Build(&sb, q.Query, 0, nil)
 
-	query := sb.String()
-	sb.Reset()
+	query := string(sb)
+
+	*ptr = sb
+	poolBytes.Put(ptr)
 
 	return query, selectValues, nil
 }

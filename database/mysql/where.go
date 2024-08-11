@@ -1,8 +1,6 @@
 package mysql
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -14,64 +12,64 @@ type WhereMySQLBuilder struct {
 	u                interfaces.SQLUtils
 }
 
-func NewWhereMySQLBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WhereMySQLBuilder {
+func NewWhereMySQLBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup) *WhereMySQLBuilder {
 	return &WhereMySQLBuilder{
 		whereBaseBuilder: base.NewWhereBaseBuilder(util, wg),
 		u:                util,
 	}
 }
 
-func (wb *WhereMySQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
-	if wg == nil || len(*wg) == 0 {
+func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) []interface{} {
+	if len(wg) == 0 {
 		return []interface{}{}
 	}
 
 	// WHERE
-	if wb.whereBaseBuilder.HasCondition(*wg) {
-		sb.WriteString(" WHERE ")
+	if wb.whereBaseBuilder.HasCondition(wg) {
+		*sb = append(*sb, " WHERE "...)
 	}
 
 	values := make([]interface{}, 0)
 
-	for i, cg := range *wg {
-		if len(cg.Conditions) == 0 {
+	for i := range wg {
+		if len((wg)[i].Conditions) == 0 {
 			continue
 		}
 
 		if i > 0 {
-			sb.WriteString(wb.WhereBaseBuilder.GetConditionGroupSeparator(cg, i))
+			*sb = append(*sb, wb.WhereBaseBuilder.GetConditionGroupSeparator((wg)[i], i)...)
 		}
 
-		sb.WriteString(wb.whereBaseBuilder.GetNotSeparator(cg))
-		sb.WriteString(wb.whereBaseBuilder.GetParenthesesOpen(cg))
+		*sb = append(*sb, wb.whereBaseBuilder.GetNotSeparator((wg)[i])...)
+		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesOpen((wg)[i])...)
 
-		for j, c := range cg.Conditions {
-			if j > 0 || (i > 0 && j == 0 && cg.IsDummyGroup) {
-				sb.WriteString(wb.whereBaseBuilder.GetConditionOperator(c))
+		for j := range (wg)[i].Conditions {
+			if j > 0 || (i > 0 && j == 0 && (wg)[i].IsDummyGroup) {
+				*sb = append(*sb, wb.whereBaseBuilder.GetConditionOperator((wg)[i].Conditions[j])...)
 			}
 
 			switch {
-			case c.Query != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessSubQuery(sb, c)...)
-			case c.Exists != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessExistsQuery(sb, c)...)
-			case c.Between != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, c)...)
-			case c.FullText != nil:
-				values = append(values, wb.ProcessFullText(sb, c)...)
-			case c.Function != "":
-				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, c)...)
+			case (wg)[i].Conditions[j].Query != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessSubQuery(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].Exists != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessExistsQuery(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].Between != nil:
+				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].FullText != nil:
+				values = append(values, wb.ProcessFullText(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].Function != "":
+				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, (wg)[i].Conditions[j])...)
 			default:
-				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, c)...)
+				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, (wg)[i].Conditions[j])...)
 			}
 		}
-		sb.WriteString(wb.whereBaseBuilder.GetParenthesesClose(cg))
+		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesClose((wg)[i])...)
 	}
 
 	return values
 }
 
-func (wb *WhereMySQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Where) []interface{} {
+func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []interface{} {
 	// parse options
 	mode := "IN NATURAL LANGUAGE MODE"
 	expand := ""
@@ -88,14 +86,14 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Wher
 		}
 	}
 
-	sb.WriteString("MATCH (")
+	*sb = append(*sb, "MATCH ("...)
 	for i, column := range c.FullText.Columns {
 		if i > 0 {
-			sb.WriteString(", ")
+			*sb = append(*sb, ", "...)
 		}
-		sb.WriteString(wb.u.EscapeIdentifier(column))
+		*sb = wb.u.EscapeIdentifier2(*sb, column)
 	}
-	sb.WriteString(") AGAINST (" + wb.u.GetPlaceholder() + " " + mode + expand + ")")
+	*sb = append(*sb, ") AGAINST ("+wb.u.GetPlaceholder()+" "+mode+expand+")"...)
 	values := []interface{}{c.Value}
 
 	return values

@@ -5,20 +5,28 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
+	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
-type OrderByBuilder struct {
-	Order *[]structs.Order
+type OrderByBuilder[T any] struct {
+	Order  *[]structs.Order
+	parent *T
 }
 
-func NewOrderByBuilder(o *[]structs.Order) *OrderByBuilder {
-	return &OrderByBuilder{
-		Order: o,
+func NewOrderByBuilder[T any](strategy interfaces.QueryBuilderStrategy) *OrderByBuilder[T] {
+	return &OrderByBuilder[T]{
+		Order: &[]structs.Order{},
 	}
 }
 
+func (b *OrderByBuilder[T]) SetParent(parent *T) *T {
+	b.parent = parent
+
+	return b.parent
+}
+
 // OrderBy adds an ORDER BY clause.
-func (b *OrderByBuilder) OrderBy(column string, ascDesc string) *OrderByBuilder {
+func (b *OrderByBuilder[T]) OrderBy(column string, ascDesc string) *T {
 	ascDesc = strings.ToUpper(ascDesc)
 
 	if ascDesc == consts.Order_ASC {
@@ -32,19 +40,19 @@ func (b *OrderByBuilder) OrderBy(column string, ascDesc string) *OrderByBuilder 
 			IsAsc:  consts.Order_FLAG_DESC,
 		})
 	}
-	return b
+	return b.parent
 }
 
 // ReOrder removes all ORDER BY clauses.
-func (b *OrderByBuilder) ReOrder() *OrderByBuilder {
+func (b *OrderByBuilder[T]) ReOrder() *T {
 	*b.Order = []structs.Order{}
-	return b
+	return b.parent
 }
 
 // OrderByRaw adds a raw ORDER BY clause.
-func (b *OrderByBuilder) OrderByRaw(raw string) *OrderByBuilder {
+func (b *OrderByBuilder[T]) OrderByRaw(raw string) *T {
 	*b.Order = append(*b.Order, structs.Order{
 		Raw: raw,
 	})
-	return b
+	return b.parent
 }

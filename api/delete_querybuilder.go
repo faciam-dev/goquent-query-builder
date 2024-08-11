@@ -1,34 +1,34 @@
 package api
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
-	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
 type DeleteQueryBuilder struct {
-	WhereQueryBuilder[DeleteQueryBuilder, query.DeleteBuilder]
-	JoinQueryBuilder[DeleteQueryBuilder, query.DeleteBuilder]
-	builder             *query.DeleteBuilder
-	orderByQueryBuilder *OrderByQueryBuilder
+	WhereQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder]
+	JoinQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder]
+	OrderByQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder]
+	builder *query.DeleteBuilder
+	QueryBuilderStrategy[DeleteQueryBuilder, query.DeleteBuilder]
 }
 
-func NewDeleteQueryBuilder(strategy interfaces.QueryBuilderStrategy, cache cache.Cache) *DeleteQueryBuilder {
+func NewDeleteQueryBuilder(strategy interfaces.QueryBuilderStrategy) *DeleteQueryBuilder {
 	db := &DeleteQueryBuilder{
-		builder: query.NewDeleteBuilder(strategy, cache),
-		orderByQueryBuilder: &OrderByQueryBuilder{
-			builder: query.NewOrderByBuilder(&[]structs.Order{}),
-		},
+		builder: query.NewDeleteBuilder(strategy),
 	}
 
-	whereBuilder := NewWhereQueryBuilder[DeleteQueryBuilder, query.DeleteBuilder](strategy, cache)
-	whereBuilder.SetParent(db)
+	whereBuilder := NewWhereQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy)
+	whereBuilder.SetParent(&db)
 	db.WhereQueryBuilder = *whereBuilder
 
-	joinBuilder := NewJoinQueryBuilder[DeleteQueryBuilder, query.DeleteBuilder](strategy, cache)
-	joinBuilder.SetParent(db)
+	joinBuilder := NewJoinQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy)
+	joinBuilder.SetParent(&db)
 	db.JoinQueryBuilder = *joinBuilder
+
+	orderByBuilder := NewOrderByQueryBuilder[*DeleteQueryBuilder, query.DeleteBuilder](strategy)
+	orderByBuilder.SetParent(&db)
+	db.OrderByQueryBuilder = *orderByBuilder
 
 	return db
 }
@@ -41,8 +41,8 @@ func (qb *DeleteQueryBuilder) Delete() *DeleteQueryBuilder {
 
 // Using
 /*
-func (ub *UpdateQueryBuilder) Using(qb *QueryBuilder) *UpdateQueryBuilder {
-	ub.builder.Using(qb)
+func (qb *UpdateQueryBuilder) Using(qb *QueryBuilder) *DeleteQueryBuilder {
+	qb.builder.Using(qb)
 
 	return ub
 }
@@ -53,46 +53,34 @@ func (qb *DeleteQueryBuilder) Table(table string) *DeleteQueryBuilder {
 	return qb
 }
 
-// OrderBy
-func (qb *DeleteQueryBuilder) OrderBy(column, ascDesc string) *DeleteQueryBuilder {
-	qb.orderByQueryBuilder.OrderBy(column, ascDesc)
-	return qb
-}
-
-func (qb *DeleteQueryBuilder) OrderByRaw(raw string) *DeleteQueryBuilder {
-	qb.orderByQueryBuilder.OrderByRaw(raw)
-	return qb
-}
-
-func (qb *DeleteQueryBuilder) ReOrder() *DeleteQueryBuilder {
-	qb.orderByQueryBuilder.ReOrder()
-	return qb
-}
-
 func (ub *DeleteQueryBuilder) Dump() (string, []interface{}, error) {
-	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
-	ub.builder.SetWhereBuilder(ub.WhereQueryBuilder.builder)
-	ub.builder.SetJoinBuilder(ub.JoinQueryBuilder.builder)
-
 	b := query.NewDebugBuilder[*query.DeleteBuilder, DeleteQueryBuilder](ub.builder)
 
 	return b.Dump()
 }
 
 func (ub *DeleteQueryBuilder) RawSql() (string, error) {
-	ub.builder.SetOrderByBuilder(ub.orderByQueryBuilder.builder)
-	ub.builder.SetWhereBuilder(ub.WhereQueryBuilder.builder)
-	ub.builder.SetJoinBuilder(ub.JoinQueryBuilder.builder)
-
 	b := query.NewDebugBuilder[*query.DeleteBuilder, DeleteQueryBuilder](ub.builder)
 
 	return b.RawSql()
 }
 
 func (qb *DeleteQueryBuilder) Build() (string, []interface{}, error) {
-	qb.builder.SetWhereBuilder(qb.WhereQueryBuilder.builder)
-	qb.builder.SetJoinBuilder(qb.JoinQueryBuilder.builder)
-	qb.builder.SetOrderByBuilder(qb.orderByQueryBuilder.builder)
-
 	return qb.builder.Build()
+}
+
+func (qb *DeleteQueryBuilder) GetQueryBuilder() *DeleteQueryBuilder {
+	return qb
+}
+
+func (qb *DeleteQueryBuilder) GetWhereBuilder() *query.WhereBuilder[query.DeleteBuilder] {
+	return &qb.builder.WhereBuilder
+}
+
+func (qb *DeleteQueryBuilder) GetJoinBuilder() *query.JoinBuilder[query.DeleteBuilder] {
+	return &qb.builder.JoinBuilder
+}
+
+func (qb *DeleteQueryBuilder) GetOrderByBuilder() *query.OrderByBuilder[query.DeleteBuilder] {
+	return &qb.builder.OrderByBuilder
 }

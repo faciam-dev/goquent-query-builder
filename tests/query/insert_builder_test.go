@@ -3,7 +3,6 @@ package query_test
 import (
 	"testing"
 
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -18,7 +17,7 @@ func TestInsertBuilder(t *testing.T) {
 		{
 			"Insert",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					Insert(map[string]interface{}{
 						"name": "John Doe",
@@ -31,7 +30,7 @@ func TestInsertBuilder(t *testing.T) {
 		{
 			"InsertBatch",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					InsertBatch([]map[string]interface{}{
 						{
@@ -50,9 +49,9 @@ func TestInsertBuilder(t *testing.T) {
 		{
 			"InsertUsing",
 			func() *query.InsertBuilder {
-				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
-					InsertUsing([]string{"name", "age"}, query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					InsertUsing([]string{"name", "age"}, query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).
 						Table("profiles").
 						Select("name", "age").
 						Where("age", ">", 18))

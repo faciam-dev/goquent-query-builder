@@ -1,8 +1,6 @@
 package base
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -21,97 +19,113 @@ func NewSelectBaseBuilder(u interfaces.SQLUtils, columnNames *[]string) *SelectB
 	}
 }
 
-func (b *SelectBaseBuilder) Select(sb *strings.Builder, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
+func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
 	if columns == nil {
-		sb.WriteString(" * ")
+		*sb = append(*sb, "*"...)
 		return []interface{}{}
 	}
-	//colNames := make([]string, 0, len(*columns))
 
+	outputed := false
 	// if there are no columns to select, select all columns
-	if len(*columns) == 0 && joins.Joins != nil {
-		for i, join := range *joins.Joins {
+	if len(*columns) == 0 && (joins.Joins != nil || joins.LateralJoins != nil) {
+		for i, join := range append(*joins.LateralJoins, *joins.Joins...) {
 			b.processJoin(sb, &join, tableName, i)
+			outputed = true
 		}
 
-		if joins.JoinClause != nil {
-			for _, joinClause := range *joins.JoinClause {
+		if joins.JoinClauses != nil {
+			for _, joinClause := range *joins.JoinClauses {
 				join := structs.Join{
 					TargetNameMap: joinClause.TargetNameMap,
 					Name:          joinClause.Name,
 				}
 				b.processJoin(sb, &join, tableName, 0)
+				outputed = true
 			}
 		}
 
+	}
+
+	if len(*columns) == 0 && !outputed {
+		*sb = append(*sb, "*"...)
 		return []interface{}{}
 	}
 
-	colValues := make([]interface{}, 0, len(*columns))
-	firstDistinct := false
+	// if there are columns has values
+	var colValues []interface{}
+	hasValues := false
+	for i := 0; i < len(*columns); i++ {
+		if (*columns)[i].Values != nil && len((*columns)[i].Values) > 0 {
+			hasValues = true
+			break
+		}
+	}
+	if hasValues {
+		colValues = make([]interface{}, 0, len(*columns))
+	}
 
 	// if there are columns to select
-	for i, column := range *columns {
-		if column.Distinct && !column.Count && !firstDistinct {
-			sb.WriteString("DISTINCT ")
+	firstDistinct := false
+	for i := 0; i < len(*columns); i++ {
+		if (*columns)[i].Distinct && !(*columns)[i].Count && !firstDistinct {
+			*sb = append(*sb, "DISTINCT "...)
 			firstDistinct = true
 		}
 
-		if column.Count {
-			sb.WriteString("COUNT(")
-			if column.Distinct {
-				sb.WriteString("DISTINCT ")
+		if (*columns)[i].Count {
+			*sb = append(*sb, "COUNT("...)
+			if (*columns)[i].Distinct {
+				*sb = append(*sb, "DISTINCT "...)
 			}
-			if column.Name != "" {
-				sb.WriteString(b.u.EscapeIdentifier(column.Name))
+			if (*columns)[i].Name != "" {
+				*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
 			} else {
-				sb.WriteString("*")
+				*sb = append(*sb, "*"...)
 			}
-			sb.WriteString(")")
+			*sb = append(*sb, ")"...)
 			if i < len(*columns)-1 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
 
 			continue
 		}
 
-		if column.Function != "" {
+		if (*columns)[i].Function != "" {
 			if i > 0 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
-			sb.WriteString(column.Function)
-			sb.WriteString("(")
-			if column.Distinct {
-				sb.WriteString("DISTINCT ")
+			*sb = append(*sb, (*columns)[i].Function...)
+			*sb = append(*sb, "("...)
+			if (*columns)[i].Distinct {
+				*sb = append(*sb, "DISTINCT "...)
 			}
-			if column.Name != "" {
-				sb.WriteString(b.u.EscapeIdentifier(column.Name))
+			if (*columns)[i].Name != "" {
+				*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
 			} else {
-				sb.WriteString("*")
+				*sb = append(*sb, "*"...)
 			}
-			sb.WriteString(")")
-		} else if column.Raw != "" {
-			if column.Values != nil && len(column.Values) > 0 {
-				colValues = append(colValues, column.Values...)
+			*sb = append(*sb, ")"...)
+		} else if (*columns)[i].Raw != "" {
+			if (*columns)[i].Values != nil && len((*columns)[i].Values) > 0 {
+				colValues = append(colValues, (*columns)[i].Values...)
 			}
 			if i > 0 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
-			sb.WriteString(column.Raw) // or colNames = column.Raw
-			//colNames = append(colNames, column.Raw)
-		} else if column.Name != "" {
+			*sb = append(*sb, (*columns)[i].Raw...) // or colNames = column.Raw
+		} else if (*columns)[i].Name != "" {
 			if i > 0 {
-				sb.WriteString(", ")
+				*sb = append(*sb, ", "...)
 			}
-			sb.WriteString(b.u.EscapeIdentifier(column.Name))
-			//colNames = append(colNames, column.Name)
+
+			*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
 		}
 	}
 
 	return colValues
 }
 
-func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join, tableName string, idx int) {
+func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableName string, idx int) {
 	targetName := ""
 	//joinedTablesForSelect := ""
 
@@ -143,26 +157,31 @@ func (j *SelectBaseBuilder) processJoin(sb *strings.Builder, join *structs.Join,
 		name = join.Name
 	}
 
-	targetNameForSelect := j.u.EscapeIdentifier(targetName) + ".*"
-
-	//sb.Grow(consts.StringBuffer_Select_Grow)
+	wsb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
+	wsb = j.u.EscapeIdentifier2(wsb, targetName)
+	wsb = append(wsb, ".*"...)
+	targetNameForSelect := string(wsb)
+	wsb = wsb[:0]
 
 	outputed := false
 	if !sliceutils.Contains(*j.columnNames, targetNameForSelect) {
 		if idx > 0 {
-			sb.WriteString(", ")
+			*sb = append(*sb, ", "...)
 		}
-		sb.WriteString(targetNameForSelect)
+		*sb = append(*sb, targetNameForSelect...)
 		*j.columnNames = append(*j.columnNames, targetNameForSelect)
 		outputed = true
 	}
 
-	nameForSelect := j.u.EscapeIdentifier(name) + ".*"
+	wsb = j.u.EscapeIdentifier2(wsb, name)
+	wsb = append(wsb, ".*"...)
+	nameForSelect := string(wsb)
+
 	if !sliceutils.Contains(*j.columnNames, nameForSelect) {
 		if idx > 0 || outputed {
-			sb.WriteString(", ")
+			*sb = append(*sb, ", "...)
 		}
-		sb.WriteString(nameForSelect)
+		*sb = append(*sb, nameForSelect...)
 		*j.columnNames = append(*j.columnNames, nameForSelect)
 	}
 

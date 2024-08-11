@@ -1,8 +1,6 @@
 package postgres
 
 import (
-	"strings"
-
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -14,40 +12,40 @@ type WherePostgreSQLBuilder struct {
 	u                interfaces.SQLUtils
 }
 
-func NewWherePostgreSQLBuilder(util interfaces.SQLUtils, wg *[]structs.WhereGroup) *WherePostgreSQLBuilder {
+func NewWherePostgreSQLBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup) *WherePostgreSQLBuilder {
 	return &WherePostgreSQLBuilder{
 		whereBaseBuilder: base.NewWhereBaseBuilder(util, wg),
 		u:                util,
 	}
 }
 
-func (wb *WherePostgreSQLBuilder) Where(sb *strings.Builder, wg *[]structs.WhereGroup) []interface{} {
-	if wg == nil || len(*wg) == 0 {
+func (wb *WherePostgreSQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) []interface{} {
+	if len(wg) == 0 {
 		return []interface{}{}
 	}
 
 	// WHERE
-	if wb.whereBaseBuilder.HasCondition(*wg) {
-		sb.WriteString(" WHERE ")
+	if wb.whereBaseBuilder.HasCondition(wg) {
+		*sb = append(*sb, " WHERE "...)
 	}
 
 	values := make([]interface{}, 0)
 
-	for i, cg := range *wg {
+	for i, cg := range wg {
 		if len(cg.Conditions) == 0 {
 			continue
 		}
 
 		if i > 0 {
-			sb.WriteString(wb.WhereBaseBuilder.GetConditionGroupSeparator(cg, i))
+			*sb = append(*sb, wb.WhereBaseBuilder.GetConditionGroupSeparator(cg, i)...)
 		}
 
-		sb.WriteString(wb.whereBaseBuilder.GetNotSeparator(cg))
-		sb.WriteString(wb.whereBaseBuilder.GetParenthesesOpen(cg))
+		*sb = append(*sb, wb.whereBaseBuilder.GetNotSeparator(cg)...)
+		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesOpen(cg)...)
 
 		for j, c := range cg.Conditions {
 			if j > 0 || (i > 0 && j == 0 && cg.IsDummyGroup) {
-				sb.WriteString(wb.whereBaseBuilder.GetConditionOperator(c))
+				*sb = append(*sb, wb.whereBaseBuilder.GetConditionOperator(c)...)
 			}
 
 			switch {
@@ -65,13 +63,13 @@ func (wb *WherePostgreSQLBuilder) Where(sb *strings.Builder, wg *[]structs.Where
 				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, c)...)
 			}
 		}
-		sb.WriteString(wb.whereBaseBuilder.GetParenthesesClose(cg))
+		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesClose(cg)...)
 	}
 
 	return values
 }
 
-func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *strings.Builder, c structs.Where) []interface{} {
+func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []interface{} {
 	values := make([]interface{}, 0)
 
 	// parse options
@@ -94,15 +92,19 @@ func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *strings.Builder, c structs
 		}
 	}
 
-	sb.WriteString("(")
+	*sb = append(*sb, "("...)
 	for i, column := range c.FullText.Columns {
 		if i > 0 {
-			sb.WriteString(" || ")
+			*sb = append(*sb, " || "...)
 		}
-		sb.WriteString("to_tsvector(" + wb.u.GetPlaceholder() + ", " + wb.u.EscapeIdentifier(column) + ")")
+		*sb = append(*sb, "to_tsvector("...)
+		*sb = append(*sb, wb.u.GetPlaceholder()...)
+		*sb = append(*sb, ", "...)
+		*sb = wb.u.EscapeIdentifier2(*sb, column)
+		*sb = append(*sb, ")"...)
 		values = append(values, language)
 	}
-	sb.WriteString(") @@ " + mode + "(" + wb.u.GetPlaceholder() + ", " + wb.u.GetPlaceholder() + ")")
+	*sb = append(*sb, ") @@ "+mode+"("+wb.u.GetPlaceholder()+", "+wb.u.GetPlaceholder()+")"...)
 	values = append(values, language, c.FullText.Search)
 
 	return values

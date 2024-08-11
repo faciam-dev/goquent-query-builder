@@ -25,7 +25,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -38,7 +38,8 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 						},
 					},
 					Joins: &structs.Joins{
-						Joins: &[]structs.Join{},
+						Joins:        &[]structs.Join{},
+						LateralJoins: &[]structs.Join{},
 					},
 					Order: &[]structs.Order{},
 				},
@@ -58,7 +59,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -99,7 +100,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -135,7 +136,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -157,6 +158,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 								SearchTargetColumn: "profiles.user_id",
 							},
 						},
+						LateralJoins: &[]structs.Join{},
 					},
 					Order: &[]structs.Order{},
 				},
@@ -176,7 +178,7 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 					"age":  30,
 				},
 				Query: &structs.Query{
-					ConditionGroups: &[]structs.WhereGroup{
+					ConditionGroups: []structs.WhereGroup{
 						{
 							Conditions: []structs.Where{
 								{
@@ -189,7 +191,8 @@ func TestBaseUpdateQueryBuilder(t *testing.T) {
 						},
 					},
 					Joins: &structs.Joins{
-						Joins: &[]structs.Join{},
+						Joins:        &[]structs.Join{},
+						LateralJoins: &[]structs.Join{},
 					},
 					Order: &[]structs.Order{
 						{

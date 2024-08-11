@@ -1,7 +1,6 @@
 package query
 
 import (
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -10,14 +9,12 @@ import (
 type InsertBuilder struct {
 	BaseBuilder
 	dbBuilder interfaces.QueryBuilderStrategy
-	cache     cache.Cache
 	query     *structs.InsertQuery
 }
 
-func NewInsertBuilder(dbBuilder interfaces.QueryBuilderStrategy, cache cache.Cache) *InsertBuilder {
+func NewInsertBuilder(dbBuilder interfaces.QueryBuilderStrategy) *InsertBuilder {
 	return &InsertBuilder{
 		dbBuilder: dbBuilder,
-		cache:     cache,
 		query:     &structs.InsertQuery{},
 	}
 }
@@ -37,12 +34,12 @@ func (ib *InsertBuilder) InsertBatch(data []map[string]interface{}) *InsertBuild
 	return ib
 }
 
-func (ib *InsertBuilder) InsertUsing(columns []string, b *Builder) *InsertBuilder {
+func (ib *InsertBuilder) InsertUsing(columns []string, b *SelectBuilder) *InsertBuilder {
 	ib.query.Columns = columns
 
 	// If there are conditions, add them to the query
 	if b.WhereBuilder.query.Conditions != nil && len(*b.WhereBuilder.query.Conditions) > 0 {
-		*b.WhereBuilder.query.ConditionGroups = append(*b.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
+		b.WhereBuilder.query.ConditionGroups = append(b.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
 			Conditions:   *b.WhereBuilder.query.Conditions,
 			Operator:     consts.LogicalOperator_AND,
 			IsDummyGroup: true,

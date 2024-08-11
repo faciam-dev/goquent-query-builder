@@ -3,7 +3,6 @@ package query_test
 import (
 	"testing"
 
-	"github.com/faciam-dev/goquent-query-builder/cache"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
@@ -18,7 +17,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_all",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					Delete()
 			},
@@ -28,7 +27,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					Where("id", "=", 1).
 					Delete()
@@ -39,7 +38,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_not",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					Where("id", "!=", 1).
 					OrWhereNot(func(b *query.WhereBuilder[query.DeleteBuilder]) {
@@ -53,7 +52,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_in",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereIn("id", []interface{}{1, 2, 3}).
 					Delete()
@@ -64,7 +63,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_not_in",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereNotIn("id", []interface{}{1, 2, 3}).
 					Delete()
@@ -75,7 +74,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_any",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereAny([]string{"name", "note"}, "LIKE", "%test%").
 					Delete()
@@ -86,7 +85,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_all",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					Where("id", ">", 10000).
 					WhereAll([]string{"firstname", "lastname"}, "LIKE", "%test%").
@@ -98,7 +97,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_null",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereNull("name").
 					Delete()
@@ -109,7 +108,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_not_null",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereNotNull("name").
 					Delete()
@@ -120,7 +119,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_column",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereColumn([]string{"name", "note"}, "name", "=", "note").
 					Delete()
@@ -131,7 +130,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_between",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereBetween("age", 18, 30).
 					Delete()
@@ -142,7 +141,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_not_between",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereNotBetween("age", 18, 30).
 					Delete()
@@ -153,7 +152,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_where_between_columns",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					WhereBetweenColumns([]string{"created_at", "updated_at", "deleted_at"}, "created_at", "updated_at", "deleted_at").
 					Delete()
@@ -164,7 +163,7 @@ func TestDeleteBuilder(t *testing.T) {
 		{
 			"Delete_JOINS",
 			func() *query.DeleteBuilder {
-				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+				return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
@@ -177,9 +176,9 @@ func TestDeleteBuilder(t *testing.T) {
 			{
 				"Delete_using",
 				func() *query.DeleteBuilder {
-					return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+					return query.NewDeleteBuilder(mysql.NewMySQLQueryBuilder()).
 						Table("users").
-						Using(query.NewBuilder(mysql.NewMySQLQueryBuilder(), cache.NewAsyncQueryCache(100)).
+						Using(query.NewBuilder(mysql.NewMySQLQueryBuilder()).
 							Table("profiles").
 							Select("name", "age").
 							Where("age", ">", 18).GetQuery()).
