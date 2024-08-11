@@ -19,9 +19,9 @@ func NewWherePostgreSQLBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup
 	}
 }
 
-func (wb *WherePostgreSQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) []interface{} {
+func (wb *WherePostgreSQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]interface{}, error) {
 	if len(wg) == 0 {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	// WHERE
@@ -56,7 +56,11 @@ func (wb *WherePostgreSQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) []i
 			case c.Between != nil:
 				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, c)...)
 			case c.FullText != nil:
-				values = append(values, wb.ProcessFullText(sb, c)...)
+				v, err := wb.ProcessFullText(sb, c)
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, v...)
 			case c.Function != "":
 				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, c)...)
 			default:
@@ -66,10 +70,10 @@ func (wb *WherePostgreSQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) []i
 		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesClose(cg)...)
 	}
 
-	return values
+	return values, nil
 }
 
-func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []interface{} {
+func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) ([]interface{}, error) {
 	values := make([]interface{}, 0)
 
 	// parse options
@@ -100,12 +104,12 @@ func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) [
 		*sb = append(*sb, "to_tsvector("...)
 		*sb = append(*sb, wb.u.GetPlaceholder()...)
 		*sb = append(*sb, ", "...)
-		*sb = wb.u.EscapeIdentifier2(*sb, column)
+		*sb = wb.u.EscapeIdentifier(*sb, column)
 		*sb = append(*sb, ")"...)
 		values = append(values, language)
 	}
 	*sb = append(*sb, ") @@ "+mode+"("+wb.u.GetPlaceholder()+", "+wb.u.GetPlaceholder()+")"...)
 	values = append(values, language, c.FullText.Search)
 
-	return values
+	return values, nil
 }

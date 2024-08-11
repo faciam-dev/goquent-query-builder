@@ -158,7 +158,7 @@ func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableNam
 	}
 
 	wsb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
-	wsb = j.u.EscapeIdentifier2(wsb, targetName)
+	wsb = j.u.EscapeIdentifier(wsb, targetName)
 	wsb = append(wsb, ".*"...)
 	targetNameForSelect := string(wsb)
 	wsb = wsb[:0]
@@ -173,7 +173,7 @@ func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableNam
 		outputed = true
 	}
 
-	wsb = j.u.EscapeIdentifier2(wsb, name)
+	wsb = j.u.EscapeIdentifier(wsb, name)
 	wsb = append(wsb, ".*"...)
 	nameForSelect := string(wsb)
 

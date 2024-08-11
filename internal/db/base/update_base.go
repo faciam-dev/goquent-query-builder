@@ -37,7 +37,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 
 	// UPDATE
 	sb = append(sb, "UPDATE "...)
-	sb = m.u.EscapeIdentifier2(sb, q.Table)
+	sb = m.u.EscapeIdentifier(sb, q.Table)
 
 	// JOIN
 	b := NewJoinBaseBuilder(m.u, q.Query.Joins)
@@ -52,7 +52,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	}
 	sort.Strings(columns)
 	for i, column := range columns {
-		sb = m.u.EscapeIdentifier2(sb, column)
+		sb = m.u.EscapeIdentifier(sb, column)
 		sb = append(sb, " = "+m.u.GetPlaceholder()...)
 		if i < len(columns)-1 {
 			sb = append(sb, ", "...)
@@ -63,7 +63,10 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	// WHERE
 	if len(q.Query.ConditionGroups) > 0 {
 		wb := NewWhereBaseBuilder(m.u, q.Query.ConditionGroups)
-		whereValues := wb.Where(&sb, q.Query.ConditionGroups)
+		whereValues, err := wb.Where(&sb, q.Query.ConditionGroups)
+		if err != nil {
+			return "", nil, err
+		}
 		values = append(values, whereValues...)
 	}
 

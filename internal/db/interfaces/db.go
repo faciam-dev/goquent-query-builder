@@ -5,7 +5,7 @@ import (
 )
 
 type QueryBuilderStrategy interface {
-	Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) []interface{}
+	Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error)
 
 	Insert(q *structs.InsertQuery) (string, []interface{}, error)
 	InsertBatch(q *structs.InsertQuery) (string, []interface{}, error)

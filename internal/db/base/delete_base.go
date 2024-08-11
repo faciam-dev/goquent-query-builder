@@ -41,12 +41,12 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 		q.Query.Joins.Joins != nil &&
 		(len(*q.Query.Joins.Joins) > 0 || (q.Query.Joins.JoinClauses != nil && len(*q.Query.Joins.JoinClauses) > 0)) {
 		sb = append(sb, " "...)
-		sb = m.u.EscapeIdentifier2(sb, q.Table)
+		sb = m.u.EscapeIdentifier(sb, q.Table)
 	}
 
 	// FROM
 	sb = append(sb, " FROM "...)
-	sb = m.u.EscapeIdentifier2(sb, q.Table)
+	sb = m.u.EscapeIdentifier(sb, q.Table)
 
 	// JOIN
 	jb := NewJoinBaseBuilder(m.u, q.Query.Joins)
@@ -55,7 +55,10 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 	// WHERE
 	if len(q.Query.ConditionGroups) > 0 {
 		wb := NewWhereBaseBuilder(m.u, q.Query.ConditionGroups)
-		whereValues := wb.Where(&sb, q.Query.ConditionGroups)
+		whereValues, err := wb.Where(&sb, q.Query.ConditionGroups)
+		if err != nil {
+			return "", nil, err
+		}
 		values = append(values, whereValues...)
 	}
 

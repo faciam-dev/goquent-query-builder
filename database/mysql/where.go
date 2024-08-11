@@ -19,9 +19,9 @@ func NewWhereMySQLBuilder(util interfaces.SQLUtils, wg []structs.WhereGroup) *Wh
 	}
 }
 
-func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) []interface{} {
+func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]interface{}, error) {
 	if len(wg) == 0 {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	// WHERE
@@ -66,7 +66,7 @@ func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) []interf
 		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesClose((wg)[i])...)
 	}
 
-	return values
+	return values, nil
 }
 
 func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []interface{} {
@@ -91,7 +91,7 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inte
 		if i > 0 {
 			*sb = append(*sb, ", "...)
 		}
-		*sb = wb.u.EscapeIdentifier2(*sb, column)
+		*sb = wb.u.EscapeIdentifier(*sb, column)
 	}
 	*sb = append(*sb, ") AGAINST ("+wb.u.GetPlaceholder()+" "+mode+expand+")"...)
 	values := []interface{}{c.Value}
