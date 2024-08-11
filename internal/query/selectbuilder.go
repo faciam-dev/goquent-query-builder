@@ -8,14 +8,6 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
-/*
-type QueryBuilder struct {
-	whereBuilder   WhereBuilder[Builder]
-	joinBuilder    JoinBuilder[Builder]
-	orderByBuilder OrderByBuilder
-}
-*/
-
 type SelectBuilder struct {
 	dbBuilder   interfaces.QueryBuilderStrategy
 	query       *structs.Query
@@ -284,17 +276,11 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 		IsAll: false,
 	})
 
-	//sb := stringbufPool.Get().([]byte)
-	//sb.Reset()
 	ptr := bytebufPool.Get().(*[]byte)
 	sb := *ptr
 	if len(sb) > 0 {
 		sb = sb[:0]
 	}
-	//sb = sb[:0]
-	//sb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
-
-	//sb.Grow(consts.StringBuffer_Short_Query_Grow)
 
 	estimatedSize := consts.StringBuffer_Short_Query_Grow
 	for i := range *b.selectQuery.Union {
@@ -315,9 +301,6 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 		sb = newsb
 	}
 
-	//sb.Grow(estimatedSize)
-
-	//query := ""
 	vPtr := interfaceSlicePool.Get().(*[]interface{})
 	values := *vPtr
 	if len(values) > 0 {
@@ -325,8 +308,6 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 	}
 
 	for i := range *b.selectQuery.Union {
-		//sb.Grow(consts.StringBuffer_Middle_Query_Grow)
-		//log.Default().Println(unsafe.Sizeof((*b.selectQuery.Union)[i].Query))
 		v := b.dbBuilder.Build(&sb, (*b.selectQuery.Union)[i].Query, i, b.selectQuery.Union)
 
 		values = append(values, v...)
@@ -343,8 +324,6 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 
 	*vPtr = values
 	interfaceSlicePool.Put(vPtr)
-
-	//stringbufPool.Put(sb)
 
 	return query, values, nil
 }

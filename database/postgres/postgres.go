@@ -12,22 +12,6 @@ type PostgreSQLQueryBuilder struct {
 	base.InsertBaseBuilder
 	base.UpdateBaseBuilder
 
-	/*
-		selectBuilderStrategy base.SelectBuilderStrategy
-		FromBuilderStrategy   base.FromBuilderStrategy
-		joinBuilderStrategy   base.JoinBuilderStrategy
-	*/
-	//whereBuilderStrategy   base.WhereBuilderStrategy
-	/*
-		orderByBuilderStrategy base.OrderByBuilderStrategy
-		groupByBuilderStrategy base.GroupByBuilderStrategy
-		limitBuilderStrategy   base.LimitBuilderStrategy
-		OffsetBuilderStrategy  base.OffsetBuilderStrategy
-		insertBuilderStrategy  base.InsertBuilderStrategy
-		updateBuilderStrategy  base.UpdateBuilderStrategy
-		deleteBuilderStrategy  base.DeleteBuilderStrategy
-	*/
-
 	WherePostgreSQLBuilder
 
 	util interfaces.SQLUtils
@@ -37,7 +21,6 @@ func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
 	queryBuilder := &PostgreSQLQueryBuilder{}
 	u := NewSQLUtils()
 	queryBuilder.util = u
-	//queryBuilder.BaseQueryBuilder = *base.NewBaseQueryBuilder()
 	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
 	queryBuilder.FromBaseBuilder = *base.NewFromBaseBuilder(u)
@@ -47,21 +30,6 @@ func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
 	queryBuilder.InsertBaseBuilder = *base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
 	queryBuilder.UpdateBaseBuilder = *base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
 	queryBuilder.WherePostgreSQLBuilder = *NewWherePostgreSQLBuilder(u, []structs.WhereGroup{})
-	/*
-		queryBuilder.selectBuilderStrategy = base.NewSelectBaseBuilder(u, &[]string{})
-		queryBuilder.FromBuilderStrategy = base.NewFromBaseBuilder(u)
-		queryBuilder.joinBuilderStrategy = base.NewJoinBaseBuilder(u, &structs.Joins{})
-	*/
-	//queryBuilder.whereBuilderStrategy = NewWherePostgreSQLBuilder(u, []structs.WhereGroup{})
-	/*
-		queryBuilder.orderByBuilderStrategy = base.NewOrderByBaseBuilder(u, &[]structs.Order{})
-		queryBuilder.groupByBuilderStrategy = base.NewGroupByBaseBuilder(u)
-		queryBuilder.limitBuilderStrategy = base.NewLimitBaseBuilder()
-		queryBuilder.OffsetBuilderStrategy = base.NewOffsetBaseBuilder()
-		queryBuilder.insertBuilderStrategy = base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
-		queryBuilder.updateBuilderStrategy = base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
-		queryBuilder.deleteBuilderStrategy = base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
-	*/
 	return queryBuilder
 }
 

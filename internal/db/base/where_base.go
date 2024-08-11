@@ -169,7 +169,6 @@ func (wb *WhereBaseBuilder) ProcessSubQuery(sb *[]byte, c structs.Where) []inter
 	b := wb.u.GetQueryBuilderStrategy()
 	sqValues := b.Build(sb, c.Query, 0, nil)
 
-	//*sb = append(*sb, sqQuery...)
 	*sb = append(*sb, ")"...)
 	return sqValues
 }
@@ -177,19 +176,15 @@ func (wb *WhereBaseBuilder) ProcessSubQuery(sb *[]byte, c structs.Where) []inter
 func (wb *WhereBaseBuilder) ProcessExistsQuery(sb *[]byte, c structs.Where) []interface{} {
 	*sb = append(*sb, c.Condition...)
 
-	//condQuery := c.Condition
 	*sb = append(*sb, " ("...)
 	b := wb.u.GetQueryBuilderStrategy()
 	sqValues := b.Build(sb, c.Exists.Query, 0, nil)
 	*sb = append(*sb, ")"...)
 
-	//*sb = append(*sb, condQuery + " (" + sqQuery + ")"...)
 	return sqValues
 }
 
 func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *[]byte, c structs.Where) []interface{} {
-	//wsb := strings.Builder{}
-	//wsb.Grow(consts.StringBuffer_Where_Grow)
 	values := make([]interface{}, 0, 2)
 	if c.Between.IsColumn {
 		*sb = wb.u.EscapeIdentifier2(*sb, c.Column)
@@ -210,16 +205,10 @@ func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *[]byte, c structs.Where)
 		values = []interface{}{c.Between.From, c.Between.To}
 	}
 
-	//condQuery := wsb.String()
-
-	//*sb = append(*sb, condQuery...)
 	return values
 }
 
 func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []interface{} {
-	//wsb := strings.Builder{}
-	//wsb.Grow(consts.StringBuffer_Where_Grow)
-
 	if c.Raw != "" {
 		*sb = append(*sb, c.Raw...)
 	} else {
@@ -246,10 +235,8 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []i
 		}
 	}
 
-	//condQuery := wsb.String()
 	values := c.Value
 
-	//*sb = append(*sb, condQuery...)
 	return values
 }
 
@@ -262,8 +249,6 @@ func (wb *WhereBaseBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inter
 }
 
 func (wb *WhereBaseBuilder) ProcessFunction(sb *[]byte, c structs.Where) []interface{} {
-	//wsb := strings.Builder{}
-	//wsb.Grow(consts.StringBuffer_Where_Grow)
 	*sb = append(*sb, c.Function...)
 	*sb = append(*sb, "("...)
 	*sb = wb.u.EscapeIdentifier2(*sb, c.Column)
@@ -288,9 +273,7 @@ func (wb *WhereBaseBuilder) ProcessFunction(sb *[]byte, c structs.Where) []inter
 		}
 	}
 
-	//condQuery := wsb.String()
 	values := c.Value
 
-	//*sb = append(*sb, condQuery...)
 	return values
 }
