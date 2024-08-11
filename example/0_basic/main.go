@@ -13,9 +13,6 @@ func main() {
 	// Initialize database strategy
 	dbStrategy := mysql.NewMySQLQueryBuilder()
 
-	// if you dont want to use cache, you can use cache.NewBlankQueryCache()
-	// asyncCache := cache.NewBlankQueryCache()
-
 	// Executing query: SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > ? ORDER BY `users`.`name` ASC with values: [18]
 	qb := api.NewSelectQueryBuilder(dbStrategy).
 		Table("users").
@@ -25,19 +22,6 @@ func main() {
 		OrderBy("users.name", "ASC")
 
 	query, values, err := qb.Build()
-
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	profiling.Profile(query, func() {
-		fmt.Println("Executing query:", query, "with values:", values)
-		time.Sleep(2 * time.Second) // Simulate query execution
-	})
-
-	// use cache
-	query, values, err = qb.Build()
 
 	if err != nil {
 		fmt.Println("Error:", err)

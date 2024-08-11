@@ -167,9 +167,6 @@ func (b *JoinBuilder[T]) joinSubCommon(joinType string, q *SelectBuilder, alias,
 		Query:              sq,
 	}
 
-	// todo: use cache
-	//_, value := b.BuildSq(sq)
-
 	*b.Joins.Joins = append(*b.Joins.Joins, *args)
 	//b.joinValues = append(b.joinValues, value...)
 	return b.parent
@@ -209,10 +206,6 @@ func (b *JoinBuilder[T]) joinLateralCommon(joinType string, q *SelectBuilder, al
 		Query: sq,
 	}
 
-	// todo: use cache
-	//_, value := b.BuildSq(sq)
-
 	*b.Joins.LateralJoins = append(*b.Joins.LateralJoins, *args)
-	//b.joinValues = append(b.joinValues, value...)
 	return b.parent
 }
