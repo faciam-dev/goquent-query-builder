@@ -18,14 +18,7 @@ func BenchmarkSimpleSelectQuery(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		qb.Build()
-		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
-
-	// go test -benchmem -run=^$ -bench BenchmarkSimpleSelectQuery -benchtime=1s
-	// before refactor
-	// 2335863               509.9 ns/op           528 B/op        18 allocs/op
-	// after refactor
-	// 9414712               123.5 ns/op         416 B/op           3 allocs/op
 }
 
 func BenchmarkSimple2SelectQuery(b *testing.B) {
@@ -40,14 +33,7 @@ func BenchmarkSimple2SelectQuery(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		qb.Build()
-		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
-
-	// go test -benchmem -run=^$ -bench BenchmarkSimpleSelectQuery -benchtime=1s
-	// before refactor
-	// 2335863               509.9 ns/op           528 B/op        18 allocs/op
-	// after refactor
-	// 9414712               123.5 ns/op         416 B/op           3 allocs/op
 }
 
 func BenchmarkNormalSelectQuery(b *testing.B) {
@@ -63,14 +49,7 @@ func BenchmarkNormalSelectQuery(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		qb.Build()
-		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
-
-	// go test -benchmem -run=^$ -bench BenchmarkNormalSelectQuery -benchtime=1s
-	// before refactor
-	// 818690              1405 ns/op            1738 B/op        47 allocs/op
-	// after refactor
-	// 3166833               373.4 ns/op         816 B/op           6 allocs/op
 }
 
 func BenchmarkComplexSelectQuery(b *testing.B) {
@@ -90,14 +69,7 @@ func BenchmarkComplexSelectQuery(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		qb.Build()
-		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
-
-	// go test -benchmem -run=^$ -bench BenchmarkComplexSelectQuery -benchtime=1s
-	// before refactor
-	// 675976              1747 ns/op           2323 B/op          57 allocs/op
-	// after refactor
-	// 2800032               431.2 ns/op          832 B/op          7 allocs/op
 }
 
 func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
@@ -122,7 +94,6 @@ func BenchmarkComplexSelectQueryWithUsingSubQuery(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		qb.Build()
-		//blankCache.SetWithExpiry(query, query, 5*time.Minute)
 	}
 
 }
@@ -141,12 +112,6 @@ func BenchmarkSimpleInsert(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		qb.Build()
 	}
-
-	// go test -benchmem -run=^$ -bench BenchmarkSimpleInsert -benchtime=1s
-	// before refactor
-	//  5521004               220.6 ns/op           216 B/op         8 allocs/op
-	// after refactor
-	//  7707033               154.6 ns/op           576 B/op         3 allocs/op
 }
 
 func BenchmarkInsertBatch(b *testing.B) {
@@ -203,12 +168,6 @@ func BenchmarkInsertUsing(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		qb.Build()
 	}
-
-	// go test -benchmem -run=^$ -bench BenchmarkInsertUsing -benchtime=1s
-	// before refactor (after select query's refactor)
-	//  6140727               197.4 ns/op           336 B/op         8 allocs/op
-	// after refactor
-	//  6972561               169.6 ns/op           712 B/op         5 allocs/op
 }
 
 func BenchmarkSimpleUpdate(b *testing.B) {
@@ -226,11 +185,6 @@ func BenchmarkSimpleUpdate(b *testing.B) {
 		qb.Build()
 	}
 
-	// go test -benchmem -run=^$ -bench BenchmarkSimpleUpdate -benchtime=1s
-	// before refactor (after select query's refactor)
-	//  5506760               214.4 ns/op           336 B/op         8 allocs/op
-	// after refactor
-	//  7360680               164.7 ns/op           600 B/op         4 allocs/op
 }
 
 func BenchmarkUpdateWhere(b *testing.B) {
@@ -249,11 +203,6 @@ func BenchmarkUpdateWhere(b *testing.B) {
 		qb.Build()
 	}
 
-	// go test -benchmem -run=^$ -bench BenchmarkUpdateWhere -benchtime=1s
-	// before refactor (after select query's refactor)
-	//  3559383               339.8 ns/op           544 B/op        11 allocs/op
-	// after refactor
-	//  4128181               290.8 ns/op           808 B/op         7 allocs/op
 }
 
 func BenchmarkJoinUpdate(b *testing.B) {
@@ -273,11 +222,6 @@ func BenchmarkJoinUpdate(b *testing.B) {
 		qb.Build()
 	}
 
-	// go test -benchmem -run=^$ -bench BenchmarkJoinUpdate -benchtime=1s
-	// before refactor (after select query's refactor)
-	//  3003182               396.5 ns/op           544 B/op        11 allocs/op
-	// after refactor
-	//  3419262               349.0 ns/op           808 B/op         7 allocs/op
 }
 
 func BenchmarkDelete(b *testing.B) {
@@ -292,11 +236,6 @@ func BenchmarkDelete(b *testing.B) {
 		qb.Build()
 	}
 
-	// go test -benchmem -run=^$ -bench BenchmarkDelete -benchtime=1s
-	// before refactor (after select query's refactor)
-	//  7226889               164.1 ns/op           336 B/op         6 allocs/op
-	// after refactor
-	//  7271072               162.9 ns/op           312 B/op         5 allocs/op
 }
 
 func BenchmarkDeleteJoin(b *testing.B) {
@@ -312,9 +251,4 @@ func BenchmarkDeleteJoin(b *testing.B) {
 		qb.Build()
 	}
 
-	// go test -benchmem -run=^$ -bench BenchmarkDeleteJoin -benchtime=1s
-	// before refactor (after select query's refactor)
-	//  5309685               220.1 ns/op           336 B/op         6 allocs/op
-	// after refactor
-	//  5201276               230.5 ns/op           312 B/op         5 allocs/op
 }
