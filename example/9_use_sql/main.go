@@ -18,8 +18,7 @@ import (
 // QueryToMap is a helper function to convert sql.Rows to []map[string]interface{}
 // for MySQL database
 func main() {
-	//connStr := "username:password@tcp(addr:port)/database"
-	connStr := "root:1234@tcp(172.30.249.68:13306)/test"
+	connStr := "username:password@tcp(addr:port)/database"
 	d, err := sql.Open("mysql", connStr)
 	if err != nil {
 		log.Fatal(err)
