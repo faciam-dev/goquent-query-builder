@@ -555,6 +555,14 @@ func TestWhereSelectBuilder(t *testing.T) {
 			[]interface{}{1, 2, 3},
 		},
 		{
+			"WhereIn (Single Value)",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereIn("id", []int64{1})
+			},
+			"SELECT * FROM `` WHERE `id` IN (?)",
+			[]interface{}{1},
+		},
+		{
 			"WhereIn (Subquery)",
 			func() *query.SelectBuilder {
 				sq := query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Select("id").Table("users").Where("name", "=", "John")

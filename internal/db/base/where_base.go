@@ -231,7 +231,7 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []i
 			*sb = append(*sb, " "...)
 			*sb = wb.u.EscapeIdentifier(*sb, c.ValueColumn)
 		} else if c.Value != nil {
-			if len(c.Value) > 1 {
+			if c.Condition == consts.Condition_IN || c.Condition == consts.Condition_NOT_IN || len(c.Value) > 1 {
 				*sb = append(*sb, " ("...)
 				for k := 0; k < len(c.Value); k++ {
 					if k > 0 {
@@ -270,7 +270,7 @@ func (wb *WhereBaseBuilder) ProcessFunction(sb *[]byte, c structs.Where) []inter
 		*sb = append(*sb, " "...)
 		*sb = wb.u.EscapeIdentifier(*sb, c.ValueColumn)
 	} else if c.Value != nil {
-		if len(c.Value) > 1 {
+		if c.Condition == consts.Condition_IN || c.Condition == consts.Condition_NOT_IN || len(c.Value) > 1 {
 			*sb = append(*sb, " ("...)
 			for k := 0; k < len(c.Value); k++ {
 				if k > 0 {
