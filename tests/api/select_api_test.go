@@ -121,6 +121,14 @@ func TestSelectApiBuilder(t *testing.T) {
 			nil,
 		},
 		{
+			"From_With_Alias",
+			func() *api.SelectQueryBuilder {
+				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).Table("users as u")
+			},
+			"SELECT * FROM `users` as `u`",
+			nil,
+		},
+		{
 			"Inner_Join",
 			func() *api.SelectQueryBuilder {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).Join("orders", "users.id", "=", "orders.user_id")
@@ -150,6 +158,14 @@ func TestSelectApiBuilder(t *testing.T) {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).CrossJoin("orders")
 			},
 			"SELECT `orders`.*, ``.* FROM `` CROSS JOIN `orders`",
+			nil,
+		},
+		{
+			"Join_With_Alias",
+			func() *api.SelectQueryBuilder {
+				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).Join("orders as o", "users.id", "=", "o.user_id")
+			},
+			"SELECT `o`.*, ``.* FROM `` INNER JOIN `orders` as `o` ON `users`.`id` = `o`.`user_id`",
 			nil,
 		},
 		{
