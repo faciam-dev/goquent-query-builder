@@ -55,7 +55,7 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 	var colValues []interface{}
 	hasValues := false
 	for i := 0; i < len(*columns); i++ {
-		if (*columns)[i].Values != nil && len((*columns)[i].Values) > 0 {
+		if len((*columns)[i].Values) > 0 {
 			hasValues = true
 			break
 		}
@@ -106,7 +106,7 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 			}
 			*sb = append(*sb, ")"...)
 		} else if (*columns)[i].Raw != "" {
-			if (*columns)[i].Values != nil && len((*columns)[i].Values) > 0 {
+			if len((*columns)[i].Values) > 0 {
 				colValues = append(colValues, (*columns)[i].Values...)
 			}
 			if i > 0 {
@@ -158,7 +158,12 @@ func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableNam
 	}
 
 	wsb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
-	wsb = j.u.EscapeIdentifier(wsb, targetName)
+	alias := j.u.GetAlias(targetName)
+	if alias != "" {
+		wsb = j.u.EscapeIdentifier(wsb, alias)
+	} else {
+		wsb = j.u.EscapeIdentifier(wsb, targetName)
+	}
 	wsb = append(wsb, ".*"...)
 	targetNameForSelect := string(wsb)
 	wsb = wsb[:0]

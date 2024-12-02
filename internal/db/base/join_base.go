@@ -80,7 +80,7 @@ func (jb *JoinBaseBuilder) appendJoinClause(sb *[]byte, joinClause structs.JoinC
 		*sb = append(*sb, ") as "...)
 		*sb = jb.u.EscapeIdentifier(*sb, targetName)
 	} else {
-		*sb = jb.u.EscapeIdentifier(*sb, targetName)
+		*sb = jb.u.EscapeIdentifierAliasedValue(*sb, targetName)
 	}
 
 	*sb = append(*sb, " ON "...)
@@ -128,7 +128,7 @@ func (jb *JoinBaseBuilder) appendSortedJoin(sb *[]byte, join structs.Join, value
 		*sb = append(*sb, ") as "...)
 		*sb = jb.u.EscapeIdentifier(*sb, targetName)
 	} else {
-		*sb = jb.u.EscapeIdentifier(*sb, targetName)
+		*sb = jb.u.EscapeIdentifierAliasedValue(*sb, targetName)
 	}
 
 	if _, ok := join.TargetNameMap[consts.Join_CROSS]; !ok {

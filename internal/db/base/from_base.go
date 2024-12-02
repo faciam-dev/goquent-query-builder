@@ -16,5 +16,5 @@ func NewFromBaseBuilder(util interfaces.SQLUtils) *FromBaseBuilder {
 
 func (f FromBaseBuilder) From(sb *[]byte, table string) {
 	*sb = append(*sb, "FROM "...)
-	*sb = f.u.EscapeIdentifier(*sb, table)
+	*sb = f.u.EscapeIdentifierAliasedValue(*sb, table)
 }

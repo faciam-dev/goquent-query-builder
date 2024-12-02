@@ -71,3 +71,16 @@ func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {
 	sb = append(sb, v...)
 	return sb
 }
+
+func (s *SQLUtils) GetAlias(value string) string {
+	eoc := strings.Index(value, " as ")
+	if eoc != -1 {
+		return value[eoc+4:]
+	} else {
+		eoc = strings.Index(value, " AS ")
+		if eoc != -1 {
+			return value[eoc+4:]
+		}
+	}
+	return ""
+}
