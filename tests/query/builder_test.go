@@ -342,10 +342,11 @@ func TestBuilder(t *testing.T) {
 					Table("users").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("age", ">", 18).
+					Where("deleted_at", "IS", nil).
 					OrderBy("name", "ASC")
 			},
-			"SELECT `id`, `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `age` > ? ORDER BY `name` ASC",
-			[]interface{}{18},
+			"SELECT `id`, `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `age` > ? AND `deleted_at` IS ? ORDER BY `name` ASC",
+			[]interface{}{18, nil},
 		},
 		{
 			"Complex_Query_With_Subquery",

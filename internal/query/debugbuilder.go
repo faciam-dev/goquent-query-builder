@@ -54,6 +54,8 @@ func replacePlaceholders(query string, args []interface{}) (string, error) {
 			replacement = fmt.Sprintf("'%s'", stringutils.EscapeString(v))
 		case int, int64, float64:
 			replacement = fmt.Sprintf("%v", v)
+		case nil:
+			replacement = "NULL"
 		default:
 			return "", fmt.Errorf("not supported type: %T", v)
 		}

@@ -139,10 +139,11 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 					Select("id", "users.name as name").
 					Join("profiles", "users.id", "=", "profiles.user_id").
 					Where("profiles.age", ">", 18).
+					Where("deleted_at", "IS", nil).
 					OrderBy("users.name", "ASC")
 
 			},
-			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > 18 ORDER BY `users`.`name` ASC",
+			"SELECT `id`, `users`.`name` as `name` FROM `users` INNER JOIN `profiles` ON `users`.`id` = `profiles`.`user_id` WHERE `profiles`.`age` > 18 AND `deleted_at` IS NULL ORDER BY `users`.`name` ASC",
 		},
 		{
 			"Normal_Query_With_WhereGroup",
