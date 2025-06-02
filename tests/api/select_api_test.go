@@ -473,7 +473,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"WhereRaw",
 			func() *api.SelectQueryBuilder {
-				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereRaw("`age` > ?", 18)
+				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereRaw("`age` > :age", map[string]interface{}{"age": 18})
 			},
 			"SELECT * FROM `` WHERE `age` > ?",
 			[]interface{}{18},
@@ -481,7 +481,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 		{
 			"OrWhereRaw",
 			func() *api.SelectQueryBuilder {
-				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereRaw("`age` > ?", 18).OrWhereRaw("`name`= ?", "John")
+				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereRaw("`age` > :age", map[string]interface{}{"age": 18}).OrWhereRaw("`name`= :name", map[string]interface{}{"name": "John"})
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `name`= ?",
 			[]interface{}{18, "John"},

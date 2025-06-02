@@ -54,9 +54,9 @@ func (b *WhereBuilder[T]) OrWhere(column string, condition string, value ...inte
 }
 
 // WhereRaw adds a raw where clause with AND operator
-func (b *WhereBuilder[T]) WhereRaw(column string, value ...interface{}) *T {
+func (b *WhereBuilder[T]) WhereRaw(column string, values map[string]any) *T {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
-		Value:    value,
+		ValueMap: values,
 		Raw:      column,
 		Operator: consts.LogicalOperator_AND,
 	})
@@ -64,9 +64,9 @@ func (b *WhereBuilder[T]) WhereRaw(column string, value ...interface{}) *T {
 }
 
 // OrWhereRaw adds a raw where clause with OR operator
-func (b *WhereBuilder[T]) OrWhereRaw(column string, value ...interface{}) *T {
+func (b *WhereBuilder[T]) OrWhereRaw(column string, values map[string]any) *T {
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
-		Value:    value,
+		ValueMap: values,
 		Raw:      column,
 		Operator: consts.LogicalOperator_OR,
 	})

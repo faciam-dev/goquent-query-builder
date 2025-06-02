@@ -71,14 +71,14 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereSubQuery(column string, condition stri
 }
 
 // WhereRaw is a function that allows you to add a where raw condition
-func (wb *WhereQueryBuilder[T, C]) WhereRaw(raw string, value interface{}) T {
-	(*wb.parent).GetWhereBuilder().WhereRaw(raw, value)
+func (wb *WhereQueryBuilder[T, C]) WhereRaw(raw string, values map[string]any) T {
+	(*wb.parent).GetWhereBuilder().WhereRaw(raw, values)
 	return (*wb.parent).GetQueryBuilder()
 }
 
 // OrWhereRaw is a function that allows you to add a or where raw condition
-func (wb *WhereQueryBuilder[T, C]) OrWhereRaw(raw string, value interface{}) T {
-	(*wb.parent).GetWhereBuilder().OrWhereRaw(raw, value)
+func (wb *WhereQueryBuilder[T, C]) OrWhereRaw(raw string, values map[string]any) T {
+	(*wb.parent).GetWhereBuilder().OrWhereRaw(raw, values)
 	return (*wb.parent).GetQueryBuilder()
 }
 

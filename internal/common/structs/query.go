@@ -18,6 +18,7 @@ type Where struct {
 	Condition   string
 	Value       []interface{}
 	ValueColumn string
+	ValueMap    map[string]any
 	Operator    int
 	Query       *Query
 	Between     *WhereBetween

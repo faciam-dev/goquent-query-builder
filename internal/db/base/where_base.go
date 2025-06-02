@@ -2,6 +2,7 @@ package base
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
@@ -222,6 +223,21 @@ func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *[]byte, c structs.Where)
 
 func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []interface{} {
 	if c.Raw != "" {
+		if c.ValueMap != nil {
+			values := make([]interface{}, 0, len(c.ValueMap))
+			rawSql := c.Raw
+			// If ValueMap is provided, we assume the raw condition is a placeholder
+			for key, value := range c.ValueMap {
+				if value == nil {
+					continue
+				}
+				rawSql = strings.Replace(rawSql, ":"+key, wb.u.GetPlaceholder(), -1)
+				values = append(values, value)
+			}
+
+			*sb = append(*sb, rawSql...)
+			return values
+		}
 		*sb = append(*sb, c.Raw...)
 	} else {
 		*sb = wb.u.EscapeIdentifier(*sb, c.Column)
