@@ -6,7 +6,6 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/api"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
-	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 )
 
 func TestSelectDebugApiRawSqlTest(t *testing.T) {
@@ -525,8 +524,7 @@ func TestDebugDumpTest(t *testing.T) {
 				t.Errorf("expected values %v but got %v", tt.expectedValues, values)
 			}
 
-			convertedValues := sliceutils.ToInterfaceSlice(values)
-			for i := range convertedValues {
+			for i := range values {
 				if values[i] != tt.expectedValues[i] {
 					t.Errorf("expected value %v at index %d but got %v", tt.expectedValues[i], i, values[i])
 				}
@@ -546,8 +544,7 @@ func TestDebugDumpTest(t *testing.T) {
 				t.Errorf("expected values %v but got %v", tt.expectedValues, values)
 			}
 
-			convertedValues = sliceutils.ToInterfaceSlice(values)
-			for i := range convertedValues {
+			for i := range values {
 				if values[i] != tt.expectedValues[i] {
 					t.Errorf("expected value %v at index %d but got %v", tt.expectedValues[i], i, values[i])
 				}

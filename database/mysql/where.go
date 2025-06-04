@@ -94,7 +94,7 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inte
 		*sb = wb.u.EscapeIdentifier(*sb, column)
 	}
 	*sb = append(*sb, ") AGAINST ("+wb.u.GetPlaceholder()+" "+mode+expand+")"...)
-	values := []interface{}{c.Value}
+	values := append(c.Value, c.FullText.Search)
 
 	return values
 }

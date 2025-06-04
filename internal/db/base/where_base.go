@@ -2,6 +2,7 @@ package base
 
 import (
 	"errors"
+	"sort"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -227,7 +228,14 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []i
 			values := make([]interface{}, 0, len(c.ValueMap))
 			rawSql := c.Raw
 			// If ValueMap is provided, we assume the raw condition is a placeholder
-			for key, value := range c.ValueMap {
+			// Sort keys to ensure deterministic replacement order
+			keys := make([]string, 0, len(c.ValueMap))
+			for key := range c.ValueMap {
+				keys = append(keys, key)
+			}
+			sort.Strings(keys)
+			for _, key := range keys {
+				value := c.ValueMap[key]
 				if value == nil {
 					continue
 				}

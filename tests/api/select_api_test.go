@@ -6,7 +6,6 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/api"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
 	"github.com/faciam-dev/goquent-query-builder/database/postgres"
-	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
 )
 
 func TestSelectApiBuilder(t *testing.T) {
@@ -610,7 +609,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereIn("id", []int64{1, 2, 3})
 			},
 			"SELECT * FROM `` WHERE `id` IN (?, ?, ?)",
-			[]interface{}{1, 2, 3},
+			[]interface{}{int64(1), int64(2), int64(3)},
 		},
 		{
 			"WhereIn (Subquery)",
@@ -627,7 +626,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereNotIn("id", []int64{1, 2, 3})
 			},
 			"SELECT * FROM `` WHERE `id` NOT IN (?, ?, ?)",
-			[]interface{}{1, 2, 3},
+			[]interface{}{int64(1), int64(2), int64(3)},
 		},
 		{
 			"WhereNotIn (Subquery)",
@@ -644,7 +643,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereIn("id", []int64{1, 2, 3})
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `id` IN (?, ?, ?)",
-			[]interface{}{19, 1, 2, 3},
+			[]interface{}{19, int64(1), int64(2), int64(3)},
 		},
 		{
 			"OrWhereIn (Subquery)",
@@ -661,7 +660,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).Where("age", ">", 19).OrWhereNotIn("id", []int64{1, 2, 3})
 			},
 			"SELECT * FROM `` WHERE `age` > ? OR `id` NOT IN (?, ?, ?)",
-			[]interface{}{19, 1, 2, 3},
+			[]interface{}{19, int64(1), int64(2), int64(3)},
 		},
 		{
 			"OrWhereNotIn (Subquery)",
@@ -984,7 +983,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereDay("created_at", "=", "1")
 			},
 			"SELECT * FROM `` WHERE DAY(`created_at`) = ?",
-			[]interface{}{1},
+			[]interface{}{"1"},
 		},
 		{
 			"WhereMonth",
@@ -992,7 +991,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereMonth("created_at", "=", "1")
 			},
 			"SELECT * FROM `` WHERE MONTH(`created_at`) = ?",
-			[]interface{}{1},
+			[]interface{}{"1"},
 		},
 		{
 			"WhereYear",
@@ -1000,7 +999,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 				return api.NewSelectQueryBuilder(mysql.NewMySQLQueryBuilder()).WhereYear("created_at", "=", "2021")
 			},
 			"SELECT * FROM `` WHERE YEAR(`created_at`) = ?",
-			[]interface{}{2021},
+			[]interface{}{"2021"},
 		},
 	}
 	for _, tt := range tests {
@@ -1018,8 +1017,7 @@ func TestWhereSelectBuilder(t *testing.T) {
 				t.Errorf("expected values %v but got %v", tt.expectedValues, values)
 			}
 
-			convertedValues := sliceutils.ToInterfaceSlice(values)
-			for i := range convertedValues {
+			for i := range values {
 				if values[i] != tt.expectedValues[i] {
 					t.Errorf("expected value %v at index %d but got %v", tt.expectedValues[i], i, values[i])
 				}
