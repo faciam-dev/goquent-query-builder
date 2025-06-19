@@ -2,8 +2,10 @@ package mysql
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/common/jsonutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -107,32 +109,36 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inte
 }
 
 func (wb *WhereMySQLBuilder) ProcessJsonContains(sb *[]byte, c structs.Where) []interface{} {
-	field, path := parseJsonFieldAndPath(c.Column)
+	field, path := jsonutils.ParseJsonFieldAndPath(c.Column)
 	*sb = append(*sb, "JSON_CONTAINS("...)
 	*sb = wb.u.EscapeIdentifier(*sb, field)
 	*sb = append(*sb, ", "...)
 	*sb = append(*sb, wb.u.GetPlaceholder()...)
-	if path != "" {
-		*sb = append(*sb, ", '$."+path+"')"...)
+	if len(path) > 0 {
+		*sb = append(*sb, ", '$."+strings.Join(path, ".")+"')"...)
 	} else {
 		*sb = append(*sb, ")"...)
 	}
 
 	var jsonVal []byte
+	var err error
 	if len(c.JsonContains.Values) == 1 {
-		jsonVal, _ = json.Marshal(c.JsonContains.Values[0])
+		jsonVal, err = json.Marshal(c.JsonContains.Values[0])
 	} else {
-		jsonVal, _ = json.Marshal(c.JsonContains.Values)
+		jsonVal, err = json.Marshal(c.JsonContains.Values)
+	}
+	if err != nil {
+		log.Printf("json marshal error: %v", err)
 	}
 	return []interface{}{string(jsonVal)}
 }
 
 func (wb *WhereMySQLBuilder) ProcessJsonLength(sb *[]byte, c structs.Where) []interface{} {
-	field, path := parseJsonFieldAndPath(c.Column)
+	field, path := jsonutils.ParseJsonFieldAndPath(c.Column)
 	*sb = append(*sb, "JSON_LENGTH("...)
 	*sb = wb.u.EscapeIdentifier(*sb, field)
-	if path != "" {
-		*sb = append(*sb, ", '$."+path+"')"...)
+	if len(path) > 0 {
+		*sb = append(*sb, ", '$."+strings.Join(path, ".")+"')"...)
 	} else {
 		*sb = append(*sb, ")"...)
 	}
@@ -141,13 +147,4 @@ func (wb *WhereMySQLBuilder) ProcessJsonLength(sb *[]byte, c structs.Where) []in
 	*sb = append(*sb, " "...)
 	*sb = append(*sb, wb.u.GetPlaceholder()...)
 	return []interface{}{c.JsonLength.Value}
-}
-
-func parseJsonFieldAndPath(column string) (string, string) {
-	parts := strings.Split(column, "->")
-	field := parts[0]
-	if len(parts) > 1 {
-		return field, strings.Join(parts[1:], ".")
-	}
-	return field, ""
 }

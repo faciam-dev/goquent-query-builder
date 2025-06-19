@@ -911,6 +911,70 @@ func TestWhereSelectBuilder(t *testing.T) {
 			[]interface{}{"New York", "english", "english", "english", "John Doe"},
 		},
 		{
+			"WhereJsonContains_MySQL",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereJsonContains("options->languages", "en")
+			},
+			"SELECT * FROM `` WHERE JSON_CONTAINS(`options`, ?, '$.languages')",
+			[]interface{}{"\"en\""},
+		},
+		{
+			"WhereJsonContains_PostgreSQL",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).WhereJsonContains("options->languages", "en")
+			},
+			`SELECT * FROM "" WHERE ("options"->'languages')::jsonb @> $1`,
+			[]interface{}{"\"en\""},
+		},
+		{
+			"OrWhereJsonContains_MySQL",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereJsonContains("options->languages", "en")
+			},
+			"SELECT * FROM `` WHERE `city` = ? OR JSON_CONTAINS(`options`, ?, '$.languages')",
+			[]interface{}{"New York", "\"en\""},
+		},
+		{
+			"OrWhereJsonContains_PostgreSQL",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).Where("city", "=", "New York").OrWhereJsonContains("options->languages", "en")
+			},
+			`SELECT * FROM "" WHERE "city" = $1 OR ("options"->'languages')::jsonb @> $2`,
+			[]interface{}{"New York", "\"en\""},
+		},
+		{
+			"WhereJsonLength_MySQL",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereJsonLength("options->languages", ">", 1)
+			},
+			"SELECT * FROM `` WHERE JSON_LENGTH(`options`, '$.languages') > ?",
+			[]interface{}{1},
+		},
+		{
+			"WhereJsonLength_PostgreSQL",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).WhereJsonLength("options->languages", ">", 1)
+			},
+			`SELECT * FROM "" WHERE jsonb_array_length(("options"->'languages')::jsonb) > $1`,
+			[]interface{}{1},
+		},
+		{
+			"OrWhereJsonLength_MySQL",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).Where("city", "=", "New York").OrWhereJsonLength("options->languages", ">", 1)
+			},
+			"SELECT * FROM `` WHERE `city` = ? OR JSON_LENGTH(`options`, '$.languages') > ?",
+			[]interface{}{"New York", 1},
+		},
+		{
+			"OrWhereJsonLength_PostgreSQL",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).Where("city", "=", "New York").OrWhereJsonLength("options->languages", ">", 1)
+			},
+			`SELECT * FROM "" WHERE "city" = $1 OR jsonb_array_length(("options"->'languages')::jsonb) > $2`,
+			[]interface{}{"New York", 1},
+		},
+		{
 			"WhereDate",
 			func() *query.SelectBuilder {
 				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereDate("created_at", "=", "2021-01-01")
