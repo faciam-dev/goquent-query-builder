@@ -2,13 +2,40 @@ package base
 
 import (
 	"sort"
+	"strings"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/jsonutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
 type UpdateBaseBuilder struct {
 	u interfaces.SQLUtils
+}
+
+func formatJSONUpdateExpression(sb []byte, u interfaces.SQLUtils, field string, path []string, placeholder string) []byte {
+	switch u.Dialect() {
+	case consts.DialectMySQL:
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, " = JSON_SET("...)
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, ", '$."+strings.Join(path, ".")+"', "...)
+		sb = append(sb, placeholder...)
+		sb = append(sb, ')')
+	case consts.DialectPostgreSQL:
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, " = jsonb_set("...)
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, ", '{"+strings.Join(path, ",")+"}', "...)
+		sb = append(sb, placeholder...)
+		sb = append(sb, ')')
+	default:
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, " = "...)
+		sb = append(sb, placeholder...)
+	}
+	return sb
 }
 
 func NewUpdateBaseBuilder(util interfaces.SQLUtils, iq *structs.UpdateQuery) *UpdateBaseBuilder {
@@ -52,8 +79,13 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	}
 	sort.Strings(columns)
 	for i, column := range columns {
-		sb = m.u.EscapeIdentifier(sb, column)
-		sb = append(sb, " = "+m.u.GetPlaceholder()...)
+		if strings.Contains(column, "->") {
+			field, path := jsonutils.ParseJsonFieldAndPath(column)
+			sb = formatJSONUpdateExpression(sb, m.u, field, path, m.u.GetPlaceholder())
+		} else {
+			sb = m.u.EscapeIdentifier(sb, column)
+			sb = append(sb, " = "+m.u.GetPlaceholder()...)
+		}
 		if i < len(columns)-1 {
 			sb = append(sb, ", "...)
 		}
