@@ -148,18 +148,14 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	// VALUES
 	estimatedSize := len(q.ValuesBatch) * len(columns)
 	if cap(allValues) < estimatedSize {
-		newAllValue := make([]interface{}, 0, estimatedSize)
-		copy(newAllValue, allValues)
-		allValues = newAllValue
+		allValues = make([]interface{}, 0, estimatedSize)
 	}
 	for i, values := range q.ValuesBatch {
-		rowValues := make([]interface{}, 0, len(columns))
-		for j := range columns {
-			if value, ok := values[columns[j]]; ok {
-				rowValues = rowValues[:len(rowValues)+1]
+		rowValues := make([]interface{}, len(columns))
+		for j, col := range columns {
+			if value, ok := values[col]; ok {
 				rowValues[j] = value
 			} else {
-				rowValues = rowValues[:len(rowValues)+1]
 				rowValues[j] = nil
 			}
 		}

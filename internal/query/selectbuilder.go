@@ -296,9 +296,7 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 	}
 	// grow the buffer if necessary
 	if cap(sb) < estimatedSize {
-		newsb := make([]byte, 0, estimatedSize)
-		copy(newsb, sb)
-		sb = newsb
+		sb = make([]byte, 0, estimatedSize)
 	}
 
 	vPtr := interfaceSlicePool.Get().(*[]interface{})
