@@ -1,9 +1,19 @@
 # goquent-query-builder
-go query builder like eloquent
 
-# Features
-- Works with MySQL, PostgreSQL(WIP)
-- Implemented up to the equivalent of Laravel 11.x (excluding JSON WHERE)
+A fluent SQL query builder for Go inspired by Laravel's Eloquent.
+
+## Features
+
+- Works with MySQL and PostgreSQL
+- Chainable builders for SELECT, INSERT, UPDATE and DELETE
+- Supports joins, grouping and aggregates
+- Build parameterized queries with bound values
+
+## Getting started
+
+See [docs/usage.md](docs/usage.md) for installation and usage details.
 
 ### Resources
-- [Examples](https://github.com/faciam-dev/goquent-query-builder/tree/master/example)
+
+- [Examples](./example)
+
