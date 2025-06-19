@@ -6,4 +6,5 @@ type SQLUtils interface {
 	EscapeIdentifierAliasedValue(sb []byte, value string) []byte
 	GetAlias(value string) string
 	GetQueryBuilderStrategy() QueryBuilderStrategy
+	Dialect() string
 }

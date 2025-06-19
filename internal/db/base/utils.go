@@ -57,6 +57,10 @@ func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 	return NewBaseQueryBuilder()
 }
 
+func (s *SQLUtils) Dialect() string {
+	return "base"
+}
+
 func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {
 	if v != "*" {
 		if eoc := strings.Index(v, "."); eoc != -1 {

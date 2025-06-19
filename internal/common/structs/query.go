@@ -93,6 +93,13 @@ type InsertQuery struct {
 	ValuesBatch []map[string]interface{}
 	Columns     []string
 	Query       *Query
+	Ignore      bool
+	Upsert      *Upsert
+}
+
+type Upsert struct {
+	UniqueColumns []string
+	UpdateColumns []string
 }
 
 type UpdateQuery struct {

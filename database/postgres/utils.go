@@ -69,6 +69,10 @@ func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 	return NewPostgreSQLQueryBuilder()
 }
 
+func (s *SQLUtils) Dialect() string {
+	return "postgres"
+}
+
 func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {
 	if v != "*" {
 		if eoc := strings.Index(v, "."); eoc != -1 {

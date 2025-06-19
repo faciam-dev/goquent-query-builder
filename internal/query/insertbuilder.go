@@ -34,6 +34,39 @@ func (ib *InsertBuilder) InsertBatch(data []map[string]interface{}) *InsertBuild
 	return ib
 }
 
+func (ib *InsertBuilder) InsertOrIgnore(data []map[string]interface{}) *InsertBuilder {
+	ib.query.ValuesBatch = data
+	ib.query.Ignore = true
+	return ib
+}
+
+func (ib *InsertBuilder) Upsert(data []map[string]interface{}, unique []string, updateColumns []string) *InsertBuilder {
+	ib.query.ValuesBatch = data
+	ib.query.Upsert = &structs.Upsert{UniqueColumns: unique, UpdateColumns: updateColumns}
+	return ib
+}
+
+func (ib *InsertBuilder) UpdateOrInsert(condition map[string]interface{}, values map[string]interface{}) *InsertBuilder {
+	merged := make(map[string]interface{})
+	for k, v := range condition {
+		merged[k] = v
+	}
+	for k, v := range values {
+		merged[k] = v
+	}
+	unique := make([]string, 0, len(condition))
+	for k := range condition {
+		unique = append(unique, k)
+	}
+	updateCols := make([]string, 0, len(values))
+	for k := range values {
+		updateCols = append(updateCols, k)
+	}
+	ib.query.ValuesBatch = []map[string]interface{}{merged}
+	ib.query.Upsert = &structs.Upsert{UniqueColumns: unique, UpdateColumns: updateCols}
+	return ib
+}
+
 func (ib *InsertBuilder) InsertUsing(columns []string, b *SelectBuilder) *InsertBuilder {
 	ib.query.Columns = columns
 

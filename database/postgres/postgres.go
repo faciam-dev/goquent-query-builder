@@ -33,6 +33,14 @@ func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
 	return queryBuilder
 }
 
+func (m PostgreSQLQueryBuilder) InsertIgnore(q *structs.InsertQuery) (string, []interface{}, error) {
+	return m.InsertBaseBuilder.InsertIgnore(q)
+}
+
+func (m PostgreSQLQueryBuilder) Upsert(q *structs.InsertQuery) (string, []interface{}, error) {
+	return m.InsertBaseBuilder.Upsert(q)
+}
+
 // Build builds the query.
 func (m PostgreSQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error) {
 	// SELECT

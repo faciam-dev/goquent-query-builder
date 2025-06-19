@@ -42,6 +42,10 @@ func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 	return NewMySQLQueryBuilder()
 }
 
+func (s *SQLUtils) Dialect() string {
+	return "mysql"
+}
+
 func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {
 	if v != "*" {
 		if eoc := strings.IndexByte(v, '.'); eoc != -1 {

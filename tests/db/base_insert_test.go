@@ -88,6 +88,32 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 				Values:   []interface{}{18},
 			},
 		},
+		{
+			"InsertIgnore",
+			"InsertIgnore",
+			&structs.InsertQuery{
+				Table:  "users",
+				Values: map[string]interface{}{"name": "John", "age": 30},
+				Ignore: true,
+			},
+			QueryBuilderExpected{
+				Expected: "INSERT IGNORE INTO `users` (`age`, `name`) VALUES (?, ?)",
+				Values:   []interface{}{30, "John"},
+			},
+		},
+		{
+			"Upsert",
+			"Upsert",
+			&structs.InsertQuery{
+				Table:       "flights",
+				ValuesBatch: []map[string]interface{}{{"departure": "Oakland", "destination": "San Diego", "price": 99}},
+				Upsert:      &structs.Upsert{UniqueColumns: []string{"departure", "destination"}, UpdateColumns: []string{"price"}},
+			},
+			QueryBuilderExpected{
+				Expected: "INSERT INTO `flights` (`departure`, `destination`, `price`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `price` = VALUES(`price`)",
+				Values:   []interface{}{"Oakland", "San Diego", 99},
+			},
+		},
 	}
 
 	builder := mysql.NewMySQLQueryBuilder()
@@ -105,6 +131,10 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 				got, gotValues, _ = builder.InsertBatch(tt.input)
 			case "InsertUsing":
 				got, gotValues, _ = builder.InsertUsing(tt.input)
+			case "InsertIgnore":
+				got, gotValues, _ = builder.InsertIgnore(tt.input)
+			case "Upsert":
+				got, gotValues, _ = builder.Upsert(tt.input)
 			}
 			if got != tt.expected.Expected {
 				t.Errorf("expected '%s' but got '%s'", tt.expected, got)
