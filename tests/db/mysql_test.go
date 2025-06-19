@@ -41,13 +41,58 @@ func TestMySQLQueryBuilder(t *testing.T) {
 				Values:   []interface{}{"search"},
 			},
 		},
+		{
+			"WhereJsonContains",
+			"Where",
+			structs.Query{
+				ConditionGroups: []structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:       "options->languages",
+								JsonContains: &structs.JsonContains{Values: []interface{}{"en"}},
+								Operator:     consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE JSON_CONTAINS(`options`, ?, '$.languages')",
+				Values:   []interface{}{"\"en\""},
+			},
+		},
+		{
+			"WhereJsonLength",
+			"Where",
+			structs.Query{
+				ConditionGroups: []structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:     "options->languages",
+								JsonLength: &structs.JsonLength{Operator: ">", Value: 1},
+								Operator:   consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE JSON_LENGTH(`options`, '$.languages') > ?",
+				Values:   []interface{}{1},
+			},
+		},
 	}
-
-	builder := mysql.NewMySQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			builder := mysql.NewMySQLQueryBuilder()
 			//sb := &strings.Builder{}
 			sb := make([]byte, 0, consts.StringBuffer_Middle_Query_Grow)
 

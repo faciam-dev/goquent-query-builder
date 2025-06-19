@@ -14,18 +14,20 @@ type Table struct {
 }
 
 type Where struct {
-	Column      string
-	Condition   string
-	Value       []interface{}
-	ValueColumn string
-	ValueMap    map[string]any
-	Operator    int
-	Query       *Query
-	Between     *WhereBetween
-	Exists      *Exists
-	FullText    *FullText
-	Raw         string
-	Function    string
+	Column       string
+	Condition    string
+	Value        []interface{}
+	ValueColumn  string
+	ValueMap     map[string]any
+	Operator     int
+	Query        *Query
+	Between      *WhereBetween
+	Exists       *Exists
+	FullText     *FullText
+	JsonContains *JsonContains
+	JsonLength   *JsonLength
+	Raw          string
+	Function     string
 }
 
 type WhereBetween struct {
@@ -45,6 +47,15 @@ type FullText struct {
 	Columns []string
 	Search  string
 	Options map[string]interface{}
+}
+
+type JsonContains struct {
+	Values []interface{}
+}
+
+type JsonLength struct {
+	Operator string
+	Value    interface{}
 }
 
 type FullTextOptions struct {

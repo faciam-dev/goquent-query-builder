@@ -1,6 +1,9 @@
 package mysql
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -57,6 +60,10 @@ func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]inter
 				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, (wg)[i].Conditions[j])...)
 			case (wg)[i].Conditions[j].FullText != nil:
 				values = append(values, wb.ProcessFullText(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].JsonContains != nil:
+				values = append(values, wb.ProcessJsonContains(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].JsonLength != nil:
+				values = append(values, wb.ProcessJsonLength(sb, (wg)[i].Conditions[j])...)
 			case (wg)[i].Conditions[j].Function != "":
 				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, (wg)[i].Conditions[j])...)
 			default:
@@ -97,4 +104,50 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inte
 	values := append(c.Value, c.FullText.Search)
 
 	return values
+}
+
+func (wb *WhereMySQLBuilder) ProcessJsonContains(sb *[]byte, c structs.Where) []interface{} {
+	field, path := parseJsonFieldAndPath(c.Column)
+	*sb = append(*sb, "JSON_CONTAINS("...)
+	*sb = wb.u.EscapeIdentifier(*sb, field)
+	*sb = append(*sb, ", "...)
+	*sb = append(*sb, wb.u.GetPlaceholder()...)
+	if path != "" {
+		*sb = append(*sb, ", '$."+path+"')"...)
+	} else {
+		*sb = append(*sb, ")"...)
+	}
+
+	var jsonVal []byte
+	if len(c.JsonContains.Values) == 1 {
+		jsonVal, _ = json.Marshal(c.JsonContains.Values[0])
+	} else {
+		jsonVal, _ = json.Marshal(c.JsonContains.Values)
+	}
+	return []interface{}{string(jsonVal)}
+}
+
+func (wb *WhereMySQLBuilder) ProcessJsonLength(sb *[]byte, c structs.Where) []interface{} {
+	field, path := parseJsonFieldAndPath(c.Column)
+	*sb = append(*sb, "JSON_LENGTH("...)
+	*sb = wb.u.EscapeIdentifier(*sb, field)
+	if path != "" {
+		*sb = append(*sb, ", '$."+path+"')"...)
+	} else {
+		*sb = append(*sb, ")"...)
+	}
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, c.JsonLength.Operator...)
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, wb.u.GetPlaceholder()...)
+	return []interface{}{c.JsonLength.Value}
+}
+
+func parseJsonFieldAndPath(column string) (string, string) {
+	parts := strings.Split(column, "->")
+	field := parts[0]
+	if len(parts) > 1 {
+		return field, strings.Join(parts[1:], ".")
+	}
+	return field, ""
 }

@@ -590,6 +590,68 @@ func (b *WhereBuilder[T]) addWhereFullText(columns []string, search string, opti
 	return b.parent
 }
 
+// WhereJsonContains adds a where json contains clause with AND operator
+func (b *WhereBuilder[T]) WhereJsonContains(column string, value interface{}) *T {
+	return b.addWhereJsonContains(column, value, consts.LogicalOperator_AND)
+}
+
+// OrWhereJsonContains adds a where json contains clause with OR operator
+func (b *WhereBuilder[T]) OrWhereJsonContains(column string, value interface{}) *T {
+	return b.addWhereJsonContains(column, value, consts.LogicalOperator_OR)
+}
+
+func (b *WhereBuilder[T]) addWhereJsonContains(column string, value interface{}, operator int) *T {
+	var values []interface{}
+	switch v := value.(type) {
+	case []interface{}:
+		values = v
+	case []string, []int, []int32, []int64, []uint, []uint32, []uint64, []float32, []float64, []bool:
+		values = sliceutils.ToInterfaceSlice(v)
+	default:
+		values = []interface{}{value}
+	}
+
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:       column,
+		JsonContains: &structs.JsonContains{Values: values},
+		Operator:     operator,
+	})
+
+	return b.parent
+}
+
+// WhereJsonLength adds a where json length clause with AND operator
+func (b *WhereBuilder[T]) WhereJsonLength(column string, args ...interface{}) *T {
+	return b.addWhereJsonLength(column, args, consts.LogicalOperator_AND)
+}
+
+// OrWhereJsonLength adds a where json length clause with OR operator
+func (b *WhereBuilder[T]) OrWhereJsonLength(column string, args ...interface{}) *T {
+	return b.addWhereJsonLength(column, args, consts.LogicalOperator_OR)
+}
+
+func (b *WhereBuilder[T]) addWhereJsonLength(column string, args []interface{}, operator int) *T {
+	if len(args) == 0 {
+		return b.parent
+	}
+	op := "="
+	val := args[0]
+	if len(args) == 2 {
+		if s, ok := args[0].(string); ok {
+			op = s
+			val = args[1]
+		}
+	}
+
+	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
+		Column:     column,
+		JsonLength: &structs.JsonLength{Operator: op, Value: val},
+		Operator:   operator,
+	})
+
+	return b.parent
+}
+
 // WhereDate adds a where date clause with AND operator
 func (b *WhereBuilder[T]) WhereDate(column string, condition string, value string) *T {
 	return b.addWhereDate(column, condition, value, consts.LogicalOperator_AND)
