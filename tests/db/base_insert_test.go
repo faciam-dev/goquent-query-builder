@@ -114,6 +114,19 @@ func TestBaseInsertQueryBuilder(t *testing.T) {
 				Values:   []interface{}{"Oakland", "San Diego", 99},
 			},
 		},
+		{
+			"UpdateOrInsert",
+			"Upsert",
+			&structs.InsertQuery{
+				Table:       "users",
+				ValuesBatch: []map[string]interface{}{{"email": "john@example.com", "name": "John"}},
+				Upsert:      &structs.Upsert{UniqueColumns: []string{"email"}, UpdateColumns: []string{"name"}},
+			},
+			QueryBuilderExpected{
+				Expected: "INSERT INTO `users` (`email`, `name`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `name` = VALUES(`name`)",
+				Values:   []interface{}{"john@example.com", "John"},
+			},
+		},
 	}
 
 	builder := mysql.NewMySQLQueryBuilder()

@@ -3,6 +3,7 @@ package mysql
 import (
 	"strings"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
@@ -43,7 +44,7 @@ func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 }
 
 func (s *SQLUtils) Dialect() string {
-	return "mysql"
+	return consts.DialectMySQL
 }
 
 func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {

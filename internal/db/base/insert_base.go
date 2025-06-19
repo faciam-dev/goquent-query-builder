@@ -92,9 +92,9 @@ func (m InsertBaseBuilder) InsertIgnore(q *structs.InsertQuery) (string, []inter
 		return "", nil, err
 	}
 
-	if m.u.Dialect() == "mysql" {
+	if m.u.Dialect() == consts.DialectMySQL {
 		query = strings.Replace(query, "INSERT INTO", "INSERT IGNORE INTO", 1)
-	} else if m.u.Dialect() == "postgres" {
+	} else if m.u.Dialect() == consts.DialectPostgreSQL {
 		query += " ON CONFLICT DO NOTHING"
 	}
 
@@ -241,7 +241,7 @@ func (m InsertBaseBuilder) Upsert(q *structs.InsertQuery) (string, []interface{}
 
 	sb := []byte(baseQuery)
 
-	if m.u.Dialect() == "mysql" {
+	if m.u.Dialect() == consts.DialectMySQL {
 		sb = append(sb, []byte(" ON DUPLICATE KEY UPDATE ")...)
 		for i, col := range q.Upsert.UpdateColumns {
 			if i > 0 {
@@ -252,7 +252,7 @@ func (m InsertBaseBuilder) Upsert(q *structs.InsertQuery) (string, []interface{}
 			sb = m.u.EscapeIdentifier(sb, col)
 			sb = append(sb, []byte(")")...)
 		}
-	} else if m.u.Dialect() == "postgres" {
+	} else if m.u.Dialect() == consts.DialectPostgreSQL {
 		sb = append(sb, []byte(" ON CONFLICT (")...)
 		for i, col := range q.Upsert.UniqueColumns {
 			if i > 0 {
@@ -287,9 +287,9 @@ func (m InsertBaseBuilder) BuildInsert(q *structs.InsertQuery) (string, []interf
 			if err != nil {
 				return "", nil, err
 			}
-			if m.u.Dialect() == "mysql" {
+			if m.u.Dialect() == consts.DialectMySQL {
 				query = strings.Replace(query, "INSERT INTO", "INSERT IGNORE INTO", 1)
-			} else if m.u.Dialect() == "postgres" {
+			} else if m.u.Dialect() == consts.DialectPostgreSQL {
 				query += " ON CONFLICT DO NOTHING"
 			}
 			return query, values, nil

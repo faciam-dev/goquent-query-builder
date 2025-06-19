@@ -69,3 +69,9 @@ const (
 	StringBuffer_Update_Grow = 128
 	StringBuffer_Delete_Grow = 128
 )
+
+const (
+	DialectBase       = "base"
+	DialectMySQL      = "mysql"
+	DialectPostgreSQL = "postgres"
+)

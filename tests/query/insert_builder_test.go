@@ -60,7 +60,7 @@ func TestInsertBuilder(t *testing.T) {
 			[]interface{}{18},
 		},
 		{
-			"InsertOrIgnore",
+			"InsertIgnore",
 			func() *query.InsertBuilder {
 				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").

@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
@@ -70,7 +71,7 @@ func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
 }
 
 func (s *SQLUtils) Dialect() string {
-	return "postgres"
+	return consts.DialectPostgreSQL
 }
 
 func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {
