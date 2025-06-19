@@ -147,10 +147,12 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 
 	// VALUES
 	estimatedSize := len(q.ValuesBatch) * len(columns)
+	// allValues was truncated to zero length above; reallocate when capacity is insufficient
 	if cap(allValues) < estimatedSize {
 		allValues = make([]interface{}, 0, estimatedSize)
 	}
 	for i, values := range q.ValuesBatch {
+		// preallocate rowValues so we can assign by index; nil remains for missing columns
 		rowValues := make([]interface{}, len(columns))
 		for j, col := range columns {
 			if value, ok := values[col]; ok {

@@ -294,7 +294,7 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 			estimatedSize += len(*(*b.selectQuery.Union)[i].Query.Joins.Joins) * consts.StringBuffer_Join_Grow
 		}
 	}
-	// grow the buffer if necessary
+	// grow the buffer if necessary; sb was reset above so no data to preserve
 	if cap(sb) < estimatedSize {
 		sb = make([]byte, 0, estimatedSize)
 	}
