@@ -1,6 +1,11 @@
 package mysql
 
 import (
+	"encoding/json"
+	"log"
+	"strings"
+
+	"github.com/faciam-dev/goquent-query-builder/internal/common/jsonutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -57,6 +62,10 @@ func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]inter
 				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, (wg)[i].Conditions[j])...)
 			case (wg)[i].Conditions[j].FullText != nil:
 				values = append(values, wb.ProcessFullText(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].JsonContains != nil:
+				values = append(values, wb.ProcessJsonContains(sb, (wg)[i].Conditions[j])...)
+			case (wg)[i].Conditions[j].JsonLength != nil:
+				values = append(values, wb.ProcessJsonLength(sb, (wg)[i].Conditions[j])...)
 			case (wg)[i].Conditions[j].Function != "":
 				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, (wg)[i].Conditions[j])...)
 			default:
@@ -97,4 +106,45 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inte
 	values := append(c.Value, c.FullText.Search)
 
 	return values
+}
+
+func (wb *WhereMySQLBuilder) ProcessJsonContains(sb *[]byte, c structs.Where) []interface{} {
+	field, path := jsonutils.ParseJsonFieldAndPath(c.Column)
+	*sb = append(*sb, "JSON_CONTAINS("...)
+	*sb = wb.u.EscapeIdentifier(*sb, field)
+	*sb = append(*sb, ", "...)
+	*sb = append(*sb, wb.u.GetPlaceholder()...)
+	if len(path) > 0 {
+		*sb = append(*sb, ", '$."+strings.Join(path, ".")+"')"...)
+	} else {
+		*sb = append(*sb, ")"...)
+	}
+
+	var jsonVal []byte
+	var err error
+	if len(c.JsonContains.Values) == 1 {
+		jsonVal, err = json.Marshal(c.JsonContains.Values[0])
+	} else {
+		jsonVal, err = json.Marshal(c.JsonContains.Values)
+	}
+	if err != nil {
+		log.Printf("json marshal error: %v", err)
+	}
+	return []interface{}{string(jsonVal)}
+}
+
+func (wb *WhereMySQLBuilder) ProcessJsonLength(sb *[]byte, c structs.Where) []interface{} {
+	field, path := jsonutils.ParseJsonFieldAndPath(c.Column)
+	*sb = append(*sb, "JSON_LENGTH("...)
+	*sb = wb.u.EscapeIdentifier(*sb, field)
+	if len(path) > 0 {
+		*sb = append(*sb, ", '$."+strings.Join(path, ".")+"')"...)
+	} else {
+		*sb = append(*sb, ")"...)
+	}
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, c.JsonLength.Operator...)
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, wb.u.GetPlaceholder()...)
+	return []interface{}{c.JsonLength.Value}
 }

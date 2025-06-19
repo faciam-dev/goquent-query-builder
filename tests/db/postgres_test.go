@@ -41,13 +41,58 @@ func TestPostgreSQLQueryBuilder(t *testing.T) {
 				Values:   []interface{}{"english", "english", "english", "search"},
 			},
 		},
+		{
+			"WhereJsonContains",
+			"Where",
+			structs.Query{
+				ConditionGroups: []structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:       "options->languages",
+								JsonContains: &structs.JsonContains{Values: []interface{}{"en"}},
+								Operator:     consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: ` WHERE ("options"->'languages')::jsonb @> $1`,
+				Values:   []interface{}{"\"en\""},
+			},
+		},
+		{
+			"WhereJsonLength",
+			"Where",
+			structs.Query{
+				ConditionGroups: []structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Column:     "options->languages",
+								JsonLength: &structs.JsonLength{Operator: ">", Value: 1},
+								Operator:   consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+						Operator:     consts.LogicalOperator_AND,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: ` WHERE jsonb_array_length(("options"->'languages')::jsonb) > $1`,
+				Values:   []interface{}{1},
+			},
+		},
 	}
-
-	builder := postgres.NewPostgreSQLQueryBuilder()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			builder := postgres.NewPostgreSQLQueryBuilder()
 			sb := make([]byte, 0, consts.StringBuffer_Middle_Query_Grow)
 
 			var got string

@@ -1,6 +1,10 @@
 package postgres
 
 import (
+	"encoding/json"
+	"log"
+
+	"github.com/faciam-dev/goquent-query-builder/internal/common/jsonutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/base"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -61,6 +65,10 @@ func (wb *WherePostgreSQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]
 					return nil, err
 				}
 				values = append(values, v...)
+			case c.JsonContains != nil:
+				values = append(values, wb.ProcessJsonContains(sb, c)...)
+			case c.JsonLength != nil:
+				values = append(values, wb.ProcessJsonLength(sb, c)...)
 			case c.Function != "":
 				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, c)...)
 			default:
@@ -112,4 +120,34 @@ func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) (
 	values = append(values, language, c.FullText.Search)
 
 	return values, nil
+}
+
+func (wb *WherePostgreSQLBuilder) ProcessJsonContains(sb *[]byte, c structs.Where) []interface{} {
+	field, path := jsonutils.ParseJsonFieldAndPath(c.Column)
+	*sb = append(*sb, jsonutils.BuildJsonPathSQL(wb.u, field, path)...)
+	*sb = append(*sb, "::jsonb @> "...)
+	*sb = append(*sb, wb.u.GetPlaceholder()...)
+
+	var jsonVal []byte
+	var err error
+	if len(c.JsonContains.Values) == 1 {
+		jsonVal, err = json.Marshal(c.JsonContains.Values[0])
+	} else {
+		jsonVal, err = json.Marshal(c.JsonContains.Values)
+	}
+	if err != nil {
+		log.Printf("json marshal error: %v", err)
+	}
+	return []interface{}{string(jsonVal)}
+}
+
+func (wb *WherePostgreSQLBuilder) ProcessJsonLength(sb *[]byte, c structs.Where) []interface{} {
+	field, path := jsonutils.ParseJsonFieldAndPath(c.Column)
+	*sb = append(*sb, "jsonb_array_length("...)
+	*sb = append(*sb, jsonutils.BuildJsonPathSQL(wb.u, field, path)...)
+	*sb = append(*sb, "::jsonb) "...)
+	*sb = append(*sb, c.JsonLength.Operator...)
+	*sb = append(*sb, " "...)
+	*sb = append(*sb, wb.u.GetPlaceholder()...)
+	return []interface{}{c.JsonLength.Value}
 }
