@@ -1,11 +1,11 @@
 package postgres
 
 import (
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/sqlutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
@@ -53,9 +53,8 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte 
 		return sb
 	}
 
-	target := regexp.MustCompile(`(?i)\s+as\s+`)
-	if target.MatchString(value) {
-		parts := target.Split(value, -1)
+	if sqlutils.AsRegexp.MatchString(value) {
+		parts := sqlutils.AsRegexp.Split(value, -1)
 		sb = s.EscapeIdentifier(sb, parts[0])
 		sb = append(sb, " as "...)
 		sb = s.EscapeIdentifier(sb, parts[1])
