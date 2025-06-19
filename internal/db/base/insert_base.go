@@ -5,6 +5,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/common/memutils"
+
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
@@ -80,6 +82,8 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 
 	query := string(sb)
 
+	memutils.ZeroBytes(sb)
+	sb = sb[:0]
 	*ptr = sb
 	poolBytes.Put(ptr)
 
@@ -179,13 +183,19 @@ func (m InsertBaseBuilder) InsertBatch(q *structs.InsertQuery) (string, []interf
 	}
 	query := string(sb)
 
+	retVals := append([]interface{}(nil), allValues...)
+
+	memutils.ZeroBytes(sb)
+	sb = sb[:0]
 	*ptr = sb
 	poolBytes.Put(ptr)
 
+	memutils.ZeroInterfaces(allValues)
+	allValues = allValues[:0]
 	*vPtr = allValues
 	poolValues.Put(vPtr)
 
-	return query, allValues, nil
+	return query, retVals, nil
 }
 
 func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []interface{}, error) {
@@ -220,10 +230,17 @@ func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []inter
 
 	query := string(sb)
 
+	// Clone selectValues to avoid clearing returned data
+	retVals := append([]interface{}(nil), selectValues...)
+
+	memutils.ZeroBytes(sb)
+	sb = sb[:0]
 	*ptr = sb
 	poolBytes.Put(ptr)
 
-	return query, selectValues, nil
+	memutils.ZeroInterfaces(selectValues)
+
+	return query, retVals, nil
 }
 
 func (m InsertBaseBuilder) Upsert(q *structs.InsertQuery) (string, []interface{}, error) {

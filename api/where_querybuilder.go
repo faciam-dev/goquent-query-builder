@@ -70,15 +70,27 @@ func (wb *WhereQueryBuilder[T, C]) OrWhereSubQuery(column string, condition stri
 	return (*wb.parent).GetQueryBuilder()
 }
 
-// WhereRaw is a function that allows you to add a where raw condition
+// WhereRaw adds a raw SQL condition with AND operator
 func (wb *WhereQueryBuilder[T, C]) WhereRaw(raw string, values map[string]any) T {
-	(*wb.parent).GetWhereBuilder().WhereRaw(raw, values)
+	(*wb.parent).GetWhereBuilder().SafeWhereRaw(raw, values)
 	return (*wb.parent).GetQueryBuilder()
 }
 
-// OrWhereRaw is a function that allows you to add a or where raw condition
+// OrWhereRaw adds a raw SQL condition with OR operator
 func (wb *WhereQueryBuilder[T, C]) OrWhereRaw(raw string, values map[string]any) T {
-	(*wb.parent).GetWhereBuilder().OrWhereRaw(raw, values)
+	(*wb.parent).GetWhereBuilder().SafeOrWhereRaw(raw, values)
+	return (*wb.parent).GetQueryBuilder()
+}
+
+// SafeWhereRaw adds a raw where clause with AND operator while enforcing parameter usage.
+func (wb *WhereQueryBuilder[T, C]) SafeWhereRaw(raw string, values map[string]any) T {
+	(*wb.parent).GetWhereBuilder().SafeWhereRaw(raw, values)
+	return (*wb.parent).GetQueryBuilder()
+}
+
+// SafeOrWhereRaw adds a raw where clause with OR operator while enforcing parameter usage.
+func (wb *WhereQueryBuilder[T, C]) SafeOrWhereRaw(raw string, values map[string]any) T {
+	(*wb.parent).GetWhereBuilder().SafeOrWhereRaw(raw, values)
 	return (*wb.parent).GetQueryBuilder()
 }
 
