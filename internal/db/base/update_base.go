@@ -14,6 +14,30 @@ type UpdateBaseBuilder struct {
 	u interfaces.SQLUtils
 }
 
+func formatJSONUpdateExpression(sb []byte, u interfaces.SQLUtils, field string, path []string, placeholder string) []byte {
+	switch u.Dialect() {
+	case consts.DialectMySQL:
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, " = JSON_SET("...)
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, ", '$."+strings.Join(path, ".")+"', "...)
+		sb = append(sb, placeholder...)
+		sb = append(sb, ')')
+	case consts.DialectPostgreSQL:
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, " = jsonb_set("...)
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, ", '{"+strings.Join(path, ",")+"}', "...)
+		sb = append(sb, placeholder...)
+		sb = append(sb, ')')
+	default:
+		sb = u.EscapeIdentifier(sb, field)
+		sb = append(sb, " = "...)
+		sb = append(sb, placeholder...)
+	}
+	return sb
+}
+
 func NewUpdateBaseBuilder(util interfaces.SQLUtils, iq *structs.UpdateQuery) *UpdateBaseBuilder {
 	return &UpdateBaseBuilder{
 		u: util,
@@ -57,25 +81,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	for i, column := range columns {
 		if strings.Contains(column, "->") {
 			field, path := jsonutils.ParseJsonFieldAndPath(column)
-			switch m.u.Dialect() {
-			case consts.DialectMySQL:
-				sb = m.u.EscapeIdentifier(sb, field)
-				sb = append(sb, " = JSON_SET("...)
-				sb = m.u.EscapeIdentifier(sb, field)
-				sb = append(sb, ", '$."+strings.Join(path, ".")+"', "...)
-				sb = append(sb, m.u.GetPlaceholder()...)
-				sb = append(sb, ')')
-			case consts.DialectPostgreSQL:
-				sb = m.u.EscapeIdentifier(sb, field)
-				sb = append(sb, " = jsonb_set("...)
-				sb = m.u.EscapeIdentifier(sb, field)
-				sb = append(sb, ", '{"+strings.Join(path, ",")+"}', "...)
-				sb = append(sb, m.u.GetPlaceholder()...)
-				sb = append(sb, ')')
-			default:
-				sb = m.u.EscapeIdentifier(sb, column)
-				sb = append(sb, " = "+m.u.GetPlaceholder()...)
-			}
+			sb = formatJSONUpdateExpression(sb, m.u, field, path, m.u.GetPlaceholder())
 		} else {
 			sb = m.u.EscapeIdentifier(sb, column)
 			sb = append(sb, " = "+m.u.GetPlaceholder()...)

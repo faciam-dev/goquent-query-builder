@@ -216,7 +216,7 @@ func TestUpdateBuilder(t *testing.T) {
 			[]interface{}{31, "Joe"},
 		},
 		{
-			"Update_json_mysql",
+			"UpdateJSONMySQL",
 			func() *query.UpdateBuilder {
 				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder()).
 					Table("users").
@@ -228,7 +228,7 @@ func TestUpdateBuilder(t *testing.T) {
 			[]interface{}{true},
 		},
 		{
-			"Update_json_postgres",
+			"UpdateJSONPostgres",
 			func() *query.UpdateBuilder {
 				return query.NewUpdateBuilder(postgres.NewPostgreSQLQueryBuilder()).
 					Table("users").
@@ -238,6 +238,30 @@ func TestUpdateBuilder(t *testing.T) {
 			},
 			`UPDATE "users" SET "options" = jsonb_set("options", '{enabled}', $1)`,
 			[]interface{}{true},
+		},
+		{
+			"UpdateJSONNestedMySQL",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder()).
+					Table("users").
+					Update(map[string]interface{}{
+						"options->settings->theme": "dark",
+					})
+			},
+			"UPDATE `users` SET `options` = JSON_SET(`options`, '$.settings.theme', ?)",
+			[]interface{}{"dark"},
+		},
+		{
+			"UpdateJSONNestedPostgres",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(postgres.NewPostgreSQLQueryBuilder()).
+					Table("users").
+					Update(map[string]interface{}{
+						"options->settings->theme": "dark",
+					})
+			},
+			`UPDATE "users" SET "options" = jsonb_set("options", '{settings,theme}', $1)`,
+			[]interface{}{"dark"},
 		},
 	}
 
