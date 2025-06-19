@@ -1,7 +1,6 @@
 package sliceutils
 
 import (
-	"log"
 	"time"
 )
 
@@ -110,15 +109,8 @@ func ToInterfaceSlice(slice interface{}) []interface{} {
 }
 
 func AppendAndExtends[T any](slice []T, elems ...T) []T {
-	for i := 0; i < len(elems); i++ {
-		if len(slice)+1 < cap(slice) {
-			log.Println(len(slice), cap(slice), i)
-			slice = slice[:len(slice)+1]
-			log.Println(len(slice), cap(slice), i)
-			slice[len(slice)] = elems[i]
-		} else if cap(slice) < len(slice)+1 {
-			slice = append(slice, elems[i])
-		}
+	for _, e := range elems {
+		slice = append(slice, e)
 	}
 
 	return slice

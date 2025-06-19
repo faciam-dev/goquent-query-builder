@@ -9,6 +9,8 @@ import (
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
 
+var asRegexp = regexp.MustCompile(`(?i)\s+as\s+`)
+
 type SQLUtils struct {
 	placeholderNumber int
 }
@@ -53,9 +55,8 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte 
 		return sb
 	}
 
-	target := regexp.MustCompile(`(?i)\s+as\s+`)
-	if target.MatchString(value) {
-		parts := target.Split(value, -1)
+	if asRegexp.MatchString(value) {
+		parts := asRegexp.Split(value, -1)
 		sb = s.EscapeIdentifier(sb, parts[0])
 		sb = append(sb, " as "...)
 		sb = s.EscapeIdentifier(sb, parts[1])
