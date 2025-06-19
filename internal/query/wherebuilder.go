@@ -54,23 +54,39 @@ func (b *WhereBuilder[T]) OrWhere(column string, condition string, value ...inte
 }
 
 // WhereRaw adds a raw where clause with AND operator
-func (b *WhereBuilder[T]) WhereRaw(column string, values map[string]any) *T {
+func (b *WhereBuilder[T]) WhereRaw(raw string, values map[string]any) *T {
+	return b.SafeWhereRaw(raw, values)
+}
+
+// OrWhereRaw adds a raw where clause with OR operator
+func (b *WhereBuilder[T]) OrWhereRaw(raw string, values map[string]any) *T {
+	return b.SafeOrWhereRaw(raw, values)
+}
+
+// SafeWhereRaw adds a raw where clause with AND operator while enforcing parameter usage.
+// It ignores calls with nil value maps to prevent accidental injection.
+func (b *WhereBuilder[T]) SafeWhereRaw(raw string, values map[string]any) *T {
+	if values == nil {
+		values = map[string]any{}
+	}
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		ValueMap: values,
-		Raw:      column,
+		Raw:      raw,
 		Operator: consts.LogicalOperator_AND,
 	})
 	return b.parent
 }
 
-// OrWhereRaw adds a raw where clause with OR operator
-func (b *WhereBuilder[T]) OrWhereRaw(column string, values map[string]any) *T {
+// SafeOrWhereRaw adds a raw where clause with OR operator while enforcing parameter usage.
+func (b *WhereBuilder[T]) SafeOrWhereRaw(raw string, values map[string]any) *T {
+	if values == nil {
+		values = map[string]any{}
+	}
 	*b.query.Conditions = append(*b.query.Conditions, structs.Where{
 		ValueMap: values,
-		Raw:      column,
+		Raw:      raw,
 		Operator: consts.LogicalOperator_OR,
 	})
-
 	return b.parent
 }
 

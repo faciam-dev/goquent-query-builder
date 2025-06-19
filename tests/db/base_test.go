@@ -316,6 +316,28 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"SafeWhereRaw",
+			"Where",
+			structs.Query{
+				ConditionGroups: []structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Raw:      "age > :age",
+								ValueMap: map[string]interface{}{"age": 25},
+								Operator: consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE age > ?",
+				Values:   []interface{}{25},
+			},
+		},
+		{
 			"WhereGroup",
 			"WhereGroup",
 			structs.Query{

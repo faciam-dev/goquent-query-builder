@@ -9,5 +9,5 @@ func Profile(query string, executeFunc func()) {
 	start := time.Now()
 	executeFunc()
 	elapsed := time.Since(start)
-	log.Printf("Query executed in %s: %s", elapsed, query)
+	log.Printf("Query executed in %s", elapsed)
 }

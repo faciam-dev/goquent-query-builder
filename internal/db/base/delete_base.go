@@ -1,6 +1,7 @@
 package base
 
 import (
+	"github.com/faciam-dev/goquent-query-builder/internal/common/memutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -72,11 +73,17 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 
 	query := string(sb)
 
+	retVals := append([]interface{}(nil), values...)
+
+	memutils.ZeroBytes(sb)
+	sb = sb[:0]
 	*ptr = sb
 	poolBytes.Put(ptr)
 
+	memutils.ZeroInterfaces(values)
+	values = values[:0]
 	*vPtr = values
 	poolValues.Put(vPtr)
 
-	return query, values, nil
+	return query, retVals, nil
 }

@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/memutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -315,17 +316,22 @@ func (b *SelectBuilder) Build() (string, []interface{}, error) {
 
 	query := string(sb)
 
+	retVals := append([]interface{}(nil), values...)
+
 	// remove the last UNION
 	*b.selectQuery.Union = (*b.selectQuery.Union)[:len(*b.selectQuery.Union)-1]
 
+	memutils.ZeroBytes(sb)
+	sb = sb[:0]
 	*ptr = sb
-
 	bytebufPool.Put(ptr)
 
+	memutils.ZeroInterfaces(values)
+	values = values[:0]
 	*vPtr = values
 	interfaceSlicePool.Put(vPtr)
 
-	return query, values, nil
+	return query, retVals, nil
 }
 
 func (b *SelectBuilder) buildQuery() {
