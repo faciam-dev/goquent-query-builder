@@ -1,14 +1,12 @@
 package base
 
 import (
-	"regexp"
 	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/sqlutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
-
-var asRegexp = regexp.MustCompile(`(?i)\s+as\s+`)
 
 type SQLUtils struct {
 }
@@ -44,8 +42,8 @@ func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte 
 		return sb
 	}
 
-	if asRegexp.MatchString(value) {
-		parts := asRegexp.Split(value, -1)
+	if sqlutils.AsRegexp.MatchString(value) {
+		parts := sqlutils.AsRegexp.Split(value, -1)
 		sb = s.EscapeIdentifier(sb, parts[0])
 		sb = append(sb, " as "...)
 		sb = s.EscapeIdentifier(sb, parts[1])
@@ -106,8 +104,8 @@ func (s *SQLUtils) GetAlias(value string) string {
 		}
 	}
 
-	if asRegexp.MatchString(value) {
-		parts := asRegexp.Split(value, -1)
+	if sqlutils.AsRegexp.MatchString(value) {
+		parts := sqlutils.AsRegexp.Split(value, -1)
 		return parts[1]
 	}
 
