@@ -230,12 +230,17 @@ func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []inter
 
 	query := string(sb)
 
+	// Clone selectValues to avoid clearing returned data
+	retVals := append([]interface{}(nil), selectValues...)
+
 	memutils.ZeroBytes(sb)
 	sb = sb[:0]
 	*ptr = sb
 	poolBytes.Put(ptr)
 
-	return query, selectValues, nil
+	memutils.ZeroInterfaces(selectValues)
+
+	return query, retVals, nil
 }
 
 func (m InsertBaseBuilder) Upsert(q *structs.InsertQuery) (string, []interface{}, error) {

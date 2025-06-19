@@ -53,12 +53,12 @@ func (b *WhereBuilder[T]) OrWhere(column string, condition string, value ...inte
 	return b.parent
 }
 
-// WhereRaw adds a raw where clause with AND operator
+// WhereRaw adds a raw SQL condition with AND operator
 func (b *WhereBuilder[T]) WhereRaw(raw string, values map[string]any) *T {
 	return b.SafeWhereRaw(raw, values)
 }
 
-// OrWhereRaw adds a raw where clause with OR operator
+// OrWhereRaw adds a raw SQL condition with OR operator
 func (b *WhereBuilder[T]) OrWhereRaw(raw string, values map[string]any) *T {
 	return b.SafeOrWhereRaw(raw, values)
 }
