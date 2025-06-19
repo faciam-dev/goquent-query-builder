@@ -33,6 +33,14 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	return queryBuilder
 }
 
+func (m MySQLQueryBuilder) InsertIgnore(q *structs.InsertQuery) (string, []interface{}, error) {
+	return m.InsertBaseBuilder.InsertIgnore(q)
+}
+
+func (m MySQLQueryBuilder) Upsert(q *structs.InsertQuery) (string, []interface{}, error) {
+	return m.InsertBaseBuilder.Upsert(q)
+}
+
 // Build builds the query.
 func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error) {
 	// SELECT

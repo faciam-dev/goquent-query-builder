@@ -30,6 +30,21 @@ func (ib *InsertQueryBuilder) InsertBatch(data []map[string]interface{}) *Insert
 	return ib
 }
 
+func (ib *InsertQueryBuilder) InsertOrIgnore(data []map[string]interface{}) *InsertQueryBuilder {
+	ib.builder.InsertOrIgnore(data)
+	return ib
+}
+
+func (ib *InsertQueryBuilder) Upsert(data []map[string]interface{}, unique []string, updateColumns []string) *InsertQueryBuilder {
+	ib.builder.Upsert(data, unique, updateColumns)
+	return ib
+}
+
+func (ib *InsertQueryBuilder) UpdateOrInsert(condition map[string]interface{}, values map[string]interface{}) *InsertQueryBuilder {
+	ib.builder.UpdateOrInsert(condition, values)
+	return ib
+}
+
 func (ib *InsertQueryBuilder) InsertUsing(columns []string, qb *SelectQueryBuilder) *InsertQueryBuilder {
 	ib.builder.InsertUsing(columns, qb.builder)
 	return ib

@@ -59,6 +59,39 @@ func TestInsertBuilder(t *testing.T) {
 			"INSERT INTO `users` (`name`, `age`) SELECT `name`, `age` FROM `profiles` WHERE `age` > ?",
 			[]interface{}{18},
 		},
+		{
+			"InsertIgnore",
+			func() *query.InsertBuilder {
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder()).
+					Table("users").
+					InsertOrIgnore([]map[string]interface{}{
+						{"name": "John", "age": 30},
+					})
+			},
+			"INSERT IGNORE INTO `users` (`age`, `name`) VALUES (?, ?)",
+			[]interface{}{30, "John"},
+		},
+		{
+			"Upsert",
+			func() *query.InsertBuilder {
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder()).
+					Table("flights").
+					Upsert([]map[string]interface{}{{"departure": "Oakland", "destination": "San Diego", "price": 99}},
+						[]string{"departure", "destination"}, []string{"price"})
+			},
+			"INSERT INTO `flights` (`departure`, `destination`, `price`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `price` = VALUES(`price`)",
+			[]interface{}{"Oakland", "San Diego", 99},
+		},
+		{
+			"UpdateOrInsert",
+			func() *query.InsertBuilder {
+				return query.NewInsertBuilder(mysql.NewMySQLQueryBuilder()).
+					Table("users").
+					UpdateOrInsert(map[string]interface{}{"email": "john@example.com"}, map[string]interface{}{"name": "John"})
+			},
+			"INSERT INTO `users` (`email`, `name`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `name` = VALUES(`name`)",
+			[]interface{}{"john@example.com", "John"},
+		},
 	}
 
 	for _, tt := range tests {

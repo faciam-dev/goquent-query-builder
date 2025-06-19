@@ -2,6 +2,7 @@ package base
 
 import (
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
@@ -81,6 +82,21 @@ func (m InsertBaseBuilder) Insert(q *structs.InsertQuery) (string, []interface{}
 
 	*ptr = sb
 	poolBytes.Put(ptr)
+
+	return query, values, nil
+}
+
+func (m InsertBaseBuilder) InsertIgnore(q *structs.InsertQuery) (string, []interface{}, error) {
+	query, values, err := m.Insert(q)
+	if err != nil {
+		return "", nil, err
+	}
+
+	if m.u.Dialect() == consts.DialectMySQL {
+		query = strings.Replace(query, "INSERT INTO", "INSERT IGNORE INTO", 1)
+	} else if m.u.Dialect() == consts.DialectPostgreSQL {
+		query += " ON CONFLICT DO NOTHING"
+	}
 
 	return query, values, nil
 }
@@ -212,13 +228,80 @@ func (m *InsertBaseBuilder) InsertUsing(q *structs.InsertQuery) (string, []inter
 	return query, selectValues, nil
 }
 
+func (m InsertBaseBuilder) Upsert(q *structs.InsertQuery) (string, []interface{}, error) {
+	// ensure ValuesBatch is set
+	if len(q.ValuesBatch) == 0 && len(q.Values) > 0 {
+		q.ValuesBatch = []map[string]interface{}{q.Values}
+	}
+
+	baseQuery, values, err := m.InsertBatch(q)
+	if err != nil {
+		return "", nil, err
+	}
+
+	sb := []byte(baseQuery)
+
+	if m.u.Dialect() == consts.DialectMySQL {
+		sb = append(sb, []byte(" ON DUPLICATE KEY UPDATE ")...)
+		for i, col := range q.Upsert.UpdateColumns {
+			if i > 0 {
+				sb = append(sb, []byte(", ")...)
+			}
+			sb = m.u.EscapeIdentifier(sb, col)
+			sb = append(sb, []byte(" = VALUES(")...)
+			sb = m.u.EscapeIdentifier(sb, col)
+			sb = append(sb, []byte(")")...)
+		}
+	} else if m.u.Dialect() == consts.DialectPostgreSQL {
+		sb = append(sb, []byte(" ON CONFLICT (")...)
+		for i, col := range q.Upsert.UniqueColumns {
+			if i > 0 {
+				sb = append(sb, []byte(", ")...)
+			}
+			sb = m.u.EscapeIdentifier(sb, col)
+		}
+		sb = append(sb, []byte(") DO UPDATE SET ")...)
+		for i, col := range q.Upsert.UpdateColumns {
+			if i > 0 {
+				sb = append(sb, []byte(", ")...)
+			}
+			sb = m.u.EscapeIdentifier(sb, col)
+			sb = append(sb, []byte(" = EXCLUDED.")...)
+			sb = m.u.EscapeIdentifier(sb, col)
+		}
+	}
+
+	return string(sb), values, nil
+}
+
 // BuildInsert builds the INSERT query.
 func (m InsertBaseBuilder) BuildInsert(q *structs.InsertQuery) (string, []interface{}, error) {
+	if q.Upsert != nil {
+		return m.Upsert(q)
+	}
+
+	if q.Ignore {
+		if len(q.ValuesBatch) > 0 {
+			// treat as single batch but with ignore
+			query, values, err := m.InsertBatch(q)
+			if err != nil {
+				return "", nil, err
+			}
+			if m.u.Dialect() == consts.DialectMySQL {
+				query = strings.Replace(query, "INSERT INTO", "INSERT IGNORE INTO", 1)
+			} else if m.u.Dialect() == consts.DialectPostgreSQL {
+				query += " ON CONFLICT DO NOTHING"
+			}
+			return query, values, nil
+		}
+		return m.InsertIgnore(q)
+	}
+
 	if q.Query != nil {
 		return m.InsertUsing(q)
 	}
 
-	if len(q.Values) > 0 {
+	if len(q.Values) > 0 && len(q.ValuesBatch) == 0 {
 		return m.Insert(q)
 	}
 
