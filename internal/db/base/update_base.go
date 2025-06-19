@@ -2,7 +2,10 @@ package base
 
 import (
 	"sort"
+	"strings"
 
+	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/jsonutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -52,8 +55,31 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 	}
 	sort.Strings(columns)
 	for i, column := range columns {
-		sb = m.u.EscapeIdentifier(sb, column)
-		sb = append(sb, " = "+m.u.GetPlaceholder()...)
+		if strings.Contains(column, "->") {
+			field, path := jsonutils.ParseJsonFieldAndPath(column)
+			switch m.u.Dialect() {
+			case consts.DialectMySQL:
+				sb = m.u.EscapeIdentifier(sb, field)
+				sb = append(sb, " = JSON_SET("...)
+				sb = m.u.EscapeIdentifier(sb, field)
+				sb = append(sb, ", '$."+strings.Join(path, ".")+"', "...)
+				sb = append(sb, m.u.GetPlaceholder()...)
+				sb = append(sb, ')')
+			case consts.DialectPostgreSQL:
+				sb = m.u.EscapeIdentifier(sb, field)
+				sb = append(sb, " = jsonb_set("...)
+				sb = m.u.EscapeIdentifier(sb, field)
+				sb = append(sb, ", '{"+strings.Join(path, ",")+"}', "...)
+				sb = append(sb, m.u.GetPlaceholder()...)
+				sb = append(sb, ')')
+			default:
+				sb = m.u.EscapeIdentifier(sb, column)
+				sb = append(sb, " = "+m.u.GetPlaceholder()...)
+			}
+		} else {
+			sb = m.u.EscapeIdentifier(sb, column)
+			sb = append(sb, " = "+m.u.GetPlaceholder()...)
+		}
 		if i < len(columns)-1 {
 			sb = append(sb, ", "...)
 		}

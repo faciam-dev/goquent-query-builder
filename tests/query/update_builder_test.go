@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
+	"github.com/faciam-dev/goquent-query-builder/database/postgres"
 	"github.com/faciam-dev/goquent-query-builder/internal/query"
 )
 
@@ -213,6 +214,30 @@ func TestUpdateBuilder(t *testing.T) {
 			},
 			"UPDATE `users` SET `age` = ?, `name` = ? ORDER BY `name` ASC",
 			[]interface{}{31, "Joe"},
+		},
+		{
+			"Update_json_mysql",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(mysql.NewMySQLQueryBuilder()).
+					Table("users").
+					Update(map[string]interface{}{
+						"options->enabled": true,
+					})
+			},
+			"UPDATE `users` SET `options` = JSON_SET(`options`, '$.enabled', ?)",
+			[]interface{}{true},
+		},
+		{
+			"Update_json_postgres",
+			func() *query.UpdateBuilder {
+				return query.NewUpdateBuilder(postgres.NewPostgreSQLQueryBuilder()).
+					Table("users").
+					Update(map[string]interface{}{
+						"options->enabled": true,
+					})
+			},
+			`UPDATE "users" SET "options" = jsonb_set("options", '{enabled}', $1)`,
+			[]interface{}{true},
 		},
 	}
 
