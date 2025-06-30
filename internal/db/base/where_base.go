@@ -233,6 +233,9 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []i
 			for key := range c.ValueMap {
 				keys = append(keys, key)
 			}
+			// Sort keys so that overlapping names are replaced starting
+			// with the longer key. This prevents shorter prefixes from
+			// being replaced inside longer keys when building the raw SQL.
 			sort.Slice(keys, func(i, j int) bool {
 				if strings.HasPrefix(keys[i], keys[j]) || strings.HasPrefix(keys[j], keys[i]) {
 					return len(keys[i]) > len(keys[j])
