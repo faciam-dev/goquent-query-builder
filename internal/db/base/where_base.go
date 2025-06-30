@@ -233,7 +233,12 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []i
 			for key := range c.ValueMap {
 				keys = append(keys, key)
 			}
-			sort.Strings(keys)
+			sort.Slice(keys, func(i, j int) bool {
+				if strings.HasPrefix(keys[i], keys[j]) || strings.HasPrefix(keys[j], keys[i]) {
+					return len(keys[i]) > len(keys[j])
+				}
+				return keys[i] < keys[j]
+			})
 			for _, key := range keys {
 				value := c.ValueMap[key]
 				if value == nil {
