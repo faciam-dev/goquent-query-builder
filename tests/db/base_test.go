@@ -338,6 +338,28 @@ func TestBaseQueryBuilder(t *testing.T) {
 			},
 		},
 		{
+			"SafeWhereRaw_PrefixKeys",
+			"Where",
+			structs.Query{
+				ConditionGroups: []structs.WhereGroup{
+					{
+						Conditions: []structs.Where{
+							{
+								Raw:      "col = :test AND col2 = :test1",
+								ValueMap: map[string]interface{}{"test": 1, "test1": 2},
+								Operator: consts.LogicalOperator_AND,
+							},
+						},
+						IsDummyGroup: true,
+					},
+				},
+			},
+			QueryBuilderExpected{
+				Expected: " WHERE col = ? AND col2 = ?",
+				Values:   []interface{}{1, 2},
+			},
+		},
+		{
 			"WhereGroup",
 			"WhereGroup",
 			structs.Query{
