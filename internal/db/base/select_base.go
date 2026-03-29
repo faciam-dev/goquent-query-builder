@@ -3,6 +3,7 @@ package base
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/sliceutils"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/sqlutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -19,16 +20,23 @@ func NewSelectBaseBuilder(u interfaces.SQLUtils, columnNames *[]string) *SelectB
 	}
 }
 
-func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableName string, joins *structs.Joins) []interface{} {
+func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableName string, joins *structs.Joins) ([]interface{}, error) {
 	if columns == nil {
 		*sb = append(*sb, "*"...)
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	outputed := false
 	// if there are no columns to select, select all columns
-	if len(*columns) == 0 && (joins.Joins != nil || joins.LateralJoins != nil) {
-		for i, join := range append(*joins.LateralJoins, *joins.Joins...) {
+	if len(*columns) == 0 && joins != nil {
+		sortedJoins := make([]structs.Join, 0)
+		if joins.LateralJoins != nil {
+			sortedJoins = append(sortedJoins, (*joins.LateralJoins)...)
+		}
+		if joins.Joins != nil {
+			sortedJoins = append(sortedJoins, (*joins.Joins)...)
+		}
+		for i, join := range sortedJoins {
 			b.processJoin(sb, &join, tableName, i)
 			outputed = true
 		}
@@ -48,7 +56,7 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 
 	if len(*columns) == 0 && !outputed {
 		*sb = append(*sb, "*"...)
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 
 	// if there are columns has values
@@ -78,7 +86,7 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 				*sb = append(*sb, "DISTINCT "...)
 			}
 			if (*columns)[i].Name != "" {
-				*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
+				*sb = b.u.EscapeAliasedValue(*sb, (*columns)[i].Name)
 			} else {
 				*sb = append(*sb, "*"...)
 			}
@@ -100,7 +108,7 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 				*sb = append(*sb, "DISTINCT "...)
 			}
 			if (*columns)[i].Name != "" {
-				*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
+				*sb = b.u.EscapeAliasedValue(*sb, (*columns)[i].Name)
 			} else {
 				*sb = append(*sb, "*"...)
 			}
@@ -112,17 +120,25 @@ func (b *SelectBaseBuilder) Select(sb *[]byte, columns *[]structs.Column, tableN
 			if i > 0 {
 				*sb = append(*sb, ", "...)
 			}
-			*sb = append(*sb, (*columns)[i].Raw...) // or colNames = column.Raw
+			rawSQL := (*columns)[i].Raw
+			if len((*columns)[i].Values) > 0 {
+				expanded, err := sqlutils.ExpandPositionalPlaceholders(rawSQL, len((*columns)[i].Values), b.u.GetPlaceholder)
+				if err != nil {
+					return nil, err
+				}
+				rawSQL = expanded
+			}
+			*sb = append(*sb, rawSQL...) // or colNames = column.Raw
 		} else if (*columns)[i].Name != "" {
 			if i > 0 {
 				*sb = append(*sb, ", "...)
 			}
 
-			*sb = b.u.EscapeIdentifierAliasedValue(*sb, (*columns)[i].Name)
+			*sb = b.u.EscapeAliasedValue(*sb, (*columns)[i].Name)
 		}
 	}
 
-	return colValues
+	return colValues, nil
 }
 
 func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableName string, idx int) {
@@ -158,12 +174,8 @@ func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableNam
 	}
 
 	wsb := make([]byte, 0, consts.StringBuffer_Short_Query_Grow)
-	alias := j.u.GetAlias(targetName)
-	if alias != "" {
-		wsb = j.u.EscapeIdentifier(wsb, alias)
-	} else {
-		wsb = j.u.EscapeIdentifier(wsb, targetName)
-	}
+	targetReference := sqlutils.RelationSelectReference(targetName)
+	wsb = j.u.EscapeReference(wsb, targetReference)
 	wsb = append(wsb, ".*"...)
 	targetNameForSelect := string(wsb)
 	wsb = wsb[:0]
@@ -178,7 +190,8 @@ func (j *SelectBaseBuilder) processJoin(sb *[]byte, join *structs.Join, tableNam
 		outputed = true
 	}
 
-	wsb = j.u.EscapeIdentifier(wsb, name)
+	nameReference := sqlutils.RelationSelectReference(name)
+	wsb = j.u.EscapeReference(wsb, nameReference)
 	wsb = append(wsb, ".*"...)
 	nameForSelect := string(wsb)
 

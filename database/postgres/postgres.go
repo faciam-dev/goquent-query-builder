@@ -18,8 +18,11 @@ type PostgreSQLQueryBuilder struct {
 }
 
 func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
+	return newPostgreSQLQueryBuilderWithUtil(NewSQLUtils())
+}
+
+func newPostgreSQLQueryBuilderWithUtil(u interfaces.SQLUtils) *PostgreSQLQueryBuilder {
 	queryBuilder := &PostgreSQLQueryBuilder{}
-	u := NewSQLUtils()
 	queryBuilder.util = u
 	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
@@ -31,6 +34,12 @@ func NewPostgreSQLQueryBuilder() *PostgreSQLQueryBuilder {
 	queryBuilder.UpdateBaseBuilder = *base.NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
 	queryBuilder.WherePostgreSQLBuilder = *NewWherePostgreSQLBuilder(u, []structs.WhereGroup{})
 	return queryBuilder
+}
+
+func (m PostgreSQLQueryBuilder) ResetPlaceholderCounter() {
+	if resetter, ok := m.util.(*SQLUtils); ok {
+		resetter.ResetPlaceholderCounter()
+	}
 }
 
 func (m PostgreSQLQueryBuilder) InsertIgnore(q *structs.InsertQuery) (string, []interface{}, error) {
@@ -45,7 +54,10 @@ func (m PostgreSQLQueryBuilder) Upsert(q *structs.InsertQuery) (string, []interf
 func (m PostgreSQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error) {
 	// SELECT
 	*sb = append(*sb, "SELECT "...)
-	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
+	colValues, err := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
+	if err != nil {
+		return nil, err
+	}
 
 	*sb = append(*sb, " "...)
 	m.From(sb, q.Table.Name)

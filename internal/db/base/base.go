@@ -23,8 +23,11 @@ type BaseQueryBuilder struct {
 }
 
 func NewBaseQueryBuilder() *BaseQueryBuilder {
+	return newBaseQueryBuilderWithUtil(NewSQLUtils())
+}
+
+func newBaseQueryBuilderWithUtil(u interfaces.SQLUtils) *BaseQueryBuilder {
 	queryBuilder := &BaseQueryBuilder{}
-	u := NewSQLUtils()
 	queryBuilder.util = u
 	queryBuilder.SelectBaseBuilder = *NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.FromBaseBuilder = *NewFromBaseBuilder(u)
@@ -38,6 +41,9 @@ func NewBaseQueryBuilder() *BaseQueryBuilder {
 	queryBuilder.UpdateBaseBuilder = *NewUpdateBaseBuilder(u, &structs.UpdateQuery{})
 	queryBuilder.DeleteBaseBuilder = *NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
 	return queryBuilder
+}
+
+func (BaseQueryBuilder) ResetPlaceholderCounter() {
 }
 
 // Lock returns the lock statement.
@@ -56,7 +62,10 @@ func (m BaseQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions
 
 	// SELECT
 	*sb = append(*sb, "SELECT "...)
-	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
+	colValues, err := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
+	if err != nil {
+		return nil, err
+	}
 
 	// FROM
 	*sb = append(*sb, " "...)

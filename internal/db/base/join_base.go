@@ -45,12 +45,11 @@ func (jb *JoinBaseBuilder) buildJoinStatement(sb *[]byte, joins *structs.Joins) 
 	}
 
 	if joins.Joins != nil {
-		var sortedJoins []structs.Join
-		if len(*joins.LateralJoins) > 0 {
-			sortedJoins = append(*joins.LateralJoins, *joins.Joins...)
-		} else {
-			sortedJoins = *joins.Joins
+		sortedJoins := make([]structs.Join, 0, len(*joins.Joins))
+		if joins.LateralJoins != nil && len(*joins.LateralJoins) > 0 {
+			sortedJoins = append(sortedJoins, (*joins.LateralJoins)...)
 		}
+		sortedJoins = append(sortedJoins, (*joins.Joins)...)
 
 		for _, join := range sortedJoins {
 			jb.appendSortedJoin(sb, join, &values)
@@ -78,9 +77,9 @@ func (jb *JoinBaseBuilder) appendJoinClause(sb *[]byte, joinClause structs.JoinC
 		v, _ := b.Build(sb, joinClause.Query, 0, nil)
 		*values = append(*values, v...)
 		*sb = append(*sb, ") as "...)
-		*sb = jb.u.EscapeIdentifier(*sb, targetName)
+		*sb = jb.u.EscapeReference(*sb, targetName)
 	} else {
-		*sb = jb.u.EscapeIdentifierAliasedValue(*sb, targetName)
+		*sb = jb.u.EscapeRelation(*sb, targetName)
 	}
 
 	*sb = append(*sb, " ON "...)
@@ -126,20 +125,20 @@ func (jb *JoinBaseBuilder) appendSortedJoin(sb *[]byte, join structs.Join, value
 		v, _ := b.Build(sb, join.Query, 0, nil)
 		*values = append(*values, v...)
 		*sb = append(*sb, ") as "...)
-		*sb = jb.u.EscapeIdentifier(*sb, targetName)
+		*sb = jb.u.EscapeReference(*sb, targetName)
 	} else {
-		*sb = jb.u.EscapeIdentifierAliasedValue(*sb, targetName)
+		*sb = jb.u.EscapeRelation(*sb, targetName)
 	}
 
 	if _, ok := join.TargetNameMap[consts.Join_CROSS]; !ok {
 		if _, ok := join.TargetNameMap[consts.Join_LATERAL]; !ok {
 			if _, ok := join.TargetNameMap[consts.Join_LEFT_LATERAL]; !ok {
 				*sb = append(*sb, " ON "...)
-				*sb = jb.u.EscapeIdentifier(*sb, join.SearchColumn)
+				*sb = jb.u.EscapeReference(*sb, join.SearchColumn)
 				*sb = append(*sb, " "...)
 				*sb = append(*sb, join.SearchCondition...)
 				*sb = append(*sb, " "...)
-				*sb = jb.u.EscapeIdentifier(*sb, join.SearchTargetColumn)
+				*sb = jb.u.EscapeReference(*sb, join.SearchTargetColumn)
 			}
 		}
 	}
@@ -149,14 +148,14 @@ func (jb *JoinBaseBuilder) appendCondition(sb *[]byte, column, condition string,
 	if *op != "" {
 		*sb = append(*sb, *op...)
 	}
-	*sb = jb.u.EscapeIdentifier(*sb, column)
+	*sb = jb.u.EscapeReference(*sb, column)
 	*sb = append(*sb, " "...)
 	*sb = append(*sb, condition...)
 	if value != nil {
 		switch castedValue := value.(type) {
 		case string:
 			*sb = append(*sb, " "...)
-			*sb = jb.u.EscapeIdentifier(*sb, castedValue) // TODO: validate this cast
+			*sb = jb.u.EscapeReference(*sb, castedValue) // TODO: validate this cast
 		default:
 			*sb = append(*sb, " "+jb.u.GetPlaceholder()...)
 		}

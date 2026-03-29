@@ -25,95 +25,26 @@ func (s *SQLUtils) GetPlaceholder() string {
 	return strings.Join([]string{"$", phn}, "")
 }
 
-func (s *SQLUtils) EscapeIdentifierAliasedValue(sb []byte, value string) []byte {
-	eoc := strings.Index(strings.ToLower(value), " as ")
-	if eoc != -1 {
-		eoc := strings.Index(value, " as ")
-		var pa, pb string
-		pa = value[:eoc]
-		pb = value[eoc+4:]
-		if eoc == -1 {
-			eoc = strings.Index(value, " AS ")
-			pa = value[:eoc]
-			pb = value[eoc+4:]
-		}
-		//split := strings.Split(v, " as ")
-		//if len(split) != 2 {
-		//	split = strings.Split(v, " AS ")
-		//}
-		if eoc != -1 {
-			sb = s.EscapeIdentifier(sb, pa)
-			sb = append(sb, " as "...)
-			sb = s.EscapeIdentifier(sb, pb)
-			return sb
-			//return s.EscapeIdentifier(sb, split[0]) + " as " + s.EscapeIdentifier(sb, split[1])
-		}
-	} else {
-		sb = s.EscapeIdentifier(sb, value)
-		return sb
-	}
+func (s *SQLUtils) ResetPlaceholderCounter() {
+	s.placeholderNumber = 0
+}
 
-	if sqlutils.AsRegexp.MatchString(value) {
-		parts := sqlutils.AsRegexp.Split(value, -1)
-		sb = s.EscapeIdentifier(sb, parts[0])
-		sb = append(sb, " as "...)
-		sb = s.EscapeIdentifier(sb, parts[1])
-		return sb
-		//return s.EscapeIdentifier(sb, parts[0]) + " as " + s.EscapeIdentifier(sb, parts[1])
-	}
+func (s *SQLUtils) EscapeRelation(sb []byte, value string) []byte {
+	return sqlutils.AppendEscapedRelation(sb, value, '"')
+}
 
-	return append(sb, value...)
+func (s *SQLUtils) EscapeReference(sb []byte, value string) []byte {
+	return sqlutils.AppendEscapedReference(sb, value, '"')
+}
+
+func (s *SQLUtils) EscapeAliasedValue(sb []byte, value string) []byte {
+	return sqlutils.AppendEscapedAliasedValue(sb, value, '"')
 }
 
 func (s *SQLUtils) GetQueryBuilderStrategy() interfaces.QueryBuilderStrategy {
-	return NewPostgreSQLQueryBuilder()
+	return newPostgreSQLQueryBuilderWithUtil(s)
 }
 
 func (s *SQLUtils) Dialect() string {
 	return consts.DialectPostgreSQL
-}
-
-func (s *SQLUtils) EscapeIdentifier(sb []byte, v string) []byte {
-	if v != "*" {
-		if eoc := strings.Index(v, "."); eoc != -1 {
-			sb = append(sb, `"`...)
-			if eo := strings.Index(v, `"`); eo != -1 {
-				sb = append(sb, strings.ReplaceAll(v[:eo], `"`, `""`)...)
-				sb = append(sb, `"."`...)
-				sb = append(sb, strings.ReplaceAll(v[eo+1:eoc], `"`, `""`)...)
-			} else {
-				sb = append(sb, v[:eoc]...)
-				sb = append(sb, `"."`...)
-				sb = append(sb, v[eoc+1:]...)
-			}
-			sb = append(sb, `"`...)
-			return sb
-		} else {
-			sb = append(sb, `"`...)
-			if eo := strings.Index(v, `"`); eo != -1 {
-				sb = append(sb, strings.ReplaceAll(v[:eo], `"`, `""`)...)
-				sb = append(sb, `"."`...)
-				sb = append(sb, strings.ReplaceAll(v[eo+1:], `"`, `""`)...)
-			} else {
-				sb = append(sb, v...)
-			}
-			sb = append(sb, `"`...)
-			return sb
-		}
-	}
-	sb = append(sb, v...)
-	return sb
-}
-
-func (s *SQLUtils) GetAlias(value string) string {
-	eoc := strings.Index(value, " as ")
-	if eoc != -1 {
-		return value[eoc+4:]
-	} else {
-		eoc = strings.Index(value, " AS ")
-		if eoc != -1 {
-			return value[eoc+4:]
-		}
-	}
-	return value
 }

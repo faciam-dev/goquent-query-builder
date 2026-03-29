@@ -18,8 +18,11 @@ type MySQLQueryBuilder struct {
 }
 
 func NewMySQLQueryBuilder() *MySQLQueryBuilder {
+	return newMySQLQueryBuilderWithUtil(NewSQLUtils())
+}
+
+func newMySQLQueryBuilderWithUtil(u interfaces.SQLUtils) *MySQLQueryBuilder {
 	queryBuilder := &MySQLQueryBuilder{}
-	u := NewSQLUtils()
 	queryBuilder.util = u
 	queryBuilder.SelectBaseBuilder = *base.NewSelectBaseBuilder(u, &[]string{})
 	queryBuilder.JoinBaseBuilder = *base.NewJoinBaseBuilder(u, &structs.Joins{})
@@ -31,6 +34,9 @@ func NewMySQLQueryBuilder() *MySQLQueryBuilder {
 	queryBuilder.InsertBaseBuilder = *base.NewInsertBaseBuilder(u, &structs.InsertQuery{})
 	queryBuilder.DeleteBaseBuilder = *base.NewDeleteBaseBuilder(u, &structs.DeleteQuery{})
 	return queryBuilder
+}
+
+func (MySQLQueryBuilder) ResetPlaceholderCounter() {
 }
 
 func (m MySQLQueryBuilder) InsertIgnore(q *structs.InsertQuery) (string, []interface{}, error) {
@@ -45,7 +51,10 @@ func (m MySQLQueryBuilder) Upsert(q *structs.InsertQuery) (string, []interface{}
 func (m MySQLQueryBuilder) Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error) {
 	// SELECT
 	*sb = append(*sb, "SELECT "...)
-	colValues := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
+	colValues, err := m.Select(sb, q.Columns, q.Table.Name, q.Joins)
+	if err != nil {
+		return nil, err
+	}
 
 	*sb = append(*sb, " "...)
 	m.From(sb, q.Table.Name)

@@ -269,6 +269,8 @@ func (b *SelectBuilder) LockForUpdate() *SelectBuilder {
 // Build generates the SQL query string and parameter values based on the query builder's current state.
 // It returns the generated query string and a slice of parameter values.
 func (b *SelectBuilder) Build() (string, []interface{}, error) {
+	b.dbBuilder.ResetPlaceholderCounter()
+
 	// last query to be built and add to the union
 	b.buildQuery()
 

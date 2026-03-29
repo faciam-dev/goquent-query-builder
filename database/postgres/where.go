@@ -54,9 +54,17 @@ func (wb *WherePostgreSQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]
 
 			switch {
 			case c.Query != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessSubQuery(sb, c)...)
+				subQueryValues, err := wb.whereBaseBuilder.ProcessSubQuery(sb, c)
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, subQueryValues...)
 			case c.Exists != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessExistsQuery(sb, c)...)
+				existsValues, err := wb.whereBaseBuilder.ProcessExistsQuery(sb, c)
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, existsValues...)
 			case c.Between != nil:
 				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, c)...)
 			case c.FullText != nil:
@@ -72,7 +80,11 @@ func (wb *WherePostgreSQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]
 			case c.Function != "":
 				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, c)...)
 			default:
-				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, c)...)
+				rawValues, err := wb.whereBaseBuilder.ProcessRawCondition(sb, c)
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, rawValues...)
 			}
 		}
 		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesClose(cg)...)
@@ -112,7 +124,7 @@ func (wb *WherePostgreSQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) (
 		*sb = append(*sb, "to_tsvector("...)
 		*sb = append(*sb, wb.u.GetPlaceholder()...)
 		*sb = append(*sb, ", "...)
-		*sb = wb.u.EscapeIdentifier(*sb, column)
+		*sb = wb.u.EscapeReference(*sb, column)
 		*sb = append(*sb, ")"...)
 		values = append(values, language)
 	}

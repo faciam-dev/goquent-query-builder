@@ -6,6 +6,7 @@ import (
 
 	"github.com/faciam-dev/goquent-query-builder/api"
 	"github.com/faciam-dev/goquent-query-builder/database/mysql"
+	"github.com/faciam-dev/goquent-query-builder/database/postgres"
 )
 
 func TestSelectDebugApiRawSqlTest(t *testing.T) {
@@ -185,6 +186,63 @@ func TestSelectDebugApiRawSqlTest(t *testing.T) {
 			}
 
 		})
+	}
+}
+
+func TestSelectDebugApiRawSqlPostgreSQLConsistency(t *testing.T) {
+	t.Parallel()
+
+	builder := api.NewSelectQueryBuilder(postgres.NewPostgreSQLQueryBuilder()).
+		Table("app.feed_entries AS feed_entries").
+		SelectRaw(`CASE WHEN viewer_sub.id IS NOT NULL AND viewer_sub.status::text <> ? THEN TRUE ELSE FALSE END AS muted_source`, "active").
+		SelectRaw(`(SELECT recommendations.reason_text FROM app.recommendations AS recommendations WHERE recommendations.user_id = ? AND recommendations.content_item_id = feed_entries.content_item_id AND recommendations.slot = ? ORDER BY recommendations.score DESC, recommendations.generated_at DESC LIMIT 1) AS recommendation_reason`, 42, "home").
+		WhereRaw(`coalesce(user_content_states.inbox_state::text, :archived_default) <> :archived`, map[string]any{
+			"archived_default": "active",
+			"archived":         "archived",
+		})
+
+	expectedQuery := `SELECT CASE WHEN viewer_sub.id IS NOT NULL AND viewer_sub.status::text <> $1 THEN TRUE ELSE FALSE END AS muted_source, (SELECT recommendations.reason_text FROM app.recommendations AS recommendations WHERE recommendations.user_id = $2 AND recommendations.content_item_id = feed_entries.content_item_id AND recommendations.slot = $3 ORDER BY recommendations.score DESC, recommendations.generated_at DESC LIMIT 1) AS recommendation_reason FROM "app"."feed_entries" as "feed_entries" WHERE coalesce(user_content_states.inbox_state::text, $4) <> $5`
+	expectedValues := []interface{}{"active", 42, "home", "active", "archived"}
+	expectedRawSQL := `SELECT CASE WHEN viewer_sub.id IS NOT NULL AND viewer_sub.status::text <> 'active' THEN TRUE ELSE FALSE END AS muted_source, (SELECT recommendations.reason_text FROM app.recommendations AS recommendations WHERE recommendations.user_id = 42 AND recommendations.content_item_id = feed_entries.content_item_id AND recommendations.slot = 'home' ORDER BY recommendations.score DESC, recommendations.generated_at DESC LIMIT 1) AS recommendation_reason FROM "app"."feed_entries" as "feed_entries" WHERE coalesce(user_content_states.inbox_state::text, 'active') <> 'archived'`
+
+	dumpQuery, dumpValues, err := builder.Dump()
+	if err != nil {
+		t.Fatalf("Dump returned error: %v", err)
+	}
+	if dumpQuery != expectedQuery {
+		t.Fatalf("expected dump query %q but got %q", expectedQuery, dumpQuery)
+	}
+	if len(dumpValues) != len(expectedValues) {
+		t.Fatalf("expected dump values %v but got %v", expectedValues, dumpValues)
+	}
+	for i := range dumpValues {
+		if dumpValues[i] != expectedValues[i] {
+			t.Fatalf("expected dump value %v at index %d but got %v", expectedValues[i], i, dumpValues[i])
+		}
+	}
+
+	buildQuery, buildValues, err := builder.Build()
+	if err != nil {
+		t.Fatalf("Build returned error: %v", err)
+	}
+	if buildQuery != expectedQuery {
+		t.Fatalf("expected build query %q but got %q", expectedQuery, buildQuery)
+	}
+	if len(buildValues) != len(expectedValues) {
+		t.Fatalf("expected build values %v but got %v", expectedValues, buildValues)
+	}
+	for i := range buildValues {
+		if buildValues[i] != expectedValues[i] {
+			t.Fatalf("expected build value %v at index %d but got %v", expectedValues[i], i, buildValues[i])
+		}
+	}
+
+	rawQuery, err := builder.RawSql()
+	if err != nil {
+		t.Fatalf("RawSql returned error: %v", err)
+	}
+	if rawQuery != expectedRawSQL {
+		t.Fatalf("expected raw SQL %q but got %q", expectedRawSQL, rawQuery)
 	}
 }
 

@@ -895,6 +895,28 @@ func TestWhereSelectBuilder(t *testing.T) {
 			[]interface{}{"New York", "John"},
 		},
 		{
+			"PostgreSQL_SchemaQualified_Aliased_Value_And_ThreePart_Reference",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).
+					Table("app.feed_entries AS feed_entries").
+					Select("app.feed_entries.id AS feed_entry_id").
+					Where("app.feed_entries.created_at", ">", "2024-01-01").
+					OrderBy("app.feed_entries.created_at", "DESC")
+			},
+			`SELECT "app"."feed_entries"."id" as "feed_entry_id" FROM "app"."feed_entries" as "feed_entries" WHERE "app"."feed_entries"."created_at" > $1 ORDER BY "app"."feed_entries"."created_at" DESC`,
+			[]interface{}{"2024-01-01"},
+		},
+		{
+			"PostgreSQL_Join_SchemaQualified_Alias_AutoSelects_Alias",
+			func() *query.SelectBuilder {
+				return query.NewSelectBuilder(postgres.NewPostgreSQLQueryBuilder()).
+					Table("app.users AS users").
+					Join("app.feed_entries AS feed_entries", "users.feed_entry_id", "=", "feed_entries.id")
+			},
+			`SELECT "feed_entries".*, "users".* FROM "app"."users" as "users" INNER JOIN "app"."feed_entries" as "feed_entries" ON "users"."feed_entry_id" = "feed_entries"."id"`,
+			nil,
+		},
+		{
 			"WhereFullText_MySQL",
 			func() *query.SelectBuilder {
 				return query.NewSelectBuilder(mysql.NewMySQLQueryBuilder()).WhereFullText([]string{"name", "note"}, "John Doe", map[string]interface{}{"mode": "boolean"})

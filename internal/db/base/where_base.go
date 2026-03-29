@@ -2,10 +2,9 @@ package base
 
 import (
 	"errors"
-	"sort"
-	"strings"
 
 	"github.com/faciam-dev/goquent-query-builder/internal/common/consts"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/sqlutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -88,9 +87,17 @@ func (wb *WhereBaseBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]interf
 
 			switch {
 			case c.Query != nil:
-				values = append(values, wb.ProcessSubQuery(sb, c)...)
+				subQueryValues, err := wb.ProcessSubQuery(sb, c)
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, subQueryValues...)
 			case c.Exists != nil:
-				values = append(values, wb.ProcessExistsQuery(sb, c)...)
+				existsValues, err := wb.ProcessExistsQuery(sb, c)
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, existsValues...)
 			case c.Between != nil:
 				values = append(values, wb.ProcessBetweenCondition(sb, c)...)
 			case c.FullText != nil:
@@ -102,7 +109,11 @@ func (wb *WhereBaseBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]interf
 			case c.Function != "":
 				values = append(values, wb.ProcessFunction(sb, c)...)
 			default:
-				values = append(values, wb.ProcessRawCondition(sb, c)...)
+				rawValues, err := wb.ProcessRawCondition(sb, c)
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, rawValues...)
 			}
 		}
 		*sb = append(*sb, wb.GetParenthesesClose(cg)...)
@@ -167,8 +178,8 @@ func (wb *WhereBaseBuilder) GetConditionOperator(c structs.Where) string {
 	return ""
 }
 
-func (wb *WhereBaseBuilder) ProcessSubQuery(sb *[]byte, c structs.Where) []interface{} {
-	*sb = wb.u.EscapeIdentifier(*sb, c.Column)
+func (wb *WhereBaseBuilder) ProcessSubQuery(sb *[]byte, c structs.Where) ([]interface{}, error) {
+	*sb = wb.u.EscapeReference(*sb, c.Column)
 	*sb = append(*sb, " "...)
 	*sb = append(*sb, c.Condition...)
 
@@ -177,39 +188,39 @@ func (wb *WhereBaseBuilder) ProcessSubQuery(sb *[]byte, c structs.Where) []inter
 	b := wb.u.GetQueryBuilderStrategy()
 	sqValues, err := b.Build(sb, c.Query, 0, nil)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	*sb = append(*sb, ")"...)
-	return sqValues
+	return sqValues, nil
 }
 
-func (wb *WhereBaseBuilder) ProcessExistsQuery(sb *[]byte, c structs.Where) []interface{} {
+func (wb *WhereBaseBuilder) ProcessExistsQuery(sb *[]byte, c structs.Where) ([]interface{}, error) {
 	*sb = append(*sb, c.Condition...)
 
 	*sb = append(*sb, " ("...)
 	b := wb.u.GetQueryBuilderStrategy()
 	sqValues, err := b.Build(sb, c.Exists.Query, 0, nil)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	*sb = append(*sb, ")"...)
 
-	return sqValues
+	return sqValues, nil
 }
 
 func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *[]byte, c structs.Where) []interface{} {
 	values := make([]interface{}, 0, 2)
 	if c.Between.IsColumn {
-		*sb = wb.u.EscapeIdentifier(*sb, c.Column)
+		*sb = wb.u.EscapeReference(*sb, c.Column)
 		*sb = append(*sb, " "...)
 		*sb = append(*sb, c.Condition...)
 		*sb = append(*sb, " "...)
-		*sb = wb.u.EscapeIdentifier(*sb, c.Between.From.(string))
+		*sb = wb.u.EscapeReference(*sb, c.Between.From.(string))
 		*sb = append(*sb, " AND "...)
-		*sb = wb.u.EscapeIdentifier(*sb, c.Between.To.(string))
+		*sb = wb.u.EscapeReference(*sb, c.Between.To.(string))
 	} else {
-		*sb = wb.u.EscapeIdentifier(*sb, c.Column)
+		*sb = wb.u.EscapeReference(*sb, c.Column)
 		*sb = append(*sb, " "...)
 		*sb = append(*sb, c.Condition...)
 		*sb = append(*sb, " "...)
@@ -222,46 +233,25 @@ func (wb *WhereBaseBuilder) ProcessBetweenCondition(sb *[]byte, c structs.Where)
 	return values
 }
 
-func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []interface{} {
+func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) ([]interface{}, error) {
 	if c.Raw != "" {
 		if c.ValueMap != nil {
-			values := make([]interface{}, 0, len(c.ValueMap))
-			rawSql := c.Raw
-			// If ValueMap is provided, we assume the raw condition is a placeholder
-			// Sort keys to ensure deterministic replacement order
-			keys := make([]string, 0, len(c.ValueMap))
-			for key := range c.ValueMap {
-				keys = append(keys, key)
-			}
-			// Sort keys so that overlapping names are replaced starting
-			// with the longer key. This prevents shorter prefixes from
-			// being replaced inside longer keys when building the raw SQL.
-			sort.Slice(keys, func(i, j int) bool {
-				if strings.HasPrefix(keys[i], keys[j]) || strings.HasPrefix(keys[j], keys[i]) {
-					return len(keys[i]) > len(keys[j])
-				}
-				return keys[i] < keys[j]
-			})
-			for _, key := range keys {
-				value := c.ValueMap[key]
-				if value == nil {
-					continue
-				}
-				rawSql = strings.Replace(rawSql, ":"+key, wb.u.GetPlaceholder(), -1)
-				values = append(values, value)
+			rawSQL, values, err := sqlutils.ExpandNamedPlaceholders(c.Raw, c.ValueMap, wb.u.GetPlaceholder)
+			if err != nil {
+				return nil, err
 			}
 
-			*sb = append(*sb, rawSql...)
-			return values
+			*sb = append(*sb, rawSQL...)
+			return values, nil
 		}
 		*sb = append(*sb, c.Raw...)
 	} else {
-		*sb = wb.u.EscapeIdentifier(*sb, c.Column)
+		*sb = wb.u.EscapeReference(*sb, c.Column)
 		*sb = append(*sb, " "...)
 		*sb = append(*sb, c.Condition...)
 		if c.ValueColumn != "" {
 			*sb = append(*sb, " "...)
-			*sb = wb.u.EscapeIdentifier(*sb, c.ValueColumn)
+			*sb = wb.u.EscapeReference(*sb, c.ValueColumn)
 		} else if c.Value != nil {
 			if c.Condition == consts.Condition_IN || c.Condition == consts.Condition_NOT_IN || len(c.Value) > 1 {
 				*sb = append(*sb, " ("...)
@@ -281,7 +271,7 @@ func (wb *WhereBaseBuilder) ProcessRawCondition(sb *[]byte, c structs.Where) []i
 
 	values := c.Value
 
-	return values
+	return values, nil
 }
 
 func (wb *WhereBaseBuilder) ProcessFullText(sb *[]byte, c structs.Where) ([]interface{}, error) {
@@ -295,12 +285,12 @@ func (wb *WhereBaseBuilder) ProcessFullText(sb *[]byte, c structs.Where) ([]inte
 func (wb *WhereBaseBuilder) ProcessFunction(sb *[]byte, c structs.Where) []interface{} {
 	*sb = append(*sb, c.Function...)
 	*sb = append(*sb, "("...)
-	*sb = wb.u.EscapeIdentifier(*sb, c.Column)
+	*sb = wb.u.EscapeReference(*sb, c.Column)
 	*sb = append(*sb, ") "...)
 	*sb = append(*sb, c.Condition...)
 	if c.ValueColumn != "" {
 		*sb = append(*sb, " "...)
-		*sb = wb.u.EscapeIdentifier(*sb, c.ValueColumn)
+		*sb = wb.u.EscapeReference(*sb, c.ValueColumn)
 	} else if c.Value != nil {
 		if c.Condition == consts.Condition_IN || c.Condition == consts.Condition_NOT_IN || len(c.Value) > 1 {
 			*sb = append(*sb, " ("...)

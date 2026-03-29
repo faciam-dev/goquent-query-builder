@@ -49,6 +49,8 @@ func (b *DeleteBuilder) Delete() *DeleteBuilder {
 }
 
 func (d *DeleteBuilder) Build() (string, []interface{}, error) {
+	d.dbBuilder.ResetPlaceholderCounter()
+
 	// If there are conditions, add them to the query
 	if len(*d.WhereBuilder.query.Conditions) > 0 {
 		d.WhereBuilder.query.ConditionGroups = append(d.WhereBuilder.query.ConditionGroups, structs.WhereGroup{

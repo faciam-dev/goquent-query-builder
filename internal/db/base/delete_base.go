@@ -2,6 +2,7 @@ package base
 
 import (
 	"github.com/faciam-dev/goquent-query-builder/internal/common/memutils"
+	"github.com/faciam-dev/goquent-query-builder/internal/common/sqlutils"
 	"github.com/faciam-dev/goquent-query-builder/internal/common/structs"
 	"github.com/faciam-dev/goquent-query-builder/internal/db/interfaces"
 )
@@ -42,12 +43,12 @@ func (m *DeleteBaseBuilder) BuildDelete(q *structs.DeleteQuery) (string, []inter
 		q.Query.Joins.Joins != nil &&
 		(len(*q.Query.Joins.Joins) > 0 || (q.Query.Joins.JoinClauses != nil && len(*q.Query.Joins.JoinClauses) > 0)) {
 		sb = append(sb, " "...)
-		sb = m.u.EscapeIdentifier(sb, q.Table)
+		sb = m.u.EscapeReference(sb, sqlutils.RelationSelectReference(q.Table))
 	}
 
 	// FROM
 	sb = append(sb, " FROM "...)
-	sb = m.u.EscapeIdentifier(sb, q.Table)
+	sb = m.u.EscapeRelation(sb, q.Table)
 
 	// JOIN
 	jb := NewJoinBaseBuilder(m.u, q.Query.Joins)

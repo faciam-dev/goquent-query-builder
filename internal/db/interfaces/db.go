@@ -5,6 +5,8 @@ import (
 )
 
 type QueryBuilderStrategy interface {
+	ResetPlaceholderCounter()
+
 	Build(sb *[]byte, q *structs.Query, number int, unions *[]structs.Union) ([]interface{}, error)
 
 	Insert(q *structs.InsertQuery) (string, []interface{}, error)

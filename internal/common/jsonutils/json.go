@@ -22,7 +22,7 @@ func ParseJsonFieldAndPath(column string) (string, []string) {
 func BuildJsonPathSQL(u interfaces.SQLUtils, field string, path []string) []byte {
 	sb := make([]byte, 0, 32)
 	sb = append(sb, '(')
-	sb = u.EscapeIdentifier(sb, field)
+	sb = u.EscapeReference(sb, field)
 	for _, p := range path {
 		sb = append(sb, "->"...)
 		sb = append(sb, '\'')

@@ -18,21 +18,21 @@ type UpdateBaseBuilder struct {
 func formatJSONUpdateExpression(sb []byte, u interfaces.SQLUtils, field string, path []string, placeholder string) []byte {
 	switch u.Dialect() {
 	case consts.DialectMySQL:
-		sb = u.EscapeIdentifier(sb, field)
+		sb = u.EscapeReference(sb, field)
 		sb = append(sb, " = JSON_SET("...)
-		sb = u.EscapeIdentifier(sb, field)
+		sb = u.EscapeReference(sb, field)
 		sb = append(sb, ", '$."+strings.Join(path, ".")+"', "...)
 		sb = append(sb, placeholder...)
 		sb = append(sb, ')')
 	case consts.DialectPostgreSQL:
-		sb = u.EscapeIdentifier(sb, field)
+		sb = u.EscapeReference(sb, field)
 		sb = append(sb, " = jsonb_set("...)
-		sb = u.EscapeIdentifier(sb, field)
+		sb = u.EscapeReference(sb, field)
 		sb = append(sb, ", '{"+strings.Join(path, ",")+"}', "...)
 		sb = append(sb, placeholder...)
 		sb = append(sb, ')')
 	default:
-		sb = u.EscapeIdentifier(sb, field)
+		sb = u.EscapeReference(sb, field)
 		sb = append(sb, " = "...)
 		sb = append(sb, placeholder...)
 	}
@@ -65,7 +65,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 
 	// UPDATE
 	sb = append(sb, "UPDATE "...)
-	sb = m.u.EscapeIdentifier(sb, q.Table)
+	sb = m.u.EscapeRelation(sb, q.Table)
 
 	// JOIN
 	b := NewJoinBaseBuilder(m.u, q.Query.Joins)
@@ -84,7 +84,7 @@ func (m *UpdateBaseBuilder) BuildUpdate(q *structs.UpdateQuery) (string, []inter
 			field, path := jsonutils.ParseJsonFieldAndPath(column)
 			sb = formatJSONUpdateExpression(sb, m.u, field, path, m.u.GetPlaceholder())
 		} else {
-			sb = m.u.EscapeIdentifier(sb, column)
+			sb = m.u.EscapeReference(sb, column)
 			sb = append(sb, " = "+m.u.GetPlaceholder()...)
 		}
 		if i < len(columns)-1 {

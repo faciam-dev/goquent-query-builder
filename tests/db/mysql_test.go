@@ -100,7 +100,7 @@ func TestMySQLQueryBuilder(t *testing.T) {
 			var gotValues []interface{} = nil
 			switch tt.method {
 			case "Select":
-				values := builder.Select(&sb, tt.input.Columns, "", nil)
+				values, _ := builder.Select(&sb, tt.input.Columns, "", nil)
 				columns := string(sb)
 				got = got + "SELECT " + columns
 				gotValues = values

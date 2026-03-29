@@ -28,7 +28,7 @@ func (g GroupByBaseBuilder) GroupBy(sb *[]byte, groupBy *structs.GroupBy) []inte
 			if i > 0 {
 				*sb = append(*sb, ", "...)
 			}
-			*sb = g.u.EscapeIdentifier(*sb, groupByColumns[i])
+			*sb = g.u.EscapeReference(*sb, groupByColumns[i])
 		}
 	}
 
@@ -72,7 +72,7 @@ func (g GroupByBaseBuilder) GroupBy(sb *[]byte, groupBy *structs.GroupBy) []inte
 				*sb = append(*sb, op...)
 				*sb = append(*sb, " "...)
 			}
-			*sb = g.u.EscapeIdentifier(*sb, (*groupBy.Having)[n].Column)
+			*sb = g.u.EscapeReference(*sb, (*groupBy.Having)[n].Column)
 			*sb = append(*sb, " "...)
 			*sb = append(*sb, (*groupBy.Having)[n].Condition...)
 			*sb = append(*sb, " "...)

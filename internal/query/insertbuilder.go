@@ -87,6 +87,7 @@ func (ib *InsertBuilder) InsertUsing(columns []string, b *SelectBuilder) *Insert
 }
 
 func (ib *InsertBuilder) Build() (string, []interface{}, error) {
+	ib.dbBuilder.ResetPlaceholderCounter()
 	query, values, err := ib.dbBuilder.BuildInsert(ib.query)
 	return query, values, err
 }

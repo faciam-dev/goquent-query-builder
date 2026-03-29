@@ -55,9 +55,17 @@ func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]inter
 
 			switch {
 			case (wg)[i].Conditions[j].Query != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessSubQuery(sb, (wg)[i].Conditions[j])...)
+				subQueryValues, err := wb.whereBaseBuilder.ProcessSubQuery(sb, (wg)[i].Conditions[j])
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, subQueryValues...)
 			case (wg)[i].Conditions[j].Exists != nil:
-				values = append(values, wb.whereBaseBuilder.ProcessExistsQuery(sb, (wg)[i].Conditions[j])...)
+				existsValues, err := wb.whereBaseBuilder.ProcessExistsQuery(sb, (wg)[i].Conditions[j])
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, existsValues...)
 			case (wg)[i].Conditions[j].Between != nil:
 				values = append(values, wb.whereBaseBuilder.ProcessBetweenCondition(sb, (wg)[i].Conditions[j])...)
 			case (wg)[i].Conditions[j].FullText != nil:
@@ -69,7 +77,11 @@ func (wb *WhereMySQLBuilder) Where(sb *[]byte, wg []structs.WhereGroup) ([]inter
 			case (wg)[i].Conditions[j].Function != "":
 				values = append(values, wb.whereBaseBuilder.ProcessFunction(sb, (wg)[i].Conditions[j])...)
 			default:
-				values = append(values, wb.whereBaseBuilder.ProcessRawCondition(sb, (wg)[i].Conditions[j])...)
+				rawValues, err := wb.whereBaseBuilder.ProcessRawCondition(sb, (wg)[i].Conditions[j])
+				if err != nil {
+					return nil, err
+				}
+				values = append(values, rawValues...)
 			}
 		}
 		*sb = append(*sb, wb.whereBaseBuilder.GetParenthesesClose((wg)[i])...)
@@ -100,7 +112,7 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inte
 		if i > 0 {
 			*sb = append(*sb, ", "...)
 		}
-		*sb = wb.u.EscapeIdentifier(*sb, column)
+		*sb = wb.u.EscapeReference(*sb, column)
 	}
 	*sb = append(*sb, ") AGAINST ("+wb.u.GetPlaceholder()+" "+mode+expand+")"...)
 	values := append(c.Value, c.FullText.Search)
@@ -111,7 +123,7 @@ func (wb *WhereMySQLBuilder) ProcessFullText(sb *[]byte, c structs.Where) []inte
 func (wb *WhereMySQLBuilder) ProcessJsonContains(sb *[]byte, c structs.Where) []interface{} {
 	field, path := jsonutils.ParseJsonFieldAndPath(c.Column)
 	*sb = append(*sb, "JSON_CONTAINS("...)
-	*sb = wb.u.EscapeIdentifier(*sb, field)
+	*sb = wb.u.EscapeReference(*sb, field)
 	*sb = append(*sb, ", "...)
 	*sb = append(*sb, wb.u.GetPlaceholder()...)
 	if len(path) > 0 {
@@ -136,7 +148,7 @@ func (wb *WhereMySQLBuilder) ProcessJsonContains(sb *[]byte, c structs.Where) []
 func (wb *WhereMySQLBuilder) ProcessJsonLength(sb *[]byte, c structs.Where) []interface{} {
 	field, path := jsonutils.ParseJsonFieldAndPath(c.Column)
 	*sb = append(*sb, "JSON_LENGTH("...)
-	*sb = wb.u.EscapeIdentifier(*sb, field)
+	*sb = wb.u.EscapeReference(*sb, field)
 	if len(path) > 0 {
 		*sb = append(*sb, ", '$."+strings.Join(path, ".")+"')"...)
 	} else {

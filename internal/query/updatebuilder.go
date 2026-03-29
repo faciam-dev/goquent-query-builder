@@ -50,6 +50,8 @@ func (b *UpdateBuilder) Update(data map[string]interface{}) *UpdateBuilder {
 }
 
 func (u *UpdateBuilder) Build() (string, []interface{}, error) {
+	u.dbBuilder.ResetPlaceholderCounter()
+
 	// If there are conditions, add them to the query
 	if len(*u.WhereBuilder.query.Conditions) > 0 {
 		u.WhereBuilder.query.ConditionGroups = append(u.WhereBuilder.query.ConditionGroups, structs.WhereGroup{
